@@ -1,0 +1,65 @@
+import type { Card, Phase, Seat } from '@shared/engine'
+
+// What one player's seat looks like to the person viewing the table.
+export interface SeatState {
+  seat: Seat
+  name: string
+  /** Chips behind, not yet bet. */
+  stack: number
+  /** Chips this player has put in during the current betting round. */
+  bet: number
+  isDealer: boolean
+  isToAct: boolean
+  /** Still playing this hand (false after folding, or while waiting for a hand). */
+  inHand: boolean
+  /**
+   * Only the viewing player's own hole cards are ever present. The opponent's are
+   * missing on purpose: the server never sends them, so the UI can only draw two
+   * face-down cards for them. (This mirrors the Firestore rule on private/{uid}.)
+   */
+  holeCards?: [Card, Card]
+}
+
+// Everything the table screen needs to draw one moment of the game.
+export interface TableState {
+  phase: Phase
+  /** Chips collected from finished betting rounds. Current bets sit in front of seats. */
+  pot: number
+  /** 0 cards preflop, 3 on the flop, 4 on the turn, 5 on the river. */
+  community: Card[]
+  /** Which seat the person looking at the screen is sitting in. */
+  mySeat: Seat
+  seats: [SeatState, SeatState]
+}
+
+// A fake hand on the flop, blinds 10/20, both players started with 1000.
+//   Preflop: seat 0 (button) raised to 60, seat 1 called, so the pot is 120.
+//   Flop A♠ K♦ 7♥: seat 1 bet 40 and it is seat 0's turn.
+// Chips check out: 940 + 900 + 120 (pot) + 40 (bet) = 2000.
+export const fakeTable: TableState = {
+  phase: 'flop',
+  pot: 120,
+  community: ['As', 'Kd', '7h'],
+  mySeat: 0,
+  seats: [
+    {
+      seat: 0,
+      name: 'You',
+      stack: 940,
+      bet: 0,
+      isDealer: true,
+      isToAct: true,
+      inHand: true,
+      holeCards: ['Qs', 'Jd'],
+    },
+    {
+      seat: 1,
+      name: 'Alex',
+      stack: 900,
+      bet: 40,
+      isDealer: false,
+      isToAct: false,
+      inHand: true,
+    },
+  ],
+}
