@@ -10,7 +10,9 @@ service cloud.firestore {
     }
 
     match /rooms/{roomId} {
-      allow read: if signedIn();
+      // You can open a table if you know its code, but nobody can list all tables.
+      allow get: if signedIn();
+      allow list: if false;
       allow write: if false;
 
       match /players/{uid} {

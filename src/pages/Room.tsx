@@ -1,50 +1,64 @@
 import { Link, useParams } from 'react-router-dom'
 import type { Action } from '@shared/engine'
-import { ActionBar } from '@/components/ActionBar'
-import { CommunityCards } from '@/components/CommunityCards'
-import { PotDisplay } from '@/components/PotDisplay'
-import { Seat } from '@/components/Seat'
-import { getBettingOptions } from '@/lib/betting'
-import { fakeTable } from '@/lib/fakeTable'
+import { JoinPrompt } from '@/components/JoinPrompt'
+import { Table } from '@/components/Table'
+import { WaitingRoom } from '@/components/WaitingRoom'
+import { fakeTable, type TableState } from '@/lib/fakeTable'
+import { useRoom } from '@/lib/useRoom'
 
-// Static table built from fake data. Real game state from Firestore replaces `table` later.
+function Message({ children }: { children: React.ReactNode }) {
+  return (
+    <main className="mx-auto flex min-h-svh max-w-md flex-col items-center justify-center gap-4 px-4 text-center">
+      <p className="text-lg">{children}</p>
+      <Link to="/" className="underline underline-offset-4">
+        Back to lobby
+      </Link>
+    </main>
+  )
+}
+
 export default function Room() {
-  const { code } = useParams<{ code: string }>()
-  const table = fakeTable
+  // The URL is /room/:code. Normalise it so "k7mq2" and "K7MQ2" are the same table.
+  const code = useParams<{ code: string }>().code?.toUpperCase()
+  if (!code) return <Message>No table code in the link.</Message>
 
-  const me = table.seats[table.mySeat]
-  const opponent = table.seats[table.mySeat === 0 ? 1 : 0]
+  // key={code}: moving to a different table remounts, so no state carries over.
+  return <RoomScreen key={code} code={code} />
+}
+
+function RoomScreen({ code }: { code: string }) {
+  const view = useRoom(code)
+
+  if (view.status === 'loading') return <Message>Loading table…</Message>
+  if (view.status === 'missing') return <Message>No table with code {code}.</Message>
+  if (view.status === 'error') return <Message>{view.message}</Message>
+
+  const { players, myUid } = view
+  const me = players.find((p) => p.uid === myUid)
+
+  // Opened an invite link without being seated yet.
+  if (!me) {
+    if (players.length >= 2) return <Message>That table is full.</Message>
+    return <JoinPrompt code={code} />
+  }
+
+  if (players.length < 2) return <WaitingRoom code={code} players={players} />
+
+  // Both seated. The real hand engine comes next; until then, show the demo hand
+  // with the real names so you can see two browsers sitting at one table.
+  const opponent = players.find((p) => p.uid !== myUid)
+  const demoTable: TableState = {
+    ...fakeTable,
+    seats: [
+      { ...fakeTable.seats[0], name: me.name },
+      { ...fakeTable.seats[1], name: opponent?.name ?? 'Opponent' },
+    ],
+  }
 
   function handleAction(action: Action) {
     // Later this calls the submitAction Cloud Function. For now it just logs.
     console.log('Action chosen:', action)
   }
 
-  return (
-    <main className="mx-auto flex min-h-svh max-w-2xl flex-col items-center gap-5 px-4 py-6">
-      <header className="flex w-full items-center justify-between text-sm text-white/60">
-        <Link to="/" className="underline underline-offset-4">
-          Leave
-        </Link>
-        <span className="tracking-widest uppercase">Table {code}</span>
-        <span className="capitalize">{table.phase}</span>
-      </header>
-
-      {/* Opponent on top, board in the middle, me at the bottom */}
-      <Seat seat={opponent} />
-
-      <section className="border-rail bg-felt-700 flex flex-col items-center gap-3 rounded-[2rem] border-4 px-4 py-6 shadow-inner sm:px-8">
-        <PotDisplay pot={table.pot} />
-        <CommunityCards cards={table.community} />
-      </section>
-
-      <Seat seat={me} />
-
-      <ActionBar
-        options={getBettingOptions(table)}
-        disabled={!me.isToAct}
-        onAction={handleAction}
-      />
-    </main>
-  )
+  return <Table table={demoTable} code={code} onAction={handleAction} />
 }

@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { httpsCallable } from 'firebase/functions'
+import { normalizeRoomCode, type Card as CardCode } from '@shared/engine'
 import { Card } from '@/components/Card'
+import { createRoom, errorMessage, joinRoom } from '@/lib/api'
 import { functions } from '@/lib/firebase'
 import { useUiStore } from '@/store/ui'
-import type { Card as CardCode } from '@shared/engine'
 
 const DEMO_FLOP: CardCode[] = ['As', 'Kd', '7h']
 
@@ -14,6 +15,34 @@ export default function Home() {
   const [code, setCode] = useState('')
   const [flopUp, setFlopUp] = useState(false)
   const [pingResult, setPingResult] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const hasName = playerName.trim().length > 0
+  const normalizedCode = normalizeRoomCode(code)
+
+  async function handleCreate() {
+    setBusy(true)
+    setError(null)
+    try {
+      navigate(`/room/${await createRoom(playerName)}`)
+    } catch (e) {
+      setError(errorMessage(e))
+      setBusy(false)
+    }
+  }
+
+  async function handleJoin() {
+    if (!normalizedCode) return
+    setBusy(true)
+    setError(null)
+    try {
+      navigate(`/room/${await joinRoom(normalizedCode, playerName)}`)
+    } catch (e) {
+      setError(errorMessage(e))
+      setBusy(false)
+    }
+  }
 
   async function testEmulator() {
     setPingResult('Calling emulator…')
@@ -57,29 +86,34 @@ export default function Home() {
         />
         <button
           type="button"
-          disabled={!playerName.trim()}
-          onClick={() => navigate('/room/demo')}
+          disabled={!hasName || busy}
+          onClick={handleCreate}
           className="bg-chip-gold rounded-lg px-4 py-3 font-semibold text-black disabled:opacity-40"
         >
-          Create table
+          {busy ? 'Working…' : 'Create table'}
         </button>
         <div className="flex gap-2">
           <input
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
-            placeholder="Room code"
+            placeholder="Table code"
             maxLength={6}
             className="min-w-0 flex-1 rounded-lg bg-white/10 px-4 py-3 tracking-widest uppercase placeholder:tracking-normal placeholder:text-white/50 focus:ring-2 focus:ring-white/60 focus:outline-none"
           />
           <button
             type="button"
-            disabled={!playerName.trim() || code.length < 4}
-            onClick={() => navigate(`/room/${code}`)}
+            disabled={!hasName || !normalizedCode || busy}
+            onClick={handleJoin}
             className="rounded-lg bg-white/15 px-4 py-3 font-semibold disabled:opacity-40"
           >
             Join
           </button>
         </div>
+        {error && (
+          <p role="alert" className="text-center text-red-300">
+            {error}
+          </p>
+        )}
       </div>
 
       <div className="text-center text-sm text-white/70">
