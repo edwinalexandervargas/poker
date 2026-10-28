@@ -117,3 +117,45 @@ Why does joinRoom use a transaction, and what could go wrong without one?
 Why can the browser read the room but not write it, and why can’t anyone list all rooms?
 What does ensureSignedIn do, and why does it wait for authStateReady() first?
 How does the waiting room update by itself when a friend joins?
+
+## 15. Room code is the document ID, from an unambiguous alphabet
+
+- **What:** A table's 5-character code is also its Firestore document ID (`rooms/K7MQ2`). The alphabet leaves out 0/O and 1/I/L.
+- **Why:** Joining is a single lookup by code, and `create()` fails if the ID exists, so two tables can never share a code (the function just retries with a new one). The alphabet means a code read aloud or typed from a text message can't be misread.
+- **Alternative I rejected:** Auto-generated IDs plus a separate "code" field, which needs a search to join and doesn't guarantee unique codes.
+- **Trade-off:** Only about 28 million codes, so a collision is possible (handled by retrying). Codes are short enough to guess, which is fine for play money, and the rules still stop anyone listing tables.
+
+## 16. Joining a table uses a transaction
+
+- **What:** `joinRoom` reads the room and its players, checks for a free seat, and writes the new player inside one Firestore transaction.
+- **Why:** "Check there's a seat, then take it" is two steps. Without a transaction, two people joining at the same moment could both see one free seat and both take it. A transaction retries if the data changed underneath it.
+- **Alternative I rejected:** A plain read followed by a plain write, which is simpler but has that race.
+- **Trade-off:** Transactions are a bit more code and can retry under contention. For two seats it costs nothing.
+
+## 17. Anonymous sign-in instead of accounts
+
+- **What:** `ensureSignedIn()` gives each browser an anonymous Firebase identity (a uid) on first use, and Firebase remembers it.
+- **Why:** Friends just want to type a name and play. A uid is still needed so the server knows who is asking and the rules can keep hole cards private.
+- **Alternative I rejected:** Email or Google login, which adds friction and isn't needed for a casual game.
+- **Trade-off:** Clearing browser data loses the identity (you'd come back as a new player), and there's no stats history across devices.
+
+## 18. Rules allow reading one table by code, but not listing tables
+
+- **What:** `rooms/{code}` allows `get` for signed-in users and denies `list` and all writes.
+- **Why:** Players need to open a table they know the code for, but nobody should be able to browse every table. All changes go through Cloud Functions, which bypass the rules.
+- **Alternative I rejected:** A single `allow read` on rooms, which would let any signed-in user list every table.
+- **Trade-off:** There's no public lobby list, which I don't need yet. If I want one later, it needs a deliberate design.
+
+## 19. The table screen follows Firestore live
+
+- **What:** `useRoom` subscribes with `onSnapshot` to the room and its players, and `Room` is keyed by the table code so switching tables gets fresh state.
+- **Why:** When a friend joins, Firestore pushes the change and the waiting room updates itself, with no polling or refresh. Keying by code avoids resetting state inside an effect, which the linter warned about.
+- **Alternative I rejected:** Polling the server every few seconds, which is slower to react and wastes requests.
+- **Trade-off:** I have to clean up the subscriptions when leaving, which the effect does, and the UI has to handle loading, missing, and error states.
+
+## 20. Heads-up seat rules, written test-first
+
+- **What:** `seats.ts` has three small functions: `otherSeat`, `getBlindSeats` (the button posts the small blind) and `firstToAct` (the button acts first preflop, last after). I wrote the functions to make a set of tests pass.
+- **Why:** The heads-up rules differ from a full table, and that's an easy place to get things wrong. Tests that state the rules first make it obvious when the code is wrong. Using the `Seat` type (0 or 1) means a bad value can't sneak in.
+- **Alternative I rejected:** Copying the full-table rule (small blind to the left of the button), which gives the wrong answer for two players. Using `1 - seat`, which TypeScript rejects because the result is a plain number.
+- **Trade-off:** Writing tests first costs a little time up front. The rules are only for two players, so a bigger table would need these functions rewritten.
