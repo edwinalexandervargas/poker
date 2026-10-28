@@ -159,3 +159,7 @@ How does the waiting room update by itself when a friend joins?
 - **Why:** The heads-up rules differ from a full table, and that's an easy place to get things wrong. Tests that state the rules first make it obvious when the code is wrong. Using the `Seat` type (0 or 1) means a bad value can't sneak in.
 - **Alternative I rejected:** Copying the full-table rule (small blind to the left of the button), which gives the wrong answer for two players. Using `1 - seat`, which TypeScript rejects because the result is a plain number.
 - **Trade-off:** Writing tests first costs a little time up front. The rules are only for two players, so a bigger table would need these functions rewritten.
+
+Why does startHand take the deck as an input instead of shuffling it itself?
+What does Math.min(smallBlind, left[...]) protect against?
+Why is the pot 0 at the start even though blinds have been paid?
