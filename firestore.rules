@@ -1,0 +1,45 @@
+rules_version = '2';
+
+// Clients can only READ game data. Every write goes through a Cloud Function
+// (Admin SDK bypasses these rules), so players can never edit pots, stacks or cards.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    match /rooms/{roomId} {
+      allow read: if signedIn();
+      allow write: if false;
+
+      match /players/{uid} {
+        allow read: if signedIn();
+        allow write: if false;
+      }
+
+      // Public table state: pot, community cards, whose turn it is.
+      match /hand/{doc} {
+        allow read: if signedIn();
+        allow write: if false;
+      }
+
+      // Append-only log the UI animates from.
+      match /events/{eventId} {
+        allow read: if signedIn();
+        allow write: if false;
+      }
+
+      // Hole cards: only the owning player may read them.
+      match /private/{uid} {
+        allow read: if signedIn() && request.auth.uid == uid;
+        allow write: if false;
+      }
+
+      // The shuffled deck: no client access at all.
+      match /secret/{doc} {
+        allow read, write: if false;
+      }
+    }
+  }
+}
