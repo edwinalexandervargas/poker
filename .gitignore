@@ -30,3 +30,4 @@ ui-debug.log
 emulator-data
 functions/lib
 firestore-debug.log
+firebase-export-*

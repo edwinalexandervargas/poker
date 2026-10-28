@@ -26,7 +26,7 @@ export function Seat({ seat }: SeatProps) {
       </div>
 
       {/* Hole cards: face up when we know them, face down when we don't. */}
-      <div className="flex min-h-28 gap-2">
+      <div className="flex min-h-24 gap-2 sm:min-h-28">
         {inHand &&
           (holeCards
             ? holeCards.map((card) => <Card key={card} card={card} faceUp />)

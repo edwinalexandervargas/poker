@@ -29,6 +29,8 @@ export interface TableState {
   community: Card[]
   /** Which seat the person looking at the screen is sitting in. */
   mySeat: Seat
+  /** The minimum opening bet, and the smallest raise increment. */
+  bigBlind: number
   seats: [SeatState, SeatState]
 }
 
@@ -41,6 +43,7 @@ export const fakeTable: TableState = {
   pot: 120,
   community: ['As', 'Kd', '7h'],
   mySeat: 0,
+  bigBlind: 20,
   seats: [
     {
       seat: 0,

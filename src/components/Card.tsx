@@ -21,7 +21,7 @@ export function Card({ card, faceUp, delay = 0, className = '' }: CardProps) {
   const displayRank = rank === 'T' ? '10' : rank
 
   return (
-    <div className={`h-28 w-20 [perspective:800px] ${className}`}>
+    <div className={`h-24 w-16 [perspective:800px] sm:h-28 sm:w-20 ${className}`}>
       <motion.div
         className="relative h-full w-full [transform-style:preserve-3d]"
         initial={false}
@@ -41,8 +41,12 @@ export function Card({ card, faceUp, delay = 0, className = '' }: CardProps) {
             suit && RED_SUITS.has(suit) ? 'text-red-600' : 'text-slate-900'
           }`}
         >
-          <span className="text-3xl leading-none font-bold">{displayRank}</span>
-          <span className="text-3xl leading-none">{suit ? SUIT_SYMBOL[suit] : ''}</span>
+          <span className="text-2xl leading-none font-bold sm:text-3xl">
+            {displayRank}
+          </span>
+          <span className="text-2xl leading-none sm:text-3xl">
+            {suit ? SUIT_SYMBOL[suit] : ''}
+          </span>
         </div>
       </motion.div>
     </div>
