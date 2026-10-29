@@ -125,6 +125,23 @@ console.log(
   `  hand ${second.handNumber}, button now on seat ${second.button}, stacks ${second.stacks.join(' / ')}, bets ${second.bets.join(' / ')}`,
 )
 
+console.log('\nPresence')
+const carol = makeClient('carol') // a stranger who never joined
+await signInAnonymously(carol.auth)
+const beat = await alice.call('heartbeat', { code })
+const aliceDoc = await alice.read(`rooms/${code}/players/${alice.auth.currentUser.uid}`)
+console.log(
+  `  Alice checks in: server clock ${beat.now}, lastSeen recorded ${aliceDoc.lastSeen}`,
+)
+if (aliceDoc.lastSeen !== beat.now) {
+  console.log('  !! lastSeen was not recorded')
+  process.exitCode = 1
+}
+await expectFailure(
+  'a stranger checks in at the table',
+  carol.call('heartbeat', { code }),
+)
+
 console.log('\nThe clock')
 const clocked = await alice.read(handPath)
 console.log(

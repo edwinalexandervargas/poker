@@ -269,3 +269,22 @@ export const claimTimeout = onCall<GameInput>(async (request) => {
     return { phase: result.state.phase }
   })
 })
+
+/**
+ * A player's open table screen checks in every few seconds. We record when, so the other
+ * player's screen can tell "away" from "thinking". Returns the server's clock so the caller
+ * can correct for its own clock being off.
+ */
+export const heartbeat = onCall<GameInput>(async (request) => {
+  const uid = requireUid(request.auth?.uid)
+  const code = requireCode(request.data?.code)
+  const now = Date.now()
+
+  try {
+    await getFirestore().doc(`rooms/${code}/players/${uid}`).update({ lastSeen: now })
+  } catch {
+    // update() fails when the document doesn't exist: this person isn't seated here.
+    throw new HttpsError('permission-denied', 'You are not seated at this table.')
+  }
+  return { now }
+})

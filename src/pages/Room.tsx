@@ -2,11 +2,14 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import type { Action, RoomDoc } from '@shared/engine'
 import { JoinPrompt } from '@/components/JoinPrompt'
+import { ConnectionBanner } from '@/components/ConnectionBanner'
 import { Table } from '@/components/Table'
 import { WaitingRoom } from '@/components/WaitingRoom'
 import { dealNextHand, errorMessage, playAction, startGame } from '@/lib/api'
+import { isAway } from '@/lib/presence'
 import { tableFromHand } from '@/lib/tableFromHand'
 import { useHand } from '@/lib/useHand'
+import { useNow, usePresence } from '@/lib/usePresence'
 import { useTimeoutClaim } from '@/lib/useTimeoutClaim'
 import { useRoom, type SeatedPlayer } from '@/lib/useRoom'
 
@@ -105,7 +108,9 @@ function Game({ code, room, players, me }: GameProps) {
   const handView = useHand(code, me.uid)
   const { pending, error, run } = useServerCall()
   // Both players' screens watch the clock; whichever gets there first asks the server to act.
-  useTimeoutClaim(code, handView.status === 'ready' ? handView.turn : null)
+  const { online, clockOffset } = usePresence(code)
+  const now = useNow(5000)
+  useTimeoutClaim(code, handView.status === 'ready' ? handView.turn : null, online)
 
   if (handView.status === 'loading') return <Message>Dealing…</Message>
   if (handView.status === 'error') return <Message>{handView.message}</Message>
@@ -119,16 +124,23 @@ function Game({ code, room, players, me }: GameProps) {
     bigBlind: room.config.bigBlind,
   })
 
+  const opponent = players.find((p) => p.seat !== me.seat)
+  const opponentAway = opponent ? isAway(opponent.lastSeen, now + clockOffset) : false
+
   return (
-    <Table
-      table={table}
-      code={code}
-      pending={pending}
-      error={error}
-      gameOver={room.status === 'finished'}
-      turn={handView.turn}
-      onAction={(action: Action) => run(() => playAction(code, action))}
-      onNextHand={() => run(() => dealNextHand(code))}
-    />
+    <>
+      {!online && <ConnectionBanner />}
+      <Table
+        table={table}
+        code={code}
+        pending={pending}
+        error={error}
+        gameOver={room.status === 'finished'}
+        turn={handView.turn}
+        opponentAway={opponentAway}
+        onAction={(action: Action) => run(() => playAction(code, action))}
+        onNextHand={() => run(() => dealNextHand(code))}
+      />
+    </>
   )
 }

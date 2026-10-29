@@ -30,6 +30,7 @@ const claimTimeoutFn = httpsCallable<{ code: string }, { phase: string }>(
   functions,
   'claimTimeout',
 )
+const heartbeatFn = httpsCallable<{ code: string }, { now: number }>(functions, 'heartbeat')
 
 export async function createRoom(name: string): Promise<string> {
   await ensureSignedIn()
@@ -65,6 +66,13 @@ export async function dealNextHand(code: string): Promise<void> {
 export async function claimTimeout(code: string): Promise<void> {
   await ensureSignedIn()
   await claimTimeoutFn({ code })
+}
+
+/** "I'm still here." Returns the server's clock in milliseconds. */
+export async function heartbeat(code: string): Promise<number> {
+  await ensureSignedIn()
+  const { data } = await heartbeatFn({ code })
+  return data.now
 }
 
 /** A message safe to show a player. The functions' own messages ("That table is full.") pass through. */

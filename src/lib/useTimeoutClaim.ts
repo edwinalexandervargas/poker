@@ -13,13 +13,15 @@ const MAX_RETRIES = 2
  * Whichever call reaches the server first wins; the other is refused, and that is fine,
  * so errors are ignored. The server is the one that checks the deadline.
  */
-export function useTimeoutClaim(code: string, turn: TurnClock | null) {
+export function useTimeoutClaim(code: string, turn: TurnClock | null, online = true) {
   const deadline = turn?.deadline ?? null
   const totalMs = turn?.totalMs ?? 0
   const clockOffset = turn?.clockOffset ?? 0
 
   useEffect(() => {
-    if (deadline === null) return
+    // Offline, a request can't get through. When we come back online this runs again, so a
+    // deadline that passed while we were away is claimed straight away.
+    if (deadline === null || !online) return
 
     let cancelled = false
     let timer: ReturnType<typeof setTimeout>
@@ -42,5 +44,5 @@ export function useTimeoutClaim(code: string, turn: TurnClock | null) {
       cancelled = true
       clearTimeout(timer)
     }
-  }, [code, deadline, totalMs, clockOffset])
+  }, [code, deadline, totalMs, clockOffset, online])
 }

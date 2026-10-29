@@ -37,6 +37,8 @@ export interface PlayerDoc {
   seat: Seat
   stack: number
   connected: boolean
+  /** The server's clock (ms) when this player's screen last checked in. Missing until then. */
+  lastSeen?: number
 }
 
 /** A random room code such as "K7MQ2". */

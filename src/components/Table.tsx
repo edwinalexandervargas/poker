@@ -24,6 +24,8 @@ interface TableProps {
   gameOver?: boolean
   /** The countdown for whoever is on the clock. */
   turn?: TurnClock | null
+  /** The opponent's screen has stopped checking in. */
+  opponentAway?: boolean
 }
 
 /** The whole table screen. It draws whatever TableState it is given. */
@@ -36,6 +38,7 @@ export function Table({
   onNextHand,
   gameOver = false,
   turn = null,
+  opponentAway = false,
 }: TableProps) {
   const me = table.seats[table.mySeat]
   const opponent = table.seats[table.mySeat === 0 ? 1 : 0]
@@ -59,6 +62,11 @@ export function Table({
 
       {/* Opponent on top, board in the middle, me at the bottom */}
       <Seat seat={opponent} />
+      {opponentAway && (
+        <p role="status" className="rounded-full bg-black/40 px-3 py-1 text-sm text-white/70">
+          {opponent.name} seems to be away. The clock keeps running.
+        </p>
+      )}
 
       <section className="border-rail bg-felt-700 flex flex-col items-center gap-3 rounded-[2rem] border-4 px-4 py-6 shadow-inner sm:px-8">
         <PotDisplay pot={table.pot} />
