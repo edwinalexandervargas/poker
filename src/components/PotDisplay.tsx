@@ -9,7 +9,7 @@ export function PotDisplay({ pot }: PotDisplayProps) {
   return (
     <div className="flex flex-col items-center gap-1">
       {/* Reserve the height so the board doesn't jump when the pot first appears. */}
-      <div className="flex h-8 items-end sm:h-12">
+      <div className="landscape-phone:hidden flex h-8 items-end sm:h-12">
         <ChipStack amount={pot} size="sm" />
       </div>
       <div className="glass-dark flex items-baseline gap-2 rounded-full px-4 py-1.5">
