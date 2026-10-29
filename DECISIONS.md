@@ -338,3 +338,27 @@ Each entry: what I did, why, what else I considered, and what it costs.
 - **Why:** Only the server knows both states for certain, so the log can never disagree with the game, and a client can't write a fake line because clients can't write at all. Keeping the wording in the engine means it's tested like everything else (11 tests). One combined sort field avoids needing a composite Firestore index.
 - **Alternative I rejected:** Each screen working out the lines by comparing snapshots. It misses moves when two arrive close together or the tab was asleep, and every screen could tell a slightly different story.
 - **Trade-off:** One extra small write per line, which is nothing at this scale. Old lines are never deleted, but only the newest 40 are downloaded.
+
+## 48. Hand history is built from the action log, loaded only when opened
+
+- **What:** The History panel downloads the last 500 log lines once, when it's opened, and `groupByHand` turns them into a list of hands, newest first. Each hand shows who won and opens into its full play-by-play.
+- **Why:** The log already has every line, tagged with its hand number, so history needs no new data or server code. Loading once instead of listening live means it costs nothing while it's closed.
+- **Trade-off:** An open history doesn't update by itself, so you reopen it to see the latest hand. Lines like "Dan sits down" stay with the hand they happened during.
+
+## 49. The scoreboard measures chips against everything bought in
+
+- **What:** `standings` gives each player their chips, what they've bought in for (the starting stack times one plus their rebuys), and the difference, best first. It's in a Scores panel and on the game-over screen.
+- **Why:** "Who's up tonight?" is the question at the end of a home game, and rebuys make stack size alone misleading. It's a pure engine function with tests, including "with no rebuys the results add up to zero".
+- **Trade-off:** Chips on the player documents only change when a hand ends, so the scoreboard reflects the last finished hand, not chips currently bet.
+
+## 50. Emoji reactions from a fixed list, with a server-side cooldown
+
+- **What:** Six emojis (👍 😂 😮 😬 🔥 🙏). The `react` function only accepts those, at most one per player every 1.5 seconds, and stores the latest on the player's document. A bubble pops over that seat for 4 seconds on every screen.
+- **Why:** A fixed list gives the fun of chat without moderating free text, and the cooldown stops flooding. Storing it on the player document means screens see it through the player list they already follow, with no new listener. The bubble works out what to show while rendering and uses a timer only to hide it, so a reaction that's already old when someone reloads isn't replayed.
+- **Trade-off:** Only the latest reaction per player is kept, and they aren't logged. Fine for a bit of table banter.
+
+## 51. Installable as an app, without a service worker
+
+- **What:** A web app manifest (name, colours, standalone display, 192/512 px icons plus a maskable one), an Apple touch icon and the iPhone meta tags, and a new spade icon replacing the default Vite logo.
+- **Why:** On the home screen it opens full-screen like a real app, which is how friends will actually use it. I left out a service worker on purpose: the game only works online, so offline caching would add complexity and stale-version bugs for no benefit. Current Chrome doesn't require one to install.
+- **Trade-off:** No offline page. If the connection drops, the app shows the offline banner like the website does.

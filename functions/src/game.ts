@@ -21,7 +21,9 @@ import {
 } from 'firebase-admin/firestore'
 import { HttpsError, onCall } from 'firebase-functions/v2/https'
 import {
+  canReactAgain,
   canRebuy,
+  isReaction,
   createDeck,
   describeEnd,
   describeMove,
@@ -388,5 +390,32 @@ export const rebuy = onCall<GameInput>(async (request) => {
       text: `${me.name} rebuys for ${stack.toLocaleString('en-US')}`,
     })
     return { stack }
+  })
+})
+
+/**
+ * A seated player sends an emoji reaction. Only the fixed list of emojis is accepted, and one
+ * per player every REACTION_COOLDOWN_MS, so nobody can post text or flood the table. It's
+ * stored on their player document, so every screen sees it with the player list it already
+ * follows.
+ */
+export const react = onCall<GameInput & { emoji?: unknown }>(async (request) => {
+  const uid = requireUid(request.auth?.uid)
+  const code = requireCode(request.data?.code)
+  const emoji = request.data?.emoji
+  if (!isReaction(emoji))
+    throw new HttpsError('invalid-argument', 'That reaction is not allowed.')
+
+  return getFirestore().runTransaction(async (tx) => {
+    const table = await readTable(tx, code)
+    const me = requireSeated(table, uid)
+    const now = Date.now()
+    if (!canReactAgain(me.reaction?.at, now)) {
+      throw new HttpsError('resource-exhausted', 'Easy there. One reaction at a time.')
+    }
+    tx.update(table.roomRef.collection('players').doc(uid), {
+      reaction: { emoji, at: now },
+    })
+    return { at: now }
   })
 })

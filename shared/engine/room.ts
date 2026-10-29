@@ -41,6 +41,8 @@ export interface PlayerDoc {
   lastSeen?: number
   /** How many times this player has bought back in after busting. Missing means never. */
   rebuys?: number
+  /** Their latest emoji reaction and when it was sent (server clock, ms). */
+  reaction?: { emoji: string; at: number }
 }
 
 /** A random room code such as "K7MQ2". */

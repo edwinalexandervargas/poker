@@ -62,6 +62,10 @@ Cover the answer, say it out loud, then compare. Each answer is short on purpose
 
 39. **How does the action log work?** After each move, the server compares the hand before and after and writes lines like "Alex raises to 80" to an `events` collection, and every screen follows the newest 40. The wording is a pure, tested engine function, and only the server writes, so the log can't be faked or get out of sync. [47]
 
+40. **How do you stop people spamming reactions?** The server only accepts six fixed emojis, never free text, and refuses a second one within 1.5 seconds. Both rules are pure functions with tests, and the server is where they're enforced. [50]
+41. **Why no service worker for your PWA?** The game only works online, so offline caching would only add the risk of serving an old version. The manifest and icons are enough to install it to the home screen. [51]
+42. **How does the scoreboard handle rebuys?** Each rebuy counts as another buy-in, so a player who rebought twice is measured against 3,000, not 1,000. A test checks that with no rebuys everyone's results add up to zero. [49]
+
 ## Honest limitations (say these before they ask)
 
 - It's deployed, but without App Check, so anyone with the web settings could call the functions (they still enforce every rule). [39]

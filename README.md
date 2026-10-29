@@ -74,7 +74,7 @@ A hand is stored in three places, written together in one transaction:
 
 ## Status
 
-Done: rooms for up to 8 players (joining between hands, busted players sit out), the full hand engine (blinds, betting, all-ins, side pots, showdown, split pots, next hand), the server functions, the live table, the result banner, a 30-second turn clock with automatic timeout, reconnect handling (heartbeat, "away" notice, offline banner), chip stacks, and the shuffle and deal animation.
+Done: rooms for up to 8 players (joining between hands, busted players sit out), the full hand engine (blinds, betting, all-ins, side pots, showdown, split pots, next hand), the server functions, the live table, the result banner, an action log, hand history, a scoreboard counting rebuys, emoji reactions, installable as an app, a 30-second turn clock with automatic timeout, reconnect handling (heartbeat, "away" notice, offline banner), chip stacks, and the shuffle and deal animation.
 
 Not done yet:
 

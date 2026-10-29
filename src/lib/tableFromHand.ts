@@ -55,6 +55,7 @@ export function tableFromHand({
       inHand: dealtIn && !folded,
       dealtIn,
       away: awaySeats?.has(seat) ?? false,
+      reaction: player.reaction,
       holeCards: seat === mySeat ? asPair(mine) : asPair(hand.shown?.[seat]),
     }
   }

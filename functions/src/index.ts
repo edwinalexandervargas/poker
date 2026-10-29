@@ -149,6 +149,7 @@ export {
   dealNextHand,
   heartbeat,
   playAction,
+  react,
   rebuy,
   startGame,
 } from './game.js'

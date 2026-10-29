@@ -2,12 +2,20 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import type { Action, RoomDoc, Seat } from '@shared/engine'
 import { canRebuy } from '@shared/engine/room'
+import { standings } from '@shared/engine/standings'
 import { MAX_SEATS } from '@shared/engine/types'
 import { JoinPrompt } from '@/components/JoinPrompt'
 import { ConnectionBanner } from '@/components/ConnectionBanner'
 import { Table } from '@/components/Table'
 import { WaitingRoom } from '@/components/WaitingRoom'
-import { dealNextHand, errorMessage, playAction, rebuy, startGame } from '@/lib/api'
+import {
+  dealNextHand,
+  errorMessage,
+  playAction,
+  react,
+  rebuy,
+  startGame,
+} from '@/lib/api'
 import { isAway } from '@/lib/presence'
 import { tableFromHand } from '@/lib/tableFromHand'
 import { useEvents } from '@/lib/useEvents'
@@ -154,6 +162,9 @@ function Game({ code, room, players, me }: GameProps) {
         rebuyAmount={room.config.startingStack}
         onRebuy={() => run(() => rebuy(code))}
         log={log}
+        standings={standings(players, room.config.startingStack)}
+        // Reactions are fire-and-forget: a refusal (too fast) isn't worth an error message.
+        onReact={(emoji) => void react(code, emoji).catch(() => {})}
       />
     </>
   )

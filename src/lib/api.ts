@@ -35,6 +35,10 @@ const heartbeatFn = httpsCallable<{ code: string }, { now: number }>(
   'heartbeat',
 )
 const rebuyFn = httpsCallable<{ code: string }, { stack: number }>(functions, 'rebuy')
+const reactFn = httpsCallable<{ code: string; emoji: string }, { at: number }>(
+  functions,
+  'react',
+)
 
 export async function createRoom(name: string): Promise<string> {
   await ensureSignedIn()
@@ -61,6 +65,12 @@ export async function playAction(code: string, action: Action): Promise<void> {
 }
 
 /** After a hand ends, deal the next one (or end the game if someone is out of chips). */
+/** Send an emoji reaction to the table. */
+export async function react(code: string, emoji: string): Promise<void> {
+  await ensureSignedIn()
+  await reactFn({ code, emoji })
+}
+
 /** A busted player buys back in for the starting stack, dealt in from the next hand. */
 export async function rebuy(code: string): Promise<void> {
   await ensureSignedIn()

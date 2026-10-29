@@ -1,5 +1,7 @@
 import { AnimatePresence } from 'motion/react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import type { Standing } from '@shared/engine'
 import type { Action } from '@shared/engine'
 import { MAX_SEATS } from '@shared/engine/types'
 import { ActionBar } from '@/components/ActionBar'
@@ -7,8 +9,12 @@ import { ActionLog } from '@/components/ActionLog'
 import { BetChips } from '@/components/BetChips'
 import { CommunityCards } from '@/components/CommunityCards'
 import { Deck } from '@/components/Deck'
+import { HandHistory } from '@/components/HandHistory'
+import { Modal } from '@/components/Modal'
 import { OpponentSeat } from '@/components/OpponentSeat'
 import { PotDisplay } from '@/components/PotDisplay'
+import { ReactionPicker } from '@/components/ReactionPicker'
+import { Scoreboard } from '@/components/Scoreboard'
 import { Seat } from '@/components/Seat'
 import { TurnTimer } from '@/components/TurnTimer'
 import { getBettingOptions } from '@/lib/betting'
@@ -39,6 +45,10 @@ interface TableProps {
   onRebuy?: () => void
   /** The action log, oldest line first. */
   log?: LogLine[]
+  /** Who's up and who's down tonight. */
+  standings?: Standing[]
+  /** Send an emoji reaction. */
+  onReact?: (emoji: string) => void
 }
 
 /** The whole table screen. It draws whatever TableState it is given. */
@@ -55,7 +65,10 @@ export function Table({
   rebuyAmount = 0,
   onRebuy,
   log = [],
+  standings = [],
+  onReact,
 }: TableProps) {
+  const [panel, setPanel] = useState<'scores' | 'history' | null>(null)
   const me = seatAt(table, table.mySeat)!
   const others = table.seats.filter((s) => s.seat !== table.mySeat)
   const handOver = table.phase === 'complete'
@@ -84,8 +97,37 @@ export function Table({
           Leave
         </Link>
         <span className="tracking-widest uppercase">Table {code}</span>
-        <span className="capitalize">{table.phase}</span>
+        <span className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => setPanel('scores')}
+            className="underline underline-offset-4"
+          >
+            Scores
+          </button>
+          <button
+            type="button"
+            onClick={() => setPanel('history')}
+            className="underline underline-offset-4"
+          >
+            History
+          </button>
+        </span>
       </header>
+
+      {panel === 'scores' && (
+        <Modal title="Tonight's results" onClose={() => setPanel(null)}>
+          <Scoreboard rows={standings} mySeat={table.mySeat} />
+          <p className="mt-3 text-xs text-white/50">
+            Updated when each hand ends. Rebuys count as another buy-in.
+          </p>
+        </Modal>
+      )}
+      {panel === 'history' && (
+        <Modal title="Hand history" onClose={() => setPanel(null)}>
+          <HandHistory code={code} />
+        </Modal>
+      )}
 
       {/* The table: everyone else around the oval, board and pot in the middle. */}
       <div className="relative mt-2 aspect-[4/5] w-full max-w-2xl sm:aspect-[16/11]">
@@ -172,11 +214,16 @@ export function Table({
             </p>
           )}
           {gameOver ? (
-            <p className="text-lg font-bold">
-              {me.stack > 0
-                ? 'You won the game!'
-                : `${table.seats.find((s) => s.stack > 0)?.name ?? 'Someone'} won the game.`}
-            </p>
+            <>
+              <p className="text-lg font-bold">
+                {me.stack > 0
+                  ? 'You won the game!'
+                  : `${table.seats.find((s) => s.stack > 0)?.name ?? 'Someone'} won the game.`}
+              </p>
+              <div className="w-full text-left">
+                <Scoreboard rows={standings} mySeat={table.mySeat} />
+              </div>
+            </>
           ) : (
             <>
               {!resultText && <p className="text-lg font-bold">Hand over</p>}
@@ -216,6 +263,7 @@ export function Table({
         </>
       )}
 
+      {onReact && <ReactionPicker onReact={onReact} />}
       <ActionLog lines={log} />
 
       {error && (
