@@ -9,4 +9,6 @@ declare module 'pokersolver' {
     static winners(hands: Hand[]): Hand[]
     compare(other: Hand): number
   }
+  const pokersolver: { Hand: typeof Hand }
+  export default pokersolver
 }
