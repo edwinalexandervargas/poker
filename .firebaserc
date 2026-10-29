@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "demo-poker"
+    "default": "demo-poker",
+    "production": "poker-fb69e"
   }
 }

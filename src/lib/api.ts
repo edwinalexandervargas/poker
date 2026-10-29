@@ -30,7 +30,10 @@ const claimTimeoutFn = httpsCallable<{ code: string }, { phase: string }>(
   functions,
   'claimTimeout',
 )
-const heartbeatFn = httpsCallable<{ code: string }, { now: number }>(functions, 'heartbeat')
+const heartbeatFn = httpsCallable<{ code: string }, { now: number }>(
+  functions,
+  'heartbeat',
+)
 
 export async function createRoom(name: string): Promise<string> {
   await ensureSignedIn()
@@ -81,5 +84,7 @@ export function errorMessage(error: unknown): string {
   if (code.startsWith('functions/') && code !== 'functions/internal') {
     return (error as Error).message
   }
-  return 'Could not reach the game server. Is `npm run emulators` running?'
+  return import.meta.env.DEV
+    ? 'Could not reach the game server. Is `npm run emulators` running?'
+    : 'Could not reach the game server. Check your connection and try again.'
 }

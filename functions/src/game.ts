@@ -11,6 +11,7 @@
 //   rooms/{code}/hand/current     the censored copy every player may see
 //   rooms/{code}/private/{uid}    that one player's two hole cards. Only they can read it.
 
+import './options.js'
 import {
   FieldValue,
   getFirestore,

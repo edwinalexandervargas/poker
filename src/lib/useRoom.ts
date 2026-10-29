@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import type { PlayerDoc, RoomDoc } from '@shared/engine'
 import { errorMessage } from '@/lib/api'
 import { ensureSignedIn } from '@/lib/auth'
-import { db } from '@/lib/firebase'
+import { db } from '@/lib/db'
 
 export type SeatedPlayer = PlayerDoc & { uid: string }
 

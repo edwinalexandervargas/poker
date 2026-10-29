@@ -1,4 +1,5 @@
-import { getLegalActions, type HandState } from '@shared/engine'
+import { getLegalActions } from '@shared/engine/actions'
+import type { HandState } from '@shared/engine'
 import type { TableState } from '@/lib/fakeTable'
 
 // Betting numbers for the action bar.

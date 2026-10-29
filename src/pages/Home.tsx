@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { httpsCallable } from 'firebase/functions'
-import { normalizeRoomCode, type Card as CardCode } from '@shared/engine'
+import { normalizeRoomCode } from '@shared/engine/room'
+import type { Card as CardCode } from '@shared/engine'
 import { Card } from '@/components/Card'
 import { createRoom, errorMessage, joinRoom } from '@/lib/api'
 import { functions } from '@/lib/firebase'
@@ -10,6 +11,12 @@ import { useUiStore } from '@/store/ui'
 const DEMO_FLOP: CardCode[] = ['As', 'Kd', '7h']
 
 export default function Home() {
+  // Fetch the table page in the background while the lobby is open, so it is already
+  // cached by the time you create or join a room.
+  useEffect(() => {
+    void import('@/pages/Room')
+  }, [])
+
   const navigate = useNavigate()
   const { playerName, setPlayerName } = useUiStore()
   const [code, setCode] = useState('')
@@ -116,16 +123,19 @@ export default function Home() {
         )}
       </div>
 
-      <div className="text-center text-sm text-white/70">
-        <button
-          type="button"
-          onClick={testEmulator}
-          className="underline underline-offset-4"
-        >
-          Test emulator connection
-        </button>
-        {pingResult && <p className="mt-2">{pingResult}</p>}
-      </div>
+      {/* A developer tool: only in `npm run dev`, never in the deployed site. */}
+      {import.meta.env.DEV && (
+        <div className="text-center text-sm text-white/70">
+          <button
+            type="button"
+            onClick={testEmulator}
+            className="underline underline-offset-4"
+          >
+            Test emulator connection
+          </button>
+          {pingResult && <p className="mt-2">{pingResult}</p>}
+        </div>
+      )}
     </main>
   )
 }

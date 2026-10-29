@@ -1,8 +1,9 @@
 import { doc, onSnapshot, type Unsubscribe } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
-import { unpackPublic, type PublicHandState, type StoredPublicHand } from '@shared/engine'
+import { unpackPublic, type StoredPublicHand } from '@shared/engine/storage'
+import type { PublicHandState } from '@shared/engine'
 import { errorMessage } from '@/lib/api'
-import { db } from '@/lib/firebase'
+import { db } from '@/lib/db'
 import type { MyCards } from '@/lib/tableFromHand'
 import { turnClockFromDoc, type TurnClock } from '@/lib/turnClock'
 
