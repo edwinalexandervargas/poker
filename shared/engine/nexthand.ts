@@ -30,7 +30,7 @@ export function nextHand(
   deck: readonly Card[],
 ): HandState | null {
   if (previous.phase !== 'complete') {
-    throw new Erorr('The previous hand is not finished')
+    throw new Error('The previous hand is not finished')
   }
   if (previous.stacks[0] === 0 || previous.stacks[1] === 0) {
     return null

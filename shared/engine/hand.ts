@@ -1,5 +1,6 @@
 import { draw } from './deck.js'
 import { firstToAct, getBlindSeats, otherSeat } from './seats.js'
+import { settleBetting } from './street.js'
 import type { Card, Phase, Seat } from './types.js'
 
 // Anything per-player is a pair indexed by seat: stacks[0] is seat 0's chips.
@@ -74,7 +75,7 @@ const order = [ otherSeat(button), button, otherSeat(button), button]
 order.forEach((seat, i) => {
   holeCards[seat].push(drawn[i]!)
 })
-return {
+return settleBetting({
 handNumber,
 phase: 'preflop',
 button,
@@ -86,5 +87,5 @@ pot: 0,
 community: [],
 holeCards,
 deck: rest,
-}
+})
 }

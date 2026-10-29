@@ -38,11 +38,18 @@ export function playTurn(
     throw new Error('Not your turn')
   }
 
-  const next = applyAction(state, action, bigBlind)
+  return settleShowdown(applyAction(state, action, bigBlind))
+}
 
-  if (next.phase === 'showdown') {
-    return { state: resolveShowdown(next), reveal: true }
+/**
+ * If the hand has reached showdown, pay the pot and say the cards may be shown.
+ * Anything else comes back unchanged. Call this on every hand the engine hands you,
+ * including one from startHand/nextHand, because blinds can put a player all-in
+ * before anyone acts and the hand then runs straight to showdown.
+ */
+export function settleShowdown(hand: HandState): TurnResult {
+  if (hand.phase === 'showdown') {
+    return { state: resolveShowdown(hand), reveal: true }
   }
-
-  return { state: next, reveal: false }
+  return { state: hand, reveal: false }
 }

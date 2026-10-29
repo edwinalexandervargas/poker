@@ -27,6 +27,7 @@ import {
   parseAction,
   playTurn,
   shuffle,
+  settleShowdown,
   startHand,
   toPublicState,
   unpackHand,
@@ -150,16 +151,18 @@ export const startGame = onCall<GameInput>(async (request) => {
       throw new HttpsError('failed-precondition', 'You need two players to start.')
     }
 
-    const state = startHand({
-      handNumber: 1,
-      button: 0,
-      stacks: [seat0.stack, seat1.stack],
-      smallBlind: room.config.smallBlind,
-      bigBlind: room.config.bigBlind,
-      deck: shuffle(createDeck()),
-    })
+    const { state, reveal } = settleShowdown(
+      startHand({
+        handNumber: 1,
+        button: 0,
+        stacks: [seat0.stack, seat1.stack],
+        smallBlind: room.config.smallBlind,
+        bigBlind: room.config.bigBlind,
+        deck: shuffle(createDeck()),
+      }),
+    )
 
-    saveHand(tx, table, state, false)
+    saveHand(tx, table, state, reveal)
     tx.update(table.roomRef, { status: 'playing' })
     return { handNumber: state.handNumber }
   })
@@ -215,7 +218,9 @@ export const dealNextHand = onCall<GameInput>(async (request) => {
       tx.update(table.roomRef, { status: 'finished' })
       return { finished: true }
     }
-    saveHand(tx, table, next, false)
-    return { finished: false, handNumber: next.handNumber }
+    // Blinds can put a player all-in before anyone acts; then the hand is already at showdown.
+    const dealt = settleShowdown(next)
+    saveHand(tx, table, dealt.state, dealt.reveal)
+    return { finished: false, handNumber: dealt.state.handNumber }
   })
 })

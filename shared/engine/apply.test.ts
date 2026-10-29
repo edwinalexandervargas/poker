@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { applyAction } from './apply.js'
+import { createDeck } from './deck.js'
 import type { HandState } from './hand.js'
 
 const BIG_BLIND = 20
@@ -54,12 +55,16 @@ describe('applyAction: call', () => {
 
   it('a short stack calls for what it has', () => {
     const next = applyAction(
-      hand({ bets: [0, 100], stacks: [50, 800] }),
+      hand({ bets: [0, 100], stacks: [50, 800], deck: createDeck() }),
       { type: 'call' },
       BIG_BLIND,
     )
-    expect(next.bets).toEqual([50, 100])
-    expect(next.stacks).toEqual([0, 800])
+    // Seat 0 calls all-in for 50. Only 50 is matched, so seat 1 gets 50 back,
+    // and with nobody able to bet the board runs out.
+    expect(next.pot).toBe(100)
+    expect(next.stacks).toEqual([0, 850])
+    expect(next.bets).toEqual([0, 0])
+    expect(next.toAct).toBeNull()
   })
 
   it('throws when there is nothing to call', () => {

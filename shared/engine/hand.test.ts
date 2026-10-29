@@ -53,8 +53,11 @@ describe('startHand: blinds', () => {
   it('a short stack posts what it has, not more', () => {
     // Seat 0 is the button (small blind) but only has 5 chips.
     const hand = startHand(input({ button: 0, stacks: [5, 1000] }))
-    expect(hand.bets).toEqual([5, 20])
-    expect(hand.stacks).toEqual([0, 980])
+    // Seat 0 posts all 5 and is all-in, so nobody can bet: the 5 chips seat 1
+    // posted that seat 0 can't match come back, and the board runs out.
+    expect(hand.pot).toBe(10)
+    expect(hand.stacks).toEqual([0, 995])
+    expect(hand.bets).toEqual([0, 0])
   })
 
   it('never creates or destroys chips', () => {
@@ -95,5 +98,20 @@ describe('startHand: dealing', () => {
   it('refuses to start with too few cards for a full hand', () => {
     expect(() => startHand(input({ deck: deck.slice(0, 8) }))).toThrow(RangeError)
     expect(() => startHand(input({ deck: deck.slice(0, 9) }))).not.toThrow()
+  })
+})
+
+describe('startHand: a blind that puts a player all-in', () => {
+  it('runs the board out when the big blind cannot cover the blind', () => {
+    // Button 1 = seat 1 is the small blind (posts 10). Seat 0 is the big blind
+    // and only has 5 chips, so they post 5 and are all-in.
+    const hand = startHand(input({ button: 1, stacks: [5, 1995] }))
+
+    expect(hand.phase).toBe('showdown')
+    expect(hand.toAct).toBeNull()
+    expect(hand.community).toHaveLength(5)
+    expect(hand.pot).toBe(10) // 5 from each player
+    expect(hand.stacks).toEqual([0, 1990]) // seat 1 gets their extra 5 back
+    expect(hand.bets).toEqual([0, 0])
   })
 })
