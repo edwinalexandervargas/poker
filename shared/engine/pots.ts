@@ -7,7 +7,7 @@
 //                (A had no more chips, so A can't win chips A never matched).
 //   C's last 200 was never called, so it was already returned before the showdown.
 
-import type { Seat } from './types.js'
+import { CHIP_UNIT, type Seat } from './types.js'
 
 export interface Pot {
   amount: number
@@ -51,8 +51,10 @@ export function buildPots(
 }
 
 /**
- * Splits `amount` evenly between `winners`. Chips that don't divide evenly go one at a time
- * to the winners closest to the left of the button (the usual casino rule).
+ * Splits `amount` evenly between `winners`, in whole chips of CHIP_UNIT. Chips that don't
+ * divide evenly go one at a time to the winners closest to the left of the button (the usual
+ * casino rule). Anything smaller than a chip (never happens when every bet is a multiple of
+ * CHIP_UNIT) goes to the first of them, so no amount is ever lost.
  */
 export function splitPot(
   amount: number,
@@ -60,17 +62,19 @@ export function splitPot(
   button: Seat,
   seatCount: number,
 ): Map<Seat, number> {
-  const share = Math.floor(amount / winners.length)
-  let leftover = amount - share * winners.length
+  const chips = Math.floor(amount / CHIP_UNIT)
+  const loose = amount - chips * CHIP_UNIT
+  const share = Math.floor(chips / winners.length) * CHIP_UNIT
+  let leftover = chips % winners.length
   const byDistance = [...winners].sort(
     (a, b) =>
       ((a - button + seatCount) % seatCount || seatCount) -
       ((b - button + seatCount) % seatCount || seatCount),
   )
   const result = new Map<Seat, number>()
-  for (const seat of byDistance) {
-    result.set(seat, share + (leftover > 0 ? 1 : 0))
+  byDistance.forEach((seat, i) => {
+    result.set(seat, share + (leftover > 0 ? CHIP_UNIT : 0) + (i === 0 ? loose : 0))
     leftover--
-  }
+  })
   return result
 }

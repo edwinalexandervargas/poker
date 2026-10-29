@@ -150,3 +150,30 @@ describe('applyAction: purity', () => {
     expect(before).toEqual(snapshot)
   })
 })
+
+describe('applyAction: bets go up in 5s', () => {
+  it('refuses a raise that is not a multiple of 5', () => {
+    expect(() => applyAction(hand(), { type: 'raise', amount: 63 }, BIG_BLIND)).toThrow(
+      /steps of 5/,
+    )
+  })
+  it('accepts one that is', () => {
+    expect(() =>
+      applyAction(hand(), { type: 'raise', amount: 65 }, BIG_BLIND),
+    ).not.toThrow()
+  })
+  it('going all-in is always allowed, whatever the amount', () => {
+    const odd = hand({ stacks: [1003, 980] })
+    const allIn = odd.bets[0]! + odd.stacks[0]!
+    // the other player's total caps it, so make them deeper
+    const deep = { ...odd, stacks: [1003, 5000] }
+    expect(() =>
+      applyAction(
+        deep,
+        { type: 'raise', amount: deep.bets[0]! + deep.stacks[0]! },
+        BIG_BLIND,
+      ),
+    ).not.toThrow()
+    expect(allIn % 5).not.toBe(0)
+  })
+})

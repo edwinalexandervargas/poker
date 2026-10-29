@@ -59,4 +59,12 @@ describe('getBettingOptions', () => {
     expect(o.canRaise).toBe(false)
     expect(o.toCall).toBe(40)
   })
+
+  it('quick bets land on whole 5-chips, even with an odd-looking pot', () => {
+    for (const pot of [115, 135, 245, 380]) {
+      const o = getBettingOptions({ ...fakeTable, pot })
+      expect(o.halfPotRaiseTo % 5).toBe(0)
+      expect(o.potRaiseTo % 5).toBe(0)
+    }
+  })
 })

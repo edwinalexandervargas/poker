@@ -7,7 +7,6 @@ const CHIP_COLOR: Record<
   number,
   { face: string; edge: string; spot: string; ink: string }
 > = {
-  1: { face: '#ebe8e0', edge: '#b9b4a8', spot: '#2a4a8a', ink: '#1f2f55' },
   5: { face: '#c8323a', edge: '#86171d', spot: '#f6f1e6', ink: '#ffffff' },
   10: { face: '#2a6fca', edge: '#16437f', spot: '#f6f1e6', ink: '#ffffff' },
   25: { face: '#1f8a52', edge: '#0f5131', spot: '#f6f1e6', ink: '#ffffff' },

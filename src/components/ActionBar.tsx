@@ -1,4 +1,5 @@
 import type { Action } from '@shared/engine'
+import { CHIP_UNIT } from '@shared/engine/types'
 import type { BettingOptions } from '@/lib/betting'
 import { useUiStore } from '@/store/ui'
 
@@ -52,7 +53,7 @@ export function ActionBar({ options, disabled, onAction }: ActionBarProps) {
           type="range"
           min={minRaiseTo}
           max={maxRaiseTo}
-          step={1}
+          step={CHIP_UNIT}
           value={raiseTo}
           disabled={disabled || !canRaise || minRaiseTo >= maxRaiseTo}
           onChange={(e) => setPendingBet(Number(e.target.value))}

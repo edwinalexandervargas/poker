@@ -52,18 +52,27 @@ describe('splitPot', () => {
 
   it('the odd chip goes to the winner closest to the left of the button', () => {
     // button 3 of 6: seat 5 is two seats left of it, seat 1 is four
-    expect(Object.fromEntries(splitPot(301, [1, 5], 3, 6))).toEqual({ 5: 151, 1: 150 })
+    expect(Object.fromEntries(splitPot(305, [1, 5], 3, 6))).toEqual({ 5: 155, 1: 150 })
   })
 
   it('the button itself is the LAST seat to get an odd chip', () => {
-    expect(Object.fromEntries(splitPot(301, [0, 2], 0, 4))).toEqual({ 2: 151, 0: 150 })
+    expect(Object.fromEntries(splitPot(305, [0, 2], 0, 4))).toEqual({ 2: 155, 0: 150 })
   })
 
-  it('three-way split with two odd chips', () => {
-    expect(Object.fromEntries(splitPot(302, [0, 1, 2], 0, 3))).toEqual({
-      1: 101,
-      2: 101,
+  it('three-way split with two odd chips (chips are 5s, so odd chips are 5)', () => {
+    expect(Object.fromEntries(splitPot(310, [0, 1, 2], 0, 3))).toEqual({
+      1: 105,
+      2: 105,
       0: 100,
     })
+  })
+
+  it('never splits below the smallest chip', () => {
+    for (const seat of splitPot(305, [0, 1, 2], 0, 3).values()) expect(seat % 5).toBe(0)
+  })
+
+  it('a stray amount smaller than a chip still goes somewhere, so nothing is lost', () => {
+    const total = [...splitPot(302, [0, 1], 0, 2).values()].reduce((a, b) => a + b, 0)
+    expect(total).toBe(302)
   })
 })

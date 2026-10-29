@@ -6,7 +6,7 @@ import { getLegalActions } from './actions.js'
 import { canAct, type HandState } from './hand.js'
 import { nextSeat } from './ring.js'
 import { settleBetting } from './street.js'
-import type { Action, Seat } from './types.js'
+import { CHIP_UNIT, type Action, type Seat } from './types.js'
 
 /**
  * Return a NEW HandState with the move applied. Never changes the one passed in.
@@ -57,6 +57,10 @@ export function applyAction(
         throw new Error(
           `Raise must be between ${legal.minRaiseTo} and ${legal.maxRaiseTo}`,
         )
+      }
+      // Bets go up in whole chips of CHIP_UNIT. Going all-in is always allowed as it is.
+      if (action.amount % CHIP_UNIT !== 0 && action.amount !== legal.maxRaiseTo) {
+        throw new Error(`Bets go up in steps of ${CHIP_UNIT}`)
       }
       put(action.amount - bets[me]!)
       // A raise re-opens the betting: everyone else has to respond to it.

@@ -33,6 +33,12 @@ export type Seat = number
 /** The most players one table can seat. */
 export const MAX_SEATS = 8
 
+/**
+ * The smallest chip. Every bet, pot and payout is a multiple of it, so any amount can be
+ * drawn with real chips. Blinds (10/20) and stacks (1,000) are multiples of it too.
+ */
+export const CHIP_UNIT = 5
+
 /** Everything a player can do on their turn. Raise carries the total bet size. */
 export type Action =
   | { type: 'fold' }

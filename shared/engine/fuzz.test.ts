@@ -39,8 +39,12 @@ function randomAction(hand: HandState, random: () => number): Action {
   if (legal.canRaise && roll < 0.38) {
     // Sometimes shove everything, otherwise pick any legal amount.
     if (random() < 0.25) return { type: 'raise', amount: legal.maxRaiseTo }
-    const span = legal.maxRaiseTo - legal.minRaiseTo
-    return { type: 'raise', amount: legal.minRaiseTo + Math.floor(random() * (span + 1)) }
+    // Any legal amount, in steps of 5 (bets go up in whole 5-chips).
+    const steps = Math.floor((legal.maxRaiseTo - legal.minRaiseTo) / 5)
+    return {
+      type: 'raise',
+      amount: legal.minRaiseTo + Math.floor(random() * (steps + 1)) * 5,
+    }
   }
   return legal.canCheck ? { type: 'check' } : { type: 'call' }
 }

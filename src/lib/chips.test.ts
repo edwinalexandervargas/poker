@@ -29,24 +29,26 @@ describe('chipsFor', () => {
     ])
   })
 
-  it('always adds up to exactly the amount', () => {
-    for (let amount = 0; amount <= 2500; amount++) {
+  it('adds up to exactly the amount for every multiple of 5', () => {
+    for (let amount = 0; amount <= 2500; amount += 5) {
       expect(total(amount)).toBe(amount)
     }
   })
 
+  it('there is no 1-chip: the smallest chip is a 5', () => {
+    expect(DENOMINATIONS.at(-1)).toBe(5)
+  })
+
   it('only uses real denominations', () => {
-    for (const { value } of chipsFor(1987)) {
+    for (const { value } of chipsFor(1985)) {
       expect(DENOMINATIONS).toContain(value)
     }
   })
 
   it('ignores negative or fractional amounts safely', () => {
     expect(chipsFor(-5)).toEqual([])
-    expect(chipsFor(7.9)).toEqual([
-      { value: 5, count: 1 },
-      { value: 1, count: 2 },
-    ])
+    // 7.9 rounds down to 7: one 5-chip, and the 2 left over is too small to draw
+    expect(chipsFor(7.9)).toEqual([{ value: 5, count: 1 }])
   })
 })
 

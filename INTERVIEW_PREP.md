@@ -68,6 +68,8 @@ Cover the answer, say it out loud, then compare. Each answer is short on purpose
 
 43. **What happens when someone closes the tab mid-hand?** Their screen says goodbye as it's hidden, and if that request never makes it out, 12 seconds of missed check-ins tell us anyway. After an 8-second grace period, the others' screens ask the server to play their check or fold, the server re-checks with the same `isGone` rule, and they sit out new hands until they're back. [53]
 
+44. **Why can't you raise to 63?** The smallest chip is a 5, so every amount at the table stays a multiple of 5 and can be drawn with real chips. The engine refuses other raises (except all-in), splits pots in 5s, and the slider steps in 5s. It's one constant, `CHIP_UNIT`, used everywhere. [54]
+
 ## Honest limitations (say these before they ask)
 
 - It's deployed, but without App Check, so anyone with the web settings could call the functions (they still enforce every rule). [39]

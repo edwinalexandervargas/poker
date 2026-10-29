@@ -116,10 +116,10 @@ describe('result: a showdown', () => {
   })
 
   it('an odd pot gives the extra chip to the player who is not the button', () => {
-    // An odd pot needs dead money: a third player put in 1 chip and folded.
+    // An odd pot needs dead money: a third player put in one 5-chip and folded.
     const tie = {
       community: tieBoard,
-      stacks: [900, 900, 999],
+      stacks: [900, 900, 995],
       bets: [0, 0, 0],
       holeCards: [
         ['2c', '3d'],
@@ -127,15 +127,15 @@ describe('result: a showdown', () => {
         ['9d', '8d'],
       ] as Card[][],
       folded: [false, false, true],
-      committed: [100, 100, 1],
-      pot: 201,
+      committed: [100, 100, 5],
+      pot: 205,
     }
     // The odd chip goes to the first winner to the left of the button.
     expect(resolveShowdown(showdownHand({ ...tie, button: 0 })).result?.payouts).toEqual([
-      100, 101, 0,
+      100, 105, 0,
     ])
     expect(resolveShowdown(showdownHand({ ...tie, button: 1 })).result?.payouts).toEqual([
-      101, 100, 0,
+      105, 100, 0,
     ])
   })
 

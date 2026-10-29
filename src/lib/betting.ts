@@ -1,5 +1,6 @@
 import { getLegalActions } from '@shared/engine/actions'
 import type { HandState } from '@shared/engine'
+import { CHIP_UNIT } from '@shared/engine/types'
 import { seatAt, type TableState } from '@/lib/fakeTable'
 
 // Betting numbers for the action bar.
@@ -23,6 +24,9 @@ export interface BettingOptions {
 }
 
 const clamp = (n: number, min: number, max: number) => Math.min(Math.max(n, min), max)
+
+/** Rounds to the nearest whole chip (5): bets go up in 5s. */
+const toChip = (n: number) => Math.round(n / CHIP_UNIT) * CHIP_UNIT
 
 export function getBettingOptions(table: TableState): BettingOptions {
   const me = seatAt(table, table.mySeat)!
@@ -58,7 +62,7 @@ export function getBettingOptions(table: TableState): BettingOptions {
   const potAfterCall = totalPot + legal.callAmount
   const raiseToForFraction = (fraction: number) =>
     clamp(
-      me.bet + legal.callAmount + Math.round(potAfterCall * fraction),
+      toChip(me.bet + legal.callAmount + potAfterCall * fraction),
       legal.minRaiseTo,
       legal.maxRaiseTo,
     )

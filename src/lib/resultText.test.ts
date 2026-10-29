@@ -61,11 +61,11 @@ describe('describeResult', () => {
     const result: HandResult = {
       reason: 'showdown',
       winners: [0, 1],
-      payouts: [100, 101],
-      pots: [{ amount: 201, winners: [0, 1] }],
+      payouts: [100, 105],
+      pots: [{ amount: 205, winners: [0, 1] }],
       handName: null,
     }
-    expect(describeResult(result, 0, names)).toBe('Split pot: You get 100, Bob gets 101')
+    expect(describeResult(result, 0, names)).toBe('Split pot: You get 100, Bob gets 105')
   })
 
   it('describes each pot when there are side pots', () => {
