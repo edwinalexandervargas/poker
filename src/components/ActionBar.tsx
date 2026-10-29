@@ -13,7 +13,15 @@ interface ActionBarProps {
 const clamp = (n: number, min: number, max: number) => Math.min(Math.max(n, min), max)
 
 export function ActionBar({ options, disabled, onAction }: ActionBarProps) {
-  const { toCall, canCheck, minRaiseTo, maxRaiseTo, halfPotRaiseTo, potRaiseTo } = options
+  const {
+    toCall,
+    canCheck,
+    canRaise,
+    minRaiseTo,
+    maxRaiseTo,
+    halfPotRaiseTo,
+    potRaiseTo,
+  } = options
 
   // The raise amount is UI-only state (Zustand). It is clamped on every render, so it
   // can never sit outside what is legal even if the table changes underneath it.
@@ -44,7 +52,7 @@ export function ActionBar({ options, disabled, onAction }: ActionBarProps) {
           max={maxRaiseTo}
           step={1}
           value={raiseTo}
-          disabled={disabled || minRaiseTo >= maxRaiseTo}
+          disabled={disabled || !canRaise || minRaiseTo >= maxRaiseTo}
           onChange={(e) => setPendingBet(Number(e.target.value))}
           className="accent-chip-gold w-full"
           aria-label="Raise amount"
@@ -84,7 +92,7 @@ export function ActionBar({ options, disabled, onAction }: ActionBarProps) {
         </button>
         <button
           type="button"
-          disabled={disabled || maxRaiseTo <= toCall}
+          disabled={disabled || !canRaise}
           onClick={() => onAction({ type: 'raise', amount: raiseTo })}
           className="bg-chip-gold rounded-lg py-3 font-semibold text-black hover:brightness-110 disabled:opacity-40"
         >

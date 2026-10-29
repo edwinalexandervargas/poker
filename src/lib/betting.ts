@@ -1,16 +1,19 @@
-import type { SeatState, TableState } from '@/lib/fakeTable'
+import { getLegalActions, type HandState } from '@shared/engine'
+import type { TableState } from '@/lib/fakeTable'
 
-// Heads-up betting numbers for the action bar.
+// Betting numbers for the action bar.
 //
-// NOTE: this is a simplified, display-only version so the UI has something to show.
-// The real rules (who can act, exact min-raise tracking, all-in edge cases) will live
-// in shared/engine and be enforced by Cloud Functions. The UI must never be the referee.
+// The screen does not keep its own copy of the rules. It asks the shared engine what is
+// legal (the same function the server uses to check a move), so the buttons can never
+// offer something the server will refuse. The server still has the final say.
 
 export interface BettingOptions {
   /** Chips needed to match the opponent's bet (capped by my stack). */
   toCall: number
   canCheck: boolean
-  /** Smallest legal "raise to" total, and the most I can put in (my whole stack). */
+  /** Raising is possible at all (false when the opponent is all-in, for example). */
+  canRaise: boolean
+  /** Smallest and largest legal "raise to" totals. */
   minRaiseTo: number
   maxRaiseTo: number
   /** "Raise to" totals for the quick buttons, already clamped to [min, max]. */
@@ -21,28 +24,42 @@ export interface BettingOptions {
 const clamp = (n: number, min: number, max: number) => Math.min(Math.max(n, min), max)
 
 export function getBettingOptions(table: TableState): BettingOptions {
-  const me: SeatState = table.seats[table.mySeat]
-  const opp: SeatState = table.seats[table.mySeat === 0 ? 1 : 0]
+  const me = table.seats[table.mySeat]
+  const opp = table.seats[table.mySeat === 0 ? 1 : 0]
 
-  const maxRaiseTo = me.bet + me.stack
-  const toCall = Math.min(opp.bet - me.bet, me.stack)
-  const canCheck = opp.bet <= me.bet
-
-  // The smallest raise adds at least the size of the bet I'm facing (or a big blind).
-  const increment = Math.max(table.bigBlind, opp.bet - me.bet)
-  const minRaiseTo = Math.min(opp.bet + increment, maxRaiseTo)
+  // Describe the table to the engine as if it were my turn. (The action bar is greyed out
+  // when it is not, but it still shows sensible numbers.)
+  const forEngine: HandState = {
+    handNumber: 0,
+    phase: table.phase,
+    button: table.seats[0].isDealer ? 0 : 1,
+    toAct: table.mySeat,
+    stacks: [table.seats[0].stack, table.seats[1].stack],
+    bets: [table.seats[0].bet, table.seats[1].bet],
+    pot: table.pot,
+    actionsThisRound: 0,
+    community: [],
+    holeCards: [[], []],
+    deck: [],
+  }
+  const legal = getLegalActions(forEngine, table.bigBlind)!
 
   // Pot-sized raise = match the bet, then bet the size of the pot after matching.
   const totalPot = table.pot + me.bet + opp.bet
-  const potAfterCall = totalPot + toCall
+  const potAfterCall = totalPot + legal.callAmount
   const raiseToForFraction = (fraction: number) =>
-    clamp(me.bet + toCall + Math.round(potAfterCall * fraction), minRaiseTo, maxRaiseTo)
+    clamp(
+      me.bet + legal.callAmount + Math.round(potAfterCall * fraction),
+      legal.minRaiseTo,
+      legal.maxRaiseTo,
+    )
 
   return {
-    toCall,
-    canCheck,
-    minRaiseTo,
-    maxRaiseTo,
+    toCall: legal.callAmount,
+    canCheck: legal.canCheck,
+    canRaise: legal.canRaise,
+    minRaiseTo: legal.minRaiseTo,
+    maxRaiseTo: legal.maxRaiseTo,
     halfPotRaiseTo: raiseToForFraction(0.5),
     potRaiseTo: raiseToForFraction(1),
   }

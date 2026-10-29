@@ -1,4 +1,5 @@
 import { httpsCallable } from 'firebase/functions'
+import type { Action } from '@shared/engine'
 import { ensureSignedIn } from '@/lib/auth'
 import { functions } from '@/lib/firebase'
 
@@ -13,6 +14,19 @@ const joinRoomFn = httpsCallable<{ code: string; name: string }, { code: string 
   'joinRoom',
 )
 
+const startGameFn = httpsCallable<{ code: string }, { handNumber: number }>(
+  functions,
+  'startGame',
+)
+const playActionFn = httpsCallable<{ code: string; action: Action }, { phase: string }>(
+  functions,
+  'playAction',
+)
+const dealNextHandFn = httpsCallable<{ code: string }, { finished: boolean }>(
+  functions,
+  'dealNextHand',
+)
+
 export async function createRoom(name: string): Promise<string> {
   await ensureSignedIn()
   const { data } = await createRoomFn({ name })
@@ -23,6 +37,24 @@ export async function joinRoom(code: string, name: string): Promise<string> {
   await ensureSignedIn()
   const { data } = await joinRoomFn({ code, name })
   return data.code
+}
+
+/** The host starts the game once two players are seated. */
+export async function startGame(code: string): Promise<void> {
+  await ensureSignedIn()
+  await startGameFn({ code })
+}
+
+/** Fold, check, call or raise. The server decides whether it is legal. */
+export async function playAction(code: string, action: Action): Promise<void> {
+  await ensureSignedIn()
+  await playActionFn({ code, action })
+}
+
+/** After a hand ends, deal the next one (or end the game if someone is out of chips). */
+export async function dealNextHand(code: string): Promise<void> {
+  await ensureSignedIn()
+  await dealNextHandFn({ code })
 }
 
 /** A message safe to show a player. The functions' own messages ("That table is full.") pass through. */

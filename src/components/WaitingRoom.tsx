@@ -5,11 +5,24 @@ import type { SeatedPlayer } from '@/lib/useRoom'
 interface WaitingRoomProps {
   code: string
   players: SeatedPlayer[]
+  /** Only the host can start the game. */
+  isHost: boolean
+  onStart: () => void
+  starting: boolean
+  error: string | null
 }
 
-/** Shown to a seated player until the second player arrives. */
-export function WaitingRoom({ code, players }: WaitingRoomProps) {
+/** Shown to a seated player until the game starts. */
+export function WaitingRoom({
+  code,
+  players,
+  isHost,
+  onStart,
+  starting,
+  error,
+}: WaitingRoomProps) {
   const [copied, setCopied] = useState(false)
+  const full = players.length >= 2
 
   async function share() {
     const url = `${window.location.origin}/room/${code}`
@@ -31,13 +44,15 @@ export function WaitingRoom({ code, players }: WaitingRoomProps) {
       <p className="text-sm tracking-widest text-white/60 uppercase">Your table code</p>
       <h1 className="text-6xl font-bold tracking-[0.3em]">{code}</h1>
 
-      <button
-        type="button"
-        onClick={share}
-        className="bg-chip-gold rounded-lg px-6 py-3 font-semibold text-black"
-      >
-        {copied ? 'Link copied!' : 'Share invite link'}
-      </button>
+      {!full && (
+        <button
+          type="button"
+          onClick={share}
+          className="bg-chip-gold rounded-lg px-6 py-3 font-semibold text-black"
+        >
+          {copied ? 'Link copied!' : 'Share invite link'}
+        </button>
+      )}
 
       <ul className="w-full space-y-2" aria-label="Players at the table">
         {players
@@ -47,10 +62,32 @@ export function WaitingRoom({ code, players }: WaitingRoomProps) {
               {player.name}
             </li>
           ))}
-        <li className="rounded-lg border-2 border-dashed border-white/20 px-4 py-3 text-white/50">
-          Waiting for an opponent…
-        </li>
+        {!full && (
+          <li className="rounded-lg border-2 border-dashed border-white/20 px-4 py-3 text-white/50">
+            Waiting for an opponent…
+          </li>
+        )}
       </ul>
+
+      {full &&
+        (isHost ? (
+          <button
+            type="button"
+            onClick={onStart}
+            disabled={starting}
+            className="bg-chip-gold rounded-lg px-8 py-3 text-lg font-semibold text-black disabled:opacity-50"
+          >
+            {starting ? 'Dealing…' : 'Start game'}
+          </button>
+        ) : (
+          <p className="text-white/70">Waiting for the host to start the game…</p>
+        ))}
+
+      {error && (
+        <p role="alert" className="text-red-300">
+          {error}
+        </p>
+      )}
 
       <Link to="/" className="text-sm underline underline-offset-4">
         Leave

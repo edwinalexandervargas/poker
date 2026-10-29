@@ -3,11 +3,11 @@ import { getBettingOptions } from './betting'
 import { fakeTable, type TableState } from './fakeTable'
 
 describe('getBettingOptions', () => {
-  it('facing a 40 bet: call 40, cannot check, min raise to 80', () => {
+  it('facing a 40 bet: call 40, cannot check, min raise to 60 (the bet plus a big blind)', () => {
     const o = getBettingOptions(fakeTable)
     expect(o.toCall).toBe(40)
     expect(o.canCheck).toBe(false)
-    expect(o.minRaiseTo).toBe(80)
+    expect(o.minRaiseTo).toBe(60)
     expect(o.maxRaiseTo).toBe(940) // my whole stack
   })
 
@@ -37,5 +37,26 @@ describe('getBettingOptions', () => {
     expect(o.maxRaiseTo).toBe(50)
     expect(o.potRaiseTo).toBeLessThanOrEqual(50)
     expect(o.minRaiseTo).toBeLessThanOrEqual(50)
+  })
+
+  it('cannot bet more than the opponent can call', () => {
+    // The opponent has a bet of 40 and only 60 behind, so 100 is the most they can have in.
+    const table: TableState = {
+      ...fakeTable,
+      seats: [fakeTable.seats[0], { ...fakeTable.seats[1], stack: 60 }],
+    }
+    const o = getBettingOptions(table)
+    expect(o.maxRaiseTo).toBe(100)
+    expect(o.potRaiseTo).toBeLessThanOrEqual(100)
+  })
+
+  it('cannot raise when the opponent is already all-in', () => {
+    const table: TableState = {
+      ...fakeTable,
+      seats: [fakeTable.seats[0], { ...fakeTable.seats[1], stack: 0 }],
+    }
+    const o = getBettingOptions(table)
+    expect(o.canRaise).toBe(false)
+    expect(o.toCall).toBe(40)
   })
 })

@@ -1,10 +1,13 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import type { Action } from '@shared/engine'
+import type { Action, RoomDoc } from '@shared/engine'
 import { JoinPrompt } from '@/components/JoinPrompt'
 import { Table } from '@/components/Table'
 import { WaitingRoom } from '@/components/WaitingRoom'
-import { fakeTable, type TableState } from '@/lib/fakeTable'
-import { useRoom } from '@/lib/useRoom'
+import { dealNextHand, errorMessage, playAction, startGame } from '@/lib/api'
+import { tableFromHand } from '@/lib/tableFromHand'
+import { useHand } from '@/lib/useHand'
+import { useRoom, type SeatedPlayer } from '@/lib/useRoom'
 
 function Message({ children }: { children: React.ReactNode }) {
   return (
@@ -33,7 +36,7 @@ function RoomScreen({ code }: { code: string }) {
   if (view.status === 'missing') return <Message>No table with code {code}.</Message>
   if (view.status === 'error') return <Message>{view.message}</Message>
 
-  const { players, myUid } = view
+  const { room, players, myUid } = view
   const me = players.find((p) => p.uid === myUid)
 
   // Opened an invite link without being seated yet.
@@ -42,23 +45,86 @@ function RoomScreen({ code }: { code: string }) {
     return <JoinPrompt code={code} />
   }
 
-  if (players.length < 2) return <WaitingRoom code={code} players={players} />
-
-  // Both seated. The real hand engine comes next; until then, show the demo hand
-  // with the real names so you can see two browsers sitting at one table.
-  const opponent = players.find((p) => p.uid !== myUid)
-  const demoTable: TableState = {
-    ...fakeTable,
-    seats: [
-      { ...fakeTable.seats[0], name: me.name },
-      { ...fakeTable.seats[1], name: opponent?.name ?? 'Opponent' },
-    ],
+  // Seated, but the game has not started: the lobby.
+  if (room.status === 'waiting') {
+    return <Lobby code={code} room={room} players={players} myUid={myUid} />
   }
 
-  function handleAction(action: Action) {
-    // Later this calls the submitAction Cloud Function. For now it just logs.
-    console.log('Action chosen:', action)
-  }
+  return <Game code={code} room={room} players={players} me={me} />
+}
 
-  return <Table table={demoTable} code={code} onAction={handleAction} />
+/** Runs a server request, freezing the buttons while it is in flight and reporting a refusal. */
+function useServerCall() {
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function run(request: () => Promise<void>) {
+    setPending(true)
+    setError(null)
+    try {
+      await request()
+    } catch (e) {
+      setError(errorMessage(e))
+    } finally {
+      setPending(false)
+    }
+  }
+  return { pending, error, run }
+}
+
+interface LobbyProps {
+  code: string
+  room: RoomDoc
+  players: SeatedPlayer[]
+  myUid: string
+}
+
+function Lobby({ code, room, players, myUid }: LobbyProps) {
+  const { pending, error, run } = useServerCall()
+  return (
+    <WaitingRoom
+      code={code}
+      players={players}
+      isHost={room.hostUid === myUid}
+      onStart={() => run(() => startGame(code))}
+      starting={pending}
+      error={error}
+    />
+  )
+}
+
+interface GameProps {
+  code: string
+  room: RoomDoc
+  players: SeatedPlayer[]
+  me: SeatedPlayer
+}
+
+function Game({ code, room, players, me }: GameProps) {
+  const handView = useHand(code, me.uid)
+  const { pending, error, run } = useServerCall()
+
+  if (handView.status === 'loading') return <Message>Dealing…</Message>
+  if (handView.status === 'error') return <Message>{handView.message}</Message>
+  if (handView.hand === null) return <Message>Waiting for the first hand…</Message>
+
+  const table = tableFromHand({
+    hand: handView.hand,
+    players,
+    mySeat: me.seat,
+    myCards: handView.myCards,
+    bigBlind: room.config.bigBlind,
+  })
+
+  return (
+    <Table
+      table={table}
+      code={code}
+      pending={pending}
+      error={error}
+      gameOver={room.status === 'finished'}
+      onAction={(action: Action) => run(() => playAction(code, action))}
+      onNextHand={() => run(() => dealNextHand(code))}
+    />
+  )
 }
