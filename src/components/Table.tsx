@@ -21,6 +21,7 @@ import { getBettingOptions } from '@/lib/betting'
 import { describeResult } from '@/lib/resultText'
 import { betSpot, layoutSeats, MY_SPOT } from '@/lib/seatLayout'
 import { useDealPlan } from '@/lib/useDealPlan'
+import { SIDEWAYS_PHONE, useMediaQuery } from '@/lib/useMediaQuery'
 import { seatAt, type TableState } from '@/lib/fakeTable'
 import type { TurnClock } from '@/lib/turnClock'
 import type { LogLine } from '@/lib/useEvents'
@@ -68,6 +69,8 @@ export function Table({
   standings = [],
   onReact,
 }: TableProps) {
+  // Bets are placed in code, so the sideways layout needs to be known here too.
+  const sideways = useMediaQuery(SIDEWAYS_PHONE)
   const [panel, setPanel] = useState<'log' | 'scores' | 'history' | null>(null)
   const me = seatAt(table, table.mySeat)!
   const others = table.seats.filter((s) => s.seat !== table.mySeat)
@@ -151,7 +154,7 @@ export function Table({
         {/* The table: everyone else around the oval, board and pot in the middle. A squarer
           shape on phones, so your cards and the controls still fit on the screen. */}
         <div className="landscape-phone:mx-auto landscape-phone:mt-5 landscape-phone:aspect-[8/5] landscape-phone:w-[min(100%,calc((100svh-4.5rem)*1.6))] narrow-landscape:aspect-[4/3] narrow-landscape:w-[min(100%,calc((100svh-4.5rem)*1.333))] short:mt-3 short:aspect-[6/5] relative mt-5 aspect-square w-full max-w-2xl sm:mt-2 sm:aspect-[16/11]">
-          <section className="felt landscape-phone:inset-x-[11%] landscape-phone:inset-y-[18%] narrow-landscape:inset-x-[12%] narrow-landscape:inset-y-[20%] landscape-phone:rounded-[50%] absolute inset-x-[4%] inset-y-[14%] flex flex-col items-center justify-center gap-2 rounded-[45%] sm:inset-x-[8%]">
+          <section className="felt landscape-phone:inset-x-[11%] landscape-phone:inset-y-[18%] narrow-landscape:inset-x-[12%] narrow-landscape:inset-y-[20%] landscape-phone:rounded-[50%] landscape-phone:gap-3 landscape-phone:pt-[7%] absolute inset-x-[4%] inset-y-[14%] flex flex-col items-center justify-center gap-2 rounded-[45%] sm:inset-x-[8%]">
             <Deck key={`deck-${table.handNumber}`} shuffle={dealPlan !== null} />
             <PotDisplay pot={table.pot} />
             <CommunityCards key={`board-${table.handNumber}`} cards={table.community} />
@@ -169,7 +172,7 @@ export function Table({
                     key={`${table.handNumber}-${table.phase}-${seat.seat}`}
                     amount={seat.bet}
                     from={from}
-                    to={betSpot(from)}
+                    to={betSpot(from, undefined, sideways)}
                   />
                 )
               })}

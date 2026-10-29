@@ -49,3 +49,16 @@ describe('betSpot', () => {
     expect(betSpot({ left: 10, top: 80 }, 1)).toEqual(POT_SPOT)
   })
 })
+
+describe('betSpot sideways', () => {
+  it('uses the sideways spot on a phone turned sideways', () => {
+    const seat = {
+      left: 50,
+      top: 11,
+      bet: { left: 50, top: 27 },
+      betSideways: { left: 50, top: 33 },
+    }
+    expect(betSpot(seat, 0.42, true)).toEqual({ left: 50, top: 33 })
+    expect(betSpot(seat)).toEqual({ left: 50, top: 27 })
+  })
+})

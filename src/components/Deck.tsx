@@ -19,10 +19,10 @@ export function Deck({ shuffle }: DeckProps) {
     <div
       data-deck
       aria-hidden
-      // On a phone turned sideways the small table has no free spot, so the deck sits over the
-      // pot while dealing and fades out afterwards (it stays in place, invisible, so dealt cards
+      // On a phone turned sideways the small table has no free spot, so the deck sits left of
+      // the pot while dealing and fades out afterwards (it stays in place, invisible, so dealt cards
       // can still be measured flying out of it).
-      className={`landscape-phone:top-[30%] landscape-phone:left-[46%] landscape-phone:h-11 landscape-phone:w-8 absolute top-[24%] left-[39%] h-10 w-7 transition-opacity duration-700 sm:top-[14%] sm:left-[40%] sm:h-14 sm:w-10 ${
+      className={`landscape-phone:top-[38%] landscape-phone:left-[27%] landscape-phone:h-11 landscape-phone:w-8 absolute top-[24%] left-[39%] h-10 w-7 transition-opacity duration-700 sm:top-[14%] sm:left-[40%] sm:h-14 sm:w-10 ${
         shuffle ? '' : 'landscape-phone:opacity-0'
       }`}
     >

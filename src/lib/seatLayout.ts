@@ -13,18 +13,20 @@ export interface Spot {
   top: number
   /** Where this seat's bet sits on the felt. */
   bet?: { left: number; top: number }
+  /** The same on a phone turned sideways, where the oval has different proportions. */
+  betSideways?: { left: number; top: number }
 }
 
 // Seven spots, clockwise from bottom-left to bottom-right. Each has a hand-placed spot for
 // that player's bet: on the felt in front of them, clear of the board cards in the middle.
 const SPOTS: Spot[] = [
-  { left: 12, top: 78, bet: { left: 27, top: 76 } },
-  { left: 10, top: 42, bet: { left: 26, top: 40 } },
-  { left: 25, top: 13, bet: { left: 32, top: 37 } },
-  { left: 50, top: 11, bet: { left: 50, top: 27 } },
-  { left: 75, top: 13, bet: { left: 68, top: 37 } },
-  { left: 90, top: 42, bet: { left: 74, top: 40 } },
-  { left: 88, top: 78, bet: { left: 73, top: 76 } },
+  { left: 12, top: 78, bet: { left: 27, top: 76 }, betSideways: { left: 25, top: 80 } },
+  { left: 10, top: 42, bet: { left: 26, top: 40 }, betSideways: { left: 24, top: 44 } },
+  { left: 25, top: 13, bet: { left: 32, top: 37 }, betSideways: { left: 34, top: 34 } },
+  { left: 50, top: 11, bet: { left: 50, top: 27 }, betSideways: { left: 50, top: 33 } },
+  { left: 75, top: 13, bet: { left: 68, top: 37 }, betSideways: { left: 66, top: 34 } },
+  { left: 90, top: 42, bet: { left: 74, top: 40 }, betSideways: { left: 76, top: 44 } },
+  { left: 88, top: 78, bet: { left: 73, top: 76 }, betSideways: { left: 75, top: 80 } },
 ]
 
 // Which of the seven spots to use for each number of other players.
@@ -58,16 +60,23 @@ export function layoutSeats(
 }
 
 /** Where my own seat is, for working out where my bet goes (just below the oval). */
-export const MY_SPOT: Spot = { left: 50, top: 96, bet: { left: 50, top: 78 } }
+export const MY_SPOT: Spot = {
+  left: 50,
+  top: 96,
+  bet: { left: 50, top: 78 },
+  betSideways: { left: 50, top: 81 },
+}
 
 /** The middle of the felt, where the pot sits. */
 export const POT_SPOT: Spot = { left: 50, top: 46 }
 
 /**
- * Where a seat's bet sits: its hand-placed spot, or otherwise part of the way from the seat
- * towards the pot, like chips pushed forward on a real table.
+ * Where a seat's bet sits: its hand-placed spot (a separate one on a phone turned sideways),
+ * or otherwise part of the way from the seat towards the pot, like chips pushed forward on a
+ * real table.
  */
-export function betSpot(seat: Spot, share = 0.42): Spot {
+export function betSpot(seat: Spot, share = 0.42, sideways = false): Spot {
+  if (sideways && seat.betSideways) return seat.betSideways
   if (seat.bet) return seat.bet
   return {
     left: seat.left + (POT_SPOT.left - seat.left) * share,
