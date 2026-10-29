@@ -399,3 +399,9 @@ Each entry: what I did, why, what else I considered, and what it costs.
 - **Why:** An app installed on an iPhone is usually resumed, not restarted, so it kept running the old version long after a deploy. This way everyone plays the version I just shipped, which matters most after server changes. It's one tiny file from Hosting, with no Firestore or Functions calls, so it costs nothing that matters.
 - **Alternative I rejected:** A service worker. It's the usual tool for this, but it's built for offline caching, which this online-only game doesn't need, and a badly handled service worker is itself a classic cause of stale versions.
 - **Trade-off:** A reload costs a moment of loading. At a table it's up to the player when to refresh.
+
+## 58. One card style everywhere: big index, one big suit
+
+- **What:** Every card face shows a large rank and suit in the top-left corner and one large suit in the bottom-right, on every screen and orientation. Only the size changes with the screen. The printed-deck layout (pips, court panels) and its helper `pips.ts` were removed.
+- **Why:** The printed layout looked great on big cards but turned into a jumble on small ones (sideways phones, the board on small screens). One readable style keeps the game consistent wherever you play it, and it's how poker apps draw cards: what matters at a table is reading a card in an instant.
+- **Trade-off:** Less "real deck" charm on large screens, in exchange for consistency and readability.

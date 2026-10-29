@@ -1,58 +1,44 @@
 import type { Card as CardCode, Suit } from '@shared/engine'
-import { pipsFor } from '@/lib/pips'
 
 const SUIT_SYMBOL: Record<Suit, string> = { s: '♠', h: '♥', d: '♦', c: '♣' }
 const RED_SUITS: ReadonlySet<Suit> = new Set(['h', 'd'])
 
 export type FaceSize = 'md' | 'board' | 'sm'
 
-// Type sizes per card size: the corner index, the pips, the ace's big pip, the court letter.
+// Type sizes for each card size. The card itself changes size with the screen (see Card.tsx),
+// so these follow the same breakpoints: phone, sm (tablet/desktop), and a phone turned sideways.
 const TYPE = {
   md: {
-    rank: 'text-[15px] sm:text-[18px]',
-    suit: 'text-[11px] sm:text-[13px]',
-    pip: 'text-[13px] sm:text-[17px]',
-    ace: 'text-[40px] sm:text-[50px]',
-    court: 'text-[26px] sm:text-[32px]',
-    index: 'top-1 left-1 sm:left-1.5',
-    // Compact face, used on phones turned sideways where the cards are small.
-    compactRank: 'text-[17px]',
-    compactSuit: 'text-[12px]',
-    compactBig: 'text-[26px]',
-    // Written out in full (not built from `index`) so Tailwind can see the class names.
-    indexFlipped: 'right-1 bottom-1 sm:right-1.5',
+    rank: 'text-[22px] sm:text-[26px] landscape-phone:text-[17px]',
+    suit: 'text-[13px] sm:text-[15px] landscape-phone:text-[12px]',
+    big: 'text-[38px] sm:text-[46px] landscape-phone:text-[26px]',
   },
   board: {
-    rank: 'text-[11px] sm:text-[15px]',
-    suit: 'text-[8px] sm:text-[11px]',
-    pip: 'text-[9px] sm:text-[13px]',
-    ace: 'text-[26px] sm:text-[40px]',
-    court: 'text-[17px] sm:text-[26px]',
-    index: 'top-0.5 left-0.5 sm:top-1 sm:left-1',
-    compactRank: 'text-[13px]',
-    compactSuit: 'text-[9px]',
-    compactBig: 'text-[18px]',
-    indexFlipped: 'right-0.5 bottom-0.5 sm:right-1 sm:bottom-1',
+    rank: 'text-[16px] sm:text-[22px] landscape-phone:text-[13px]',
+    suit: 'text-[10px] sm:text-[13px] landscape-phone:text-[9px]',
+    big: 'text-[26px] sm:text-[38px] landscape-phone:text-[18px]',
   },
 } as const
 
 /**
- * The printed side of a card, drawn like a real deck: a corner index top-left and (upside
- * down) bottom-right, the right number of pips in the classic pattern, one big pip on an ace,
- * and a framed court panel on J, Q and K.
+ * The printed side of a card: a big rank and suit in the top-left corner and one large suit
+ * in the bottom-right. Readable at a glance at every size, which is what matters at a table
+ * (the style poker apps use), and the same on every screen.
  */
 export function CardFace({ card, size }: { card: CardCode; size: FaceSize }) {
   const rank = card[0]!
   const suit = card[1] as Suit
   const symbol = SUIT_SYMBOL[suit]
-  const red = RED_SUITS.has(suit)
   const label = rank === 'T' ? '10' : rank
-  const ink = red ? 'text-[#c8202b]' : 'text-[#16191b]'
+  const ink = RED_SUITS.has(suit) ? 'text-[#c8202b]' : 'text-[#16191b]'
 
-  // The small cards at other players' seats are too small for a real layout.
+  // The small cards at other players' seats: just the rank over the suit.
   if (size === 'sm') {
     return (
-      <div className={`flex h-full flex-col items-center justify-center ${ink}`}>
+      <div
+        className={`flex h-full flex-col items-center justify-center ${ink}`}
+        aria-label={`${label} of ${suitName(suit)}`}
+      >
         <span className="text-sm leading-none font-bold tracking-tight sm:text-base">
           {label}
         </span>
@@ -62,84 +48,21 @@ export function CardFace({ card, size }: { card: CardCode; size: FaceSize }) {
   }
 
   const t = TYPE[size]
-  const index = (
-    <span className="flex flex-col items-center leading-none">
-      <span className={`${t.rank} font-bold tracking-[-0.06em]`}>{label}</span>
-      <span className={t.suit}>{symbol}</span>
-    </span>
-  )
-  const isCourt = rank === 'J' || rank === 'Q' || rank === 'K'
-
   return (
     <div
       className={`relative h-full w-full ${ink}`}
       aria-label={`${label} of ${suitName(suit)}`}
     >
-      {/* Full, printed-deck layout. Hidden on a phone turned sideways, where the cards are too
-          small for pips: there the compact face below is shown instead. */}
-      <div className="landscape-phone:hidden contents">
-        {/* Corner indexes: top-left, and the same turned upside down bottom-right. */}
-        <div className={`absolute ${t.index}`}>{index}</div>
-        <div className={`absolute ${t.indexFlipped} rotate-180`}>{index}</div>
-
-        {rank === 'A' && (
-          <span
-            className={`absolute inset-0 flex items-center justify-center ${t.ace} leading-none`}
-          >
-            {symbol}
-          </span>
-        )}
-
-        {isCourt && (
-          // A framed court panel, split corner to corner and mirrored like a real court card.
-          <div
-            className={`absolute inset-x-[22%] inset-y-[14%] overflow-hidden rounded-[3px] border ${
-              red ? 'border-[#c8202b]/70' : 'border-[#16191b]/70'
-            }`}
-            style={{
-              background: `linear-gradient(135deg, ${red ? '#fbe3dc' : '#e2e8ef'} 0 49.6%, ${
-                red ? '#f7d27a' : '#f2d589'
-              } 50.4% 100%)`,
-            }}
-          >
-            <span className={`absolute top-[6%] left-[10%] ${t.suit}`}>{symbol}</span>
-            <span className={`absolute right-[10%] bottom-[6%] rotate-180 ${t.suit}`}>
-              {symbol}
-            </span>
-            <span
-              className={`absolute inset-0 flex items-center justify-center font-serif font-bold ${t.court} leading-none`}
-            >
-              {label}
-            </span>
-          </div>
-        )}
-
-        {pipsFor(rank).map((p, i) => (
-          <span
-            key={i}
-            className={`absolute -translate-x-1/2 -translate-y-1/2 leading-none ${t.pip} ${p.flip ? 'rotate-180' : ''}`}
-            style={{ left: `${p.x}%`, top: `${p.y}%` }}
-            aria-hidden
-          >
-            {symbol}
-          </span>
-        ))}
-      </div>
-
-      {/* Compact face: a big index in the corner and one large suit, readable at a glance on
-          small cards (the style poker apps use at small sizes). */}
-      <div className="landscape-phone:block absolute inset-0 hidden">
-        <span className="absolute top-0.5 left-1 flex flex-col items-center leading-none">
-          <span className={`${t.compactRank} font-bold tracking-[-0.06em]`}>{label}</span>
-          <span className={t.compactSuit}>{symbol}</span>
-        </span>
-        <span
-          className={`absolute right-1 bottom-0.5 ${t.compactBig} leading-none`}
-          aria-hidden
-        >
-          {symbol}
-        </span>
-      </div>
+      <span className="absolute top-[5%] left-[9%] flex flex-col items-center leading-none">
+        <span className={`${t.rank} font-bold tracking-[-0.06em]`}>{label}</span>
+        <span className={t.suit}>{symbol}</span>
+      </span>
+      <span
+        className={`absolute right-[9%] bottom-[5%] ${t.big} leading-none`}
+        aria-hidden
+      >
+        {symbol}
+      </span>
     </div>
   )
 }
