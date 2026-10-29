@@ -7,6 +7,7 @@ import { WaitingRoom } from '@/components/WaitingRoom'
 import { dealNextHand, errorMessage, playAction, startGame } from '@/lib/api'
 import { tableFromHand } from '@/lib/tableFromHand'
 import { useHand } from '@/lib/useHand'
+import { useTimeoutClaim } from '@/lib/useTimeoutClaim'
 import { useRoom, type SeatedPlayer } from '@/lib/useRoom'
 
 function Message({ children }: { children: React.ReactNode }) {
@@ -103,6 +104,8 @@ interface GameProps {
 function Game({ code, room, players, me }: GameProps) {
   const handView = useHand(code, me.uid)
   const { pending, error, run } = useServerCall()
+  // Both players' screens watch the clock; whichever gets there first asks the server to act.
+  useTimeoutClaim(code, handView.status === 'ready' ? handView.turn : null)
 
   if (handView.status === 'loading') return <Message>Dealing…</Message>
   if (handView.status === 'error') return <Message>{handView.message}</Message>
@@ -123,6 +126,7 @@ function Game({ code, room, players, me }: GameProps) {
       pending={pending}
       error={error}
       gameOver={room.status === 'finished'}
+      turn={handView.turn}
       onAction={(action: Action) => run(() => playAction(code, action))}
       onNextHand={() => run(() => dealNextHand(code))}
     />

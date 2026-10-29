@@ -125,5 +125,47 @@ console.log(
   `  hand ${second.handNumber}, button now on seat ${second.button}, stacks ${second.stacks.join(' / ')}, bets ${second.bets.join(' / ')}`,
 )
 
+console.log('\nThe clock')
+const clocked = await alice.read(handPath)
+console.log(
+  `  seat ${clocked.toAct} is on the clock for ${(clocked.turnDeadline - clocked.turnStartedAt) / 1000}s`,
+)
+await expectFailure(
+  'claiming a timeout before time is up',
+  alice.call('claimTimeout', { code }),
+)
+
+if (clocked.turnDeadline - clocked.turnStartedAt <= 10_000) {
+  const wait = clocked.turnDeadline - Date.now() + 300
+  console.log(`  waiting ${Math.ceil(wait / 1000)}s for the clock to run out...`)
+  await new Promise((resolve) => setTimeout(resolve, Math.max(wait, 0)))
+  // The player on the clock does nothing. The OTHER player asks the server to act.
+  const other = bySeat[1 - clocked.toAct]
+  await other.call('claimTimeout', { code })
+  const after = await alice.read(handPath)
+  const moved =
+    after.phase === 'complete' ||
+    after.toAct !== clocked.toAct ||
+    after.phase !== clocked.phase
+  console.log(
+    `  after the timeout: phase ${after.phase}, seat ${after.toAct ?? 'nobody'} to act, stacks ${after.stacks.join(' / ')}`,
+  )
+  if (!moved) {
+    console.log('  !! the timeout did not move the hand along')
+    process.exitCode = 1
+  }
+  if (
+    after.stacks[0] + after.stacks[1] + after.bets[0] + after.bets[1] + after.pot !==
+    2000
+  ) {
+    console.log('  !! chips are not conserved after the timeout')
+    process.exitCode = 1
+  }
+} else {
+  console.log(
+    '  (skipped the real timeout: restart the emulators with  TURN_SECONDS=3 npm run emulators  to test it)',
+  )
+}
+
 console.log(process.exitCode ? '\nSomething went wrong (see !! above)' : '\nAll good')
 process.exit()

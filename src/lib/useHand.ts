@@ -4,11 +4,18 @@ import { unpackPublic, type PublicHandState, type StoredPublicHand } from '@shar
 import { errorMessage } from '@/lib/api'
 import { db } from '@/lib/firebase'
 import type { MyCards } from '@/lib/tableFromHand'
+import { turnClockFromDoc, type TurnClock } from '@/lib/turnClock'
 
 export type HandView =
   | { status: 'loading' }
   | { status: 'error'; message: string }
-  | { status: 'ready'; hand: PublicHandState | null; myCards: MyCards | null }
+  | {
+      status: 'ready'
+      hand: PublicHandState | null
+      myCards: MyCards | null
+      /** Who is on the clock and until when. Null when nobody is. */
+      turn: TurnClock | null
+    }
 
 /**
  * Follows the current hand live: the public copy everyone sees, and my own two cards.
@@ -20,6 +27,7 @@ export function useHand(code: string, uid: string): HandView {
   // undefined = still loading, null = nothing there yet
   const [hand, setHand] = useState<PublicHandState | null | undefined>(undefined)
   const [myCards, setMyCards] = useState<MyCards | null | undefined>(undefined)
+  const [turn, setTurn] = useState<TurnClock | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -27,8 +35,11 @@ export function useHand(code: string, uid: string): HandView {
     const unsubscribes: Unsubscribe[] = [
       onSnapshot(
         doc(db, 'rooms', code, 'hand', 'current'),
-        (snap) =>
-          setHand(snap.exists() ? unpackPublic(snap.data() as StoredPublicHand) : null),
+        (snap) => {
+          setHand(snap.exists() ? unpackPublic(snap.data() as StoredPublicHand) : null)
+          // Remember how far this computer's clock is from the server's at this moment.
+          setTurn(turnClockFromDoc(snap.data(), Date.now()))
+        },
         fail,
       ),
       onSnapshot(
@@ -42,5 +53,5 @@ export function useHand(code: string, uid: string): HandView {
 
   if (error) return { status: 'error', message: error }
   if (hand === undefined || myCards === undefined) return { status: 'loading' }
-  return { status: 'ready', hand, myCards }
+  return { status: 'ready', hand, myCards, turn }
 }

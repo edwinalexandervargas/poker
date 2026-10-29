@@ -29,6 +29,7 @@ import {
   shuffle,
   settleShowdown,
   startHand,
+  timeoutAction,
   toPublicState,
   unpackHand,
   type HandState,
@@ -36,6 +37,9 @@ import {
   type RoomDoc,
   type StoredHand,
 } from '../../shared/engine/index.js'
+
+/** How long a player has to act. Set TURN_SECONDS when starting the emulators to test with a short clock. */
+const TURN_MS = Number(process.env.TURN_SECONDS ?? 30) * 1000
 
 type SeatedPlayer = PlayerDoc & { uid: string }
 
@@ -103,8 +107,13 @@ function saveHand(
 
   tx.set(roomRef.collection('secret').doc('hand'), { state: packHand(state) })
 
+  // The clock is the server's, so both players count down to the same moment. A finished
+  // hand has nobody on the clock.
+  const turnStartedAt = Date.now()
   tx.set(roomRef.collection('hand').doc('current'), {
     ...packPublic(toPublicState(state, reveal)),
+    turnStartedAt,
+    turnDeadline: state.toAct === null ? null : turnStartedAt + TURN_MS,
     updatedAt: FieldValue.serverTimestamp(),
   })
 
@@ -222,5 +231,41 @@ export const dealNextHand = onCall<GameInput>(async (request) => {
     const dealt = settleShowdown(next)
     saveHand(tx, table, dealt.state, dealt.reveal)
     return { finished: false, handNumber: dealt.state.handNumber }
+  })
+})
+
+/**
+ * Either seated player can call this once the player on the clock has run out of time.
+ * The server checks the deadline itself (a browser's clock can't be trusted), then plays the
+ * automatic move: check if that's free, otherwise fold.
+ */
+export const claimTimeout = onCall<GameInput>(async (request) => {
+  const uid = requireUid(request.auth?.uid)
+  const code = requireCode(request.data?.code)
+
+  return getFirestore().runTransaction(async (tx) => {
+    const table = await readTable(tx, code)
+    requireSeated(table, uid)
+    const state = await readHand(tx, table)
+    const publicSnap = await tx.get(table.roomRef.collection('hand').doc('current'))
+    const deadline: unknown = publicSnap.get('turnDeadline')
+
+    if (state.toAct === null || typeof deadline !== 'number') {
+      throw new HttpsError('failed-precondition', 'Nobody is on the clock.')
+    }
+    if (Date.now() < deadline) {
+      throw new HttpsError('failed-precondition', 'Time is not up yet.')
+    }
+
+    const bigBlind = table.room.config.bigBlind
+    let result
+    try {
+      result = playTurn(state, state.toAct, timeoutAction(state, bigBlind), bigBlind)
+    } catch (error) {
+      throw asRuleError(error)
+    }
+
+    saveHand(tx, table, result.state, result.reveal)
+    return { phase: result.state.phase }
   })
 })

@@ -26,6 +26,10 @@ const dealNextHandFn = httpsCallable<{ code: string }, { finished: boolean }>(
   functions,
   'dealNextHand',
 )
+const claimTimeoutFn = httpsCallable<{ code: string }, { phase: string }>(
+  functions,
+  'claimTimeout',
+)
 
 export async function createRoom(name: string): Promise<string> {
   await ensureSignedIn()
@@ -55,6 +59,12 @@ export async function playAction(code: string, action: Action): Promise<void> {
 export async function dealNextHand(code: string): Promise<void> {
   await ensureSignedIn()
   await dealNextHandFn({ code })
+}
+
+/** The player on the clock ran out of time. The server checks the deadline and plays the automatic move. */
+export async function claimTimeout(code: string): Promise<void> {
+  await ensureSignedIn()
+  await claimTimeoutFn({ code })
 }
 
 /** A message safe to show a player. The functions' own messages ("That table is full.") pass through. */

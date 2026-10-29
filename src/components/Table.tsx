@@ -4,9 +4,11 @@ import { ActionBar } from '@/components/ActionBar'
 import { CommunityCards } from '@/components/CommunityCards'
 import { PotDisplay } from '@/components/PotDisplay'
 import { Seat } from '@/components/Seat'
+import { TurnTimer } from '@/components/TurnTimer'
 import { getBettingOptions } from '@/lib/betting'
 import { describeResult } from '@/lib/resultText'
 import type { TableState } from '@/lib/fakeTable'
+import type { TurnClock } from '@/lib/turnClock'
 
 interface TableProps {
   table: TableState
@@ -20,6 +22,8 @@ interface TableProps {
   onNextHand?: () => void
   /** Someone is out of chips: no more hands. */
   gameOver?: boolean
+  /** The countdown for whoever is on the clock. */
+  turn?: TurnClock | null
 }
 
 /** The whole table screen. It draws whatever TableState it is given. */
@@ -31,6 +35,7 @@ export function Table({
   error = null,
   onNextHand,
   gameOver = false,
+  turn = null,
 }: TableProps) {
   const me = table.seats[table.mySeat]
   const opponent = table.seats[table.mySeat === 0 ? 1 : 0]
@@ -88,11 +93,20 @@ export function Table({
           )}
         </div>
       ) : (
-        <ActionBar
-          options={getBettingOptions(table)}
-          disabled={!me.isToAct || pending}
-          onAction={onAction}
-        />
+        <>
+          {turn && (
+            <TurnTimer
+              key={turn.deadline}
+              turn={turn}
+              label={me.isToAct ? 'Your turn' : `${opponent.name}’s turn`}
+            />
+          )}
+          <ActionBar
+            options={getBettingOptions(table)}
+            disabled={!me.isToAct || pending}
+            onAction={onAction}
+          />
+        </>
       )}
 
       {error && (

@@ -132,4 +132,4 @@ export const joinRoom = onCall<RoomInput>(async (request) => {
   })
 })
 
-export { dealNextHand, playAction, startGame } from './game.js'
+export { claimTimeout, dealNextHand, playAction, startGame } from './game.js'
