@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import type { LogLine } from '@/lib/useEvents'
 
 interface ActionLogProps {
@@ -6,62 +6,37 @@ interface ActionLogProps {
 }
 
 /**
- * The running list of what happened ("Alex raises to 80"). Collapsed it shows the latest
- * line; open, the recent history, kept scrolled to the newest line.
+ * The running list of what happened ("Alex raises to 80"), oldest at the top. Shown in a
+ * dialog from the Log button. It stays live while open and keeps the newest line in view.
  */
 export function ActionLog({ lines }: ActionLogProps) {
-  const [open, setOpen] = useState(false)
-  const listRef = useRef<HTMLOListElement>(null)
-  const latest = lines.at(-1)
+  const endRef = useRef<HTMLLIElement>(null)
 
-  // Keep the newest line in view when one arrives (or the log is opened).
+  // Keep the newest line in view when the log opens and whenever a line arrives.
   useEffect(() => {
-    const list = listRef.current
-    if (list) list.scrollTop = list.scrollHeight
-  }, [lines, open])
+    endRef.current?.scrollIntoView({ block: 'end' })
+  }, [lines])
 
-  if (!latest) return null
+  if (lines.length === 0) {
+    return <p className="text-white/60">Nothing has happened at this table yet.</p>
+  }
 
   return (
-    <section
-      className="glass w-full max-w-md rounded-3xl text-sm"
-      aria-label="Action log"
-    >
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        className="flex w-full items-center justify-between gap-3 px-4 py-2 text-left"
-      >
-        <span className="truncate text-white/80">
-          {open ? 'Action log' : latest.text}
-        </span>
-        <span className="shrink-0 text-xs text-white/50">{open ? 'Hide' : 'Log'}</span>
-      </button>
-      {open && (
-        <ol
-          ref={listRef}
-          className="max-h-48 space-y-1 overflow-y-auto border-t border-white/10 px-4 py-2"
-          aria-live="polite"
-        >
-          {lines.map((line, i) => {
-            // A thin divider where a new hand starts.
-            const newHand = i > 0 && line.handNumber > 0 && line.text.startsWith('Hand ')
-            return (
-              <li
-                key={line.id}
-                className={`${newHand ? 'mt-2 border-t border-white/10 pt-2' : ''} ${
-                  line.text.startsWith('Hand')
-                    ? 'font-semibold text-white'
-                    : 'text-white/75'
-                }`}
-              >
-                {line.text}
-              </li>
-            )
-          })}
-        </ol>
-      )}
-    </section>
+    <ol className="space-y-1 text-sm" aria-live="polite">
+      {lines.map((line, i) => {
+        const startsHand = line.text.startsWith('Hand ')
+        return (
+          <li
+            key={line.id}
+            ref={i === lines.length - 1 ? endRef : undefined}
+            className={`${startsHand && i > 0 ? 'mt-2 border-t border-white/10 pt-2' : ''} ${
+              startsHand ? 'font-semibold text-white' : 'text-white/75'
+            }`}
+          >
+            {line.text}
+          </li>
+        )
+      })}
+    </ol>
   )
 }

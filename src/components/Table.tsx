@@ -68,7 +68,7 @@ export function Table({
   standings = [],
   onReact,
 }: TableProps) {
-  const [panel, setPanel] = useState<'scores' | 'history' | null>(null)
+  const [panel, setPanel] = useState<'log' | 'scores' | 'history' | null>(null)
   const me = seatAt(table, table.mySeat)!
   const others = table.seats.filter((s) => s.seat !== table.mySeat)
   const handOver = table.phase === 'complete'
@@ -96,8 +96,19 @@ export function Table({
         <Link to="/" className="underline underline-offset-4">
           Leave
         </Link>
-        <span className="tracking-widest uppercase">Table {code}</span>
+        <span className="tracking-widest uppercase">
+          {/* "Table" is dropped on phones to make room for the three buttons. */}
+          <span className="hidden sm:inline">Table </span>
+          {code}
+        </span>
         <span className="flex gap-3">
+          <button
+            type="button"
+            onClick={() => setPanel('log')}
+            className="underline underline-offset-4"
+          >
+            Log
+          </button>
           <button
             type="button"
             onClick={() => setPanel('scores')}
@@ -115,6 +126,11 @@ export function Table({
         </span>
       </header>
 
+      {panel === 'log' && (
+        <Modal title="Action log" onClose={() => setPanel(null)}>
+          <ActionLog lines={log} />
+        </Modal>
+      )}
       {panel === 'scores' && (
         <Modal title="Tonight's results" onClose={() => setPanel(null)}>
           <Scoreboard rows={standings} mySeat={table.mySeat} />
@@ -276,7 +292,6 @@ export function Table({
           )}
 
           {onReact && <ReactionPicker onReact={onReact} />}
-          <ActionLog lines={log} />
 
           {error && (
             <p role="alert" className="text-red-300">
