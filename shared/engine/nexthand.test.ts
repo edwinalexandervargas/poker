@@ -1,3 +1,4 @@
+import { headsUp, type HeadsUpFixture } from './testHand.js'
 import { describe, expect, it } from 'vitest'
 import { createDeck } from './deck.js'
 import type { HandState } from './hand.js'
@@ -5,8 +6,8 @@ import { nextHand } from './nexthand.js'
 
 const deck = createDeck()
 
-function finished(overrides: Partial<HandState> = {}): HandState {
-  return {
+function finished(overrides: Partial<HeadsUpFixture> = {}): HandState {
+  return headsUp({
     handNumber: 3,
     phase: 'complete',
     button: 0,
@@ -19,7 +20,7 @@ function finished(overrides: Partial<HandState> = {}): HandState {
     holeCards: [[], []],
     deck: [],
     ...overrides,
-  }
+  } as HeadsUpFixture)
 }
 
 describe('nextHand: starting the next hand', () => {
@@ -44,7 +45,7 @@ describe('nextHand: starting the next hand', () => {
     expect(next.phase).toBe('preflop')
     expect(next.community).toEqual([])
     expect(next.pot).toBe(0)
-    expect(next.actionsThisRound).toBe(0)
+    expect(next.acted).toEqual([false, false])
     expect(next.holeCards[0]).toHaveLength(2)
     expect(next.holeCards[1]).toHaveLength(2)
     expect(next.deck).toEqual(deck.slice(4))
@@ -52,7 +53,9 @@ describe('nextHand: starting the next hand', () => {
 
   it('never creates or destroys chips', () => {
     const next = nextHand(finished({ stacks: [1500, 500] }), 10, 20, deck)!
-    expect(next.stacks[0] + next.stacks[1] + next.bets[0] + next.bets[1] + next.pot).toBe(2000)
+    expect(
+      next.stacks[0]! + next.stacks[1]! + next.bets[0]! + next.bets[1]! + next.pot,
+    ).toBe(2000)
   })
 })
 

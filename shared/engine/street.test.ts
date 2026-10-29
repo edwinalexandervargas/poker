@@ -1,3 +1,4 @@
+import { headsUp, type HeadsUpFixture } from './testHand.js'
 import { describe, expect, it } from 'vitest'
 import { createDeck } from './deck.js'
 import type { HandState } from './hand.js'
@@ -5,8 +6,8 @@ import { advanceStreet, isRoundOver } from './street.js'
 
 const deck = createDeck().slice(4) // pretend 4 hole cards are already dealt
 
-function hand(overrides: Partial<HandState> = {}): HandState {
-  return {
+function hand(overrides: Partial<HeadsUpFixture> = {}): HandState {
+  return headsUp({
     handNumber: 1,
     phase: 'preflop',
     button: 0,
@@ -19,7 +20,7 @@ function hand(overrides: Partial<HandState> = {}): HandState {
     holeCards: [[], []],
     deck,
     ...overrides,
-  }
+  } as HeadsUpFixture)
 }
 
 describe('isRoundOver', () => {
@@ -32,7 +33,9 @@ describe('isRoundOver', () => {
   })
 
   it('is over after check, check', () => {
-    expect(isRoundOver(hand({ phase: 'flop', bets: [0, 0], actionsThisRound: 2 }))).toBe(true)
+    expect(isRoundOver(hand({ phase: 'flop', bets: [0, 0], actionsThisRound: 2 }))).toBe(
+      true,
+    )
   })
 
   it('is over when a raise has been called', () => {
@@ -44,15 +47,21 @@ describe('isRoundOver', () => {
   })
 
   it('is not over after a re-raise, even though both have acted', () => {
-    expect(isRoundOver(hand({ bets: [60, 100], stacks: [900, 800], actionsThisRound: 2 }))).toBe(false)
+    expect(
+      isRoundOver(hand({ bets: [60, 100], stacks: [900, 800], actionsThisRound: 2 })),
+    ).toBe(false)
   })
 
   it('is over when the smaller bet is a call that put the player all-in', () => {
-    expect(isRoundOver(hand({ bets: [100, 50], stacks: [400, 0], actionsThisRound: 2 }))).toBe(true)
+    expect(
+      isRoundOver(hand({ bets: [100, 50], stacks: [400, 0], actionsThisRound: 2 })),
+    ).toBe(true)
   })
 
   it('is not over when the smaller bet still has chips behind it', () => {
-    expect(isRoundOver(hand({ bets: [100, 50], stacks: [400, 300], actionsThisRound: 2 }))).toBe(false)
+    expect(
+      isRoundOver(hand({ bets: [100, 50], stacks: [400, 300], actionsThisRound: 2 })),
+    ).toBe(false)
   })
 })
 
@@ -66,19 +75,25 @@ describe('advanceStreet: moving to the next phase', () => {
 
   it('flop to turn adds one card to the board', () => {
     const flop = deck.slice(0, 3)
-    const next = advanceStreet(hand({ phase: 'flop', community: flop, deck: deck.slice(3) }))
+    const next = advanceStreet(
+      hand({ phase: 'flop', community: flop, deck: deck.slice(3) }),
+    )
     expect(next.phase).toBe('turn')
     expect(next.community).toEqual(deck.slice(0, 4))
   })
 
   it('turn to river adds one card to the board', () => {
-    const next = advanceStreet(hand({ phase: 'turn', community: deck.slice(0, 4), deck: deck.slice(4) }))
+    const next = advanceStreet(
+      hand({ phase: 'turn', community: deck.slice(0, 4), deck: deck.slice(4) }),
+    )
     expect(next.phase).toBe('river')
     expect(next.community).toEqual(deck.slice(0, 5))
   })
 
   it('river to showdown deals nothing and nobody is to act', () => {
-    const next = advanceStreet(hand({ phase: 'river', community: deck.slice(0, 5), deck: deck.slice(5) }))
+    const next = advanceStreet(
+      hand({ phase: 'river', community: deck.slice(0, 5), deck: deck.slice(5) }),
+    )
     expect(next.phase).toBe('showdown')
     expect(next.community).toHaveLength(5)
     expect(next.toAct).toBeNull()
@@ -116,12 +131,13 @@ describe('advanceStreet: the chips', () => {
   it('never creates or destroys chips', () => {
     const before = hand({ bets: [100, 50], stacks: [400, 0], pot: 70 })
     const next = advanceStreet(before)
-    const total = (h: HandState) => h.stacks[0] + h.stacks[1] + h.bets[0] + h.bets[1] + h.pot
+    const total = (h: HandState) =>
+      h.stacks[0]! + h.stacks[1]! + h.bets[0]! + h.bets[1]! + h.pot
     expect(total(next)).toBe(total(before))
   })
 
   it('starts the new round with no moves made', () => {
-    expect(advanceStreet(hand()).actionsThisRound).toBe(0)
+    expect(advanceStreet(hand()).acted).toEqual([false, false])
   })
 })
 

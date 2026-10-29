@@ -1,20 +1,30 @@
 import { draw } from './deck.js'
-import { firstToAct, getBlindSeats, otherSeat } from './seats.js'
+import { blindSeats, firstToAct, nextSeat } from './ring.js'
 import { settleBetting } from './street.js'
 import type { Card, Phase, Seat } from './types.js'
+
+/** One pot and who won it. A hand with all-ins can have several (a main pot and side pots). */
+export interface PotResult {
+  amount: number
+  /** The seats that shared this pot. More than one means a split. */
+  winners: Seat[]
+}
 
 /** How a finished hand ended. Filled in when the hand completes, absent while it is live. */
 export interface HandResult {
   reason: 'fold' | 'showdown'
-  /** The seat(s) that won the pot: two seats means a split. */
+  /** Every seat that won chips from any pot. */
   winners: Seat[]
-  /** Chips each seat was awarded from the pot, e.g. [121, 120] for an odd split. */
-  payouts: [number, number]
-  /** The winning hand, like "Pair, A's". Null when the hand ended by a fold. */
+  /** Chips each seat was awarded, indexed by seat (0 for everyone who won nothing). */
+  payouts: number[]
+  /** The main pot winner's hand, like "Pair, A's". Null when the hand ended by a fold. */
   handName: string | null
+  /** Each pot separately. One entry unless someone was all-in for less. */
+  pots: PotResult[]
 }
 
-// Anything per-player is a pair indexed by seat: stacks[0] is seat 0's chips.
+// Every per-player list is indexed by TABLE SEAT and has one entry per seat (up to 8).
+// A seat that isn't playing this hand has no hole cards, is marked folded, and has 0 bet.
 export interface HandState {
   handNumber: number
   phase: Phase
@@ -22,17 +32,25 @@ export interface HandState {
   /** Whose turn it is, or null when nobody is betting. */
   toAct: Seat | null
   /** Chips each player still holds, not counting what they've bet this round. */
-  stacks: [number, number]
+  stacks: number[]
   /** Chips each player has put in during the current betting round. */
-  bets: [number, number]
+  bets: number[]
+  /** Chips each player has put in during the WHOLE hand. Side pots are built from this. */
+  committed: number[]
+  /** Out of this hand: folded, or never dealt in. */
+  folded: boolean[]
+  /**
+   * Has acted since the last raise this round. A round is over when everyone who can still
+   * bet has acted and matched the highest bet. A raise sets everyone else back to false.
+   */
+  acted: boolean[]
   /** Chips from finished betting rounds. */
   pot: number
-  actionsThisRound: number
   /** Set once the hand is complete. */
   result?: HandResult
   community: Card[]
-  /** Each player's two private cards. Only ever sent to that player. */
-  holeCards: [Card[], Card[]]
+  /** Each seat's two private cards (empty if not dealt in). Only ever sent to that player. */
+  holeCards: Card[][]
   /** The cards still in the deck. Never sent to anyone. */
   deck: Card[]
 }
@@ -40,62 +58,75 @@ export interface HandState {
 export interface StartHandInput {
   handNumber: number
   button: Seat
-  stacks: [number, number]
+  /** One entry per seat. Seats with 0 chips (empty or busted) are not dealt in. */
+  stacks: readonly number[]
   smallBlind: number
   bigBlind: number
   /** Already shuffled. Passing it in keeps this function predictable and testable. */
   deck: readonly Card[]
 }
 
-/**
- * YOUR TURN: make the tests in hand.test.ts pass.  Run them with:  npm run test:watch
- *
- * Starting a hand means:
- *   1. Check the deck is big enough: 4 hole cards + 5 board cards = 9. If it isn't,
- *      throw a RangeError.
- *   2. Work out who posts which blind (you wrote getBlindSeats).
- *   3. Post the blinds: move chips from each blind's stack into their bet.
- *      A player can't post more than they have, so a short stack posts what is left.
- *   4. Deal 4 cards off the top (the `draw` function does this) as hole cards.
- *      Cards go out one at a time, starting with the player AFTER the button,
- *      then the button, then back again:  other, button, other, button.
- *   5. Return the new HandState: preflop, nothing on the board, empty pot, the
- *      first player to act (you wrote firstToAct), and the rest of the deck.
- *
- * Hint: write it in that order, and run the tests after each step. Several will stay
- * red until you reach the end, which is normal.
- */
+/** Was this seat dealt into the hand? */
+export function isDealtIn(hand: HandState, seat: Seat): boolean {
+  return (hand.holeCards[seat]?.length ?? 0) > 0
+}
+
+/** Can this seat still bet: in the hand, not folded, and has chips behind. */
+export function canAct(hand: HandState, seat: Seat): boolean {
+  return !hand.folded[seat] && (hand.stacks[seat] ?? 0) > 0
+}
+
 export function startHand(input: StartHandInput): HandState {
   const { handNumber, button, stacks, smallBlind, bigBlind, deck } = input
-  if (deck.length < 9) {
-    throw new RangeError(`Need at least 9 cards to start a hand, got ${deck.length}`)
+  const count = stacks.length
+  const dealtIn = stacks.map((chips) => chips > 0)
+  const players = dealtIn.filter(Boolean).length
+
+  if (players < 2) throw new Error('A hand needs at least two players with chips')
+  if (!dealtIn[button]) throw new Error(`The button (seat ${button}) is not in the hand`)
+  if (deck.length < players * 2 + 5) {
+    throw new RangeError(
+      `Need ${players * 2 + 5} cards to start a hand, got ${deck.length}`,
+    )
   }
-  const blinds = getBlindSeats(button)
-  const bets: [number, number] = [0, 0]
-  const left: [number, number] = [stacks[0], stacks[1]]
 
-  const smallPosted = Math.min(smallBlind, left[blinds.smallBlind])
-  bets[blinds.smallBlind] = smallPosted
-  left[blinds.smallBlind] = left[blinds.smallBlind] - smallPosted
+  const left = [...stacks]
+  const bets = Array<number>(count).fill(0)
+  const blinds = blindSeats(button, dealtIn)
+  const post = (seat: Seat, amount: number) => {
+    // A short stack posts whatever it has left.
+    const posted = Math.min(amount, left[seat]!)
+    bets[seat] = posted
+    left[seat]! -= posted
+  }
+  post(blinds.smallBlind, smallBlind)
+  post(blinds.bigBlind, bigBlind)
 
-  const bigPosted = Math.min(bigBlind, left[blinds.bigBlind])
-  bets[blinds.bigBlind] = bigPosted
-  left[blinds.bigBlind] = left[blinds.bigBlind] - bigPosted
+  // Deal one card at a time, starting after the button, twice around the table.
+  const order: Seat[] = []
+  let seat = button
+  for (let i = 0; i < players; i++) {
+    seat = nextSeat(seat, count, (s) => dealtIn[s] === true)!
+    order.push(seat)
+  }
+  const { drawn, rest } = draw(deck, players * 2)
+  const holeCards: Card[][] = Array.from({ length: count }, () => [])
+  ;[...order, ...order].forEach((s, i) => holeCards[s]!.push(drawn[i]!))
 
-  const { drawn, rest } = draw(deck, 4)
-  const holeCards: [Card[], Card[]] = [[], []]
-  const order = [otherSeat(button), button, otherSeat(button), button]
-  order.forEach((seat, i) => {
-    holeCards[seat].push(drawn[i]!)
-  })
+  const folded = dealtIn.map((isIn) => !isIn)
+  const canBet = left.map((chips, s) => dealtIn[s]! && chips > 0)
+
   return settleBetting({
     handNumber,
     phase: 'preflop',
     button,
-    toAct: firstToAct(button, 'preflop'),
+    toAct: firstToAct(button, 'preflop', dealtIn, canBet),
     stacks: left,
     bets,
-    actionsThisRound: 0,
+    committed: [...bets],
+    folded,
+    // Posting a blind is not "acting": the big blind still gets its turn (its "option").
+    acted: Array<boolean>(count).fill(false),
     pot: 0,
     community: [],
     holeCards,

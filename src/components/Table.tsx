@@ -1,15 +1,18 @@
 import { Link } from 'react-router-dom'
 import type { Action } from '@shared/engine'
+import { MAX_SEATS } from '@shared/engine/types'
 import { ActionBar } from '@/components/ActionBar'
 import { CommunityCards } from '@/components/CommunityCards'
 import { Deck } from '@/components/Deck'
+import { OpponentSeat } from '@/components/OpponentSeat'
 import { PotDisplay } from '@/components/PotDisplay'
 import { Seat } from '@/components/Seat'
 import { TurnTimer } from '@/components/TurnTimer'
 import { getBettingOptions } from '@/lib/betting'
 import { describeResult } from '@/lib/resultText'
+import { layoutSeats } from '@/lib/seatLayout'
 import { useDealPlan } from '@/lib/useDealPlan'
-import type { TableState } from '@/lib/fakeTable'
+import { seatAt, type TableState } from '@/lib/fakeTable'
 import type { TurnClock } from '@/lib/turnClock'
 
 interface TableProps {
@@ -22,12 +25,10 @@ interface TableProps {
   error?: string | null
   /** Shown once the hand is over. Missing when the whole game is over. */
   onNextHand?: () => void
-  /** Someone is out of chips: no more hands. */
+  /** Fewer than two players have chips: no more hands. */
   gameOver?: boolean
   /** The countdown for whoever is on the clock. */
   turn?: TurnClock | null
-  /** The opponent's screen has stopped checking in. */
-  opponentAway?: boolean
 }
 
 /** The whole table screen. It draws whatever TableState it is given. */
@@ -40,22 +41,30 @@ export function Table({
   onNextHand,
   gameOver = false,
   turn = null,
-  opponentAway = false,
 }: TableProps) {
-  const me = table.seats[table.mySeat]
-  const opponent = table.seats[table.mySeat === 0 ? 1 : 0]
+  const me = seatAt(table, table.mySeat)!
+  const others = table.seats.filter((s) => s.seat !== table.mySeat)
   const handOver = table.phase === 'complete'
   const button = table.seats.find((s) => s.isDealer)?.seat
-  const dealPlan = useDealPlan(table.handNumber, table.phase, button)
+  const dealtIn = Array.from(
+    { length: MAX_SEATS },
+    (_, seat) => seatAt(table, seat)?.dealtIn === true,
+  )
+  const dealPlan = useDealPlan(table.handNumber, table.phase, button, dealtIn)
+  const spots = layoutSeats(
+    table.seats.map((s) => s.seat),
+    table.mySeat,
+    MAX_SEATS,
+  )
+  const names = Object.fromEntries(table.seats.map((s) => [s.seat, s.name]))
   const resultText = table.result
-    ? describeResult(table.result, table.mySeat, [
-        table.seats[0].name,
-        table.seats[1].name,
-      ])
+    ? describeResult(table.result, table.mySeat, names)
     : null
+  const acting = table.seats.find((s) => s.isToAct)
+  const awayActing = acting && acting.seat !== table.mySeat && acting.away
 
   return (
-    <main className="mx-auto flex min-h-svh max-w-2xl flex-col items-center gap-5 px-4 py-6">
+    <main className="mx-auto flex min-h-svh max-w-3xl flex-col items-center gap-3 px-4 py-4">
       <header className="flex w-full items-center justify-between text-sm text-white/60">
         <Link to="/" className="underline underline-offset-4">
           Leave
@@ -64,32 +73,49 @@ export function Table({
         <span className="capitalize">{table.phase}</span>
       </header>
 
-      {/* Opponent on top, board in the middle, me at the bottom */}
-      <Seat
-        seat={opponent}
-        handNumber={table.handNumber}
-        dealDelays={dealPlan?.delays[opponent.seat]}
-      />
-      {opponentAway && (
+      {/* The table: everyone else around the oval, board and pot in the middle. */}
+      <div className="relative mt-2 aspect-[4/5] w-full max-w-2xl sm:aspect-[16/11]">
+        <section className="border-rail bg-felt-700 absolute inset-x-[4%] inset-y-[14%] flex flex-col items-center justify-center gap-2 rounded-[45%] border-[6px] shadow-[inset_0_0_40px_rgb(0_0_0/0.45)] sm:inset-x-[8%]">
+          <Deck key={`deck-${table.handNumber}`} shuffle={dealPlan !== null} />
+          <PotDisplay pot={table.pot} />
+          <CommunityCards key={`board-${table.handNumber}`} cards={table.community} />
+        </section>
+
+        {others.map((seat) => {
+          const spot = spots.get(seat.seat)!
+          return (
+            <div
+              key={seat.seat}
+              className="absolute -translate-x-1/2 -translate-y-1/2"
+              style={{ left: `${spot.left}%`, top: `${spot.top}%` }}
+            >
+              <OpponentSeat
+                seat={seat}
+                handNumber={table.handNumber}
+                dealDelays={dealPlan?.delays[seat.seat]}
+              />
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Me: pulled up into the space under the oval. */}
+      <div className="relative -mt-16 sm:-mt-28">
+        <Seat
+          seat={me}
+          handNumber={table.handNumber}
+          dealDelays={dealPlan?.delays[me.seat]}
+        />
+      </div>
+
+      {awayActing && (
         <p
           role="status"
           className="rounded-full bg-black/40 px-3 py-1 text-sm text-white/70"
         >
-          {opponent.name} seems to be away. The clock keeps running.
+          {acting.name} seems to be away. The clock keeps running.
         </p>
       )}
-
-      <section className="border-rail bg-felt-700 relative flex flex-col items-center gap-3 rounded-[2rem] border-4 px-4 py-6 shadow-inner sm:px-8">
-        <Deck key={`deck-${table.handNumber}`} shuffle={dealPlan !== null} />
-        <PotDisplay pot={table.pot} />
-        <CommunityCards key={`board-${table.handNumber}`} cards={table.community} />
-      </section>
-
-      <Seat
-        seat={me}
-        handNumber={table.handNumber}
-        dealDelays={dealPlan?.delays[me.seat]}
-      />
 
       {handOver ? (
         <div className="flex w-full max-w-md flex-col items-center gap-3 rounded-2xl bg-black/40 p-4 text-center">
@@ -100,7 +126,9 @@ export function Table({
           )}
           {gameOver ? (
             <p className="text-lg font-bold">
-              {me.stack > 0 ? 'You won the game!' : `${opponent.name} won the game.`}
+              {me.stack > 0
+                ? 'You won the game!'
+                : `${table.seats.find((s) => s.stack > 0)?.name ?? 'Someone'} won the game.`}
             </p>
           ) : (
             <>
@@ -118,18 +146,26 @@ export function Table({
         </div>
       ) : (
         <>
-          {turn && (
+          {turn && acting && (
             <TurnTimer
               key={turn.deadline}
               turn={turn}
-              label={me.isToAct ? 'Your turn' : `${opponent.name}’s turn`}
+              label={acting.seat === table.mySeat ? 'Your turn' : `${acting.name}’s turn`}
             />
           )}
-          <ActionBar
-            options={getBettingOptions(table)}
-            disabled={!me.isToAct || pending}
-            onAction={onAction}
-          />
+          {me.inHand ? (
+            <ActionBar
+              options={getBettingOptions(table)}
+              disabled={!me.isToAct || pending}
+              onAction={onAction}
+            />
+          ) : (
+            <p className="text-white/60">
+              {me.dealtIn
+                ? 'You folded. Waiting for the hand to finish…'
+                : 'You’re dealt in from the next hand.'}
+            </p>
+          )}
         </>
       )}
 

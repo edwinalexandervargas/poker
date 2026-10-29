@@ -10,11 +10,15 @@ export interface SeatState {
   bet: number
   isDealer: boolean
   isToAct: boolean
-  /** Still playing this hand (false after folding, or while waiting for a hand). */
+  /** Still playing this hand (false after folding, or when not dealt in). */
   inHand: boolean
+  /** Was dealt cards this hand. False for someone who sat down mid-hand or is out of chips. */
+  dealtIn?: boolean
+  /** This player's screen has stopped checking in. */
+  away?: boolean
   /**
-   * Only the viewing player's own hole cards are ever present. The opponent's are
-   * missing on purpose: the server never sends them, so the UI can only draw two
+   * Only the viewing player's own hole cards are ever present. Everyone else's are
+   * missing on purpose: the server never sends them, so the UI can only draw
    * face-down cards for them. (This mirrors the Firestore rule on private/{uid}.)
    */
   holeCards?: [Card, Card]
@@ -33,7 +37,8 @@ export interface TableState {
   mySeat: Seat
   /** The minimum opening bet, and the smallest raise increment. */
   bigBlind: number
-  seats: [SeatState, SeatState]
+  /** Every occupied seat, in seat order. Up to 8. */
+  seats: SeatState[]
   /** How the hand ended. Missing (or null) while the hand is still being played. */
   result?: HandResult | null
 }
@@ -69,4 +74,9 @@ export const fakeTable: TableState = {
       inHand: true,
     },
   ],
+}
+
+/** The SeatState for a seat number (the list only holds occupied seats). */
+export function seatAt(table: TableState, seat: Seat): SeatState | undefined {
+  return table.seats.find((s) => s.seat === seat)
 }

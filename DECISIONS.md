@@ -279,3 +279,48 @@ Each entry: what I did, why, what else I considered, and what it costs.
 - **Why:** Measuring works for any seat or board slot without hard-coding positions, on any screen size. The "first hand" rule means someone who reloads at the river just sees the table instead of a replay of the deal. The dealing order lives in a small pure function (`dealPlan`) so it can be tested.
 - **Alternative I rejected:** Fixed pixel offsets, which break on different screens, and Motion's shared-layout animation, which needs more choreography to move a card from one place in the tree to another.
 - **Trade-off:** It reads positions from the page (`querySelector('[data-deck]')`), so the deck element has to exist. Someone reloading in the middle of preflop will see the deal again.
+
+## 39. Deployed to Firebase, with the emulators kept for development
+
+- **What:** `npm run dev` still talks to the local emulators (`import.meta.env.DEV`). A production build reads the real project's web settings from `.env.production.local`, which git ignores. Every function is capped at 5 instances, a $5 budget alert emails me, and old container images are deleted after a day.
+- **Why:** The emulators are free and can't touch real data, so day-to-day work stays there. The web settings aren't secrets, but keeping them out of git keeps the repo clean for anyone who clones it. The instance cap and budget alert are the guardrails, since a Google budget only warns and never stops spending.
+- **What went wrong:** The first deploy hit a Google permissions delay, so four functions were created without public access. My app said "Could not reach the game server". I called every function with `curl`: a 401 with "Sign in first." meant my own code answered, while a 403 HTML page meant Google's front door refused before my code ran. I switched those four to public access in Cloud Run. That's safe, because each function still checks who is signed in.
+- **Trade-off:** Two environments to keep in mind. A redeploy only re-uploads functions whose code changed, so a setting broken by a failed deploy isn't fixed by deploying again.
+
+## 40. The browser never downloads the hand evaluator
+
+- **What:** Client code imports values from the engine file that defines them (`@shared/engine/actions`, `/room`, `/storage`, `/types`), never from the `@shared/engine` barrel. Type-only imports can still use the barrel. The table page and Firestore are loaded lazily, so the lobby downloads about half as much (311 KB to 160 KB gzipped).
+- **Why:** The barrel also re-exports `showdown.ts`, which pulls in `pokersolver`, a CommonJS package bundlers can't strip. Only the server scores hands, so shipping it to every browser was pure waste.
+- **How I check:** After a build, search the bundle for a string only pokersolver contains (`grep -l "Straight Flush" dist/assets/*.js`). It caught a regression when the 8-player work imported `MAX_SEATS` from the barrel.
+- **Trade-off:** You have to remember the rule. A lint rule banning value imports from the barrel would enforce it automatically.
+
+## 41. Up to 8 players: every list is indexed by table seat
+
+- **What:** Every per-player list in a hand (`stacks`, `bets`, `committed`, `folded`, `acted`, `holeCards`) has one entry per seat, 0 to 7. A seat that isn't in the hand (empty, busted, or someone who sat down mid-hand) has no hole cards and is marked folded. `ring.ts` holds the seating rules: the next seat clockwise, who posts the blinds, and who acts first.
+- **Why:** `player.seat` stays a direct index everywhere: the server, the public state and the UI. There's no translation between "position in this hand" and "seat at the table". Heads-up needs only one special case (the button posts the small blind), and "first to act" falls out of the general rule even for two players.
+- **Alternative I rejected:** Lists holding only the players in the hand, plus a map back to seats. They're shorter, but every lookup needs translating and is easy to get wrong.
+- **Trade-off:** Lists carry empty entries, so code must never assume "everyone in the list is playing". `folded`, `canAct` and `isDealtIn` answer that instead.
+
+## 42. A betting round ends when everyone has acted since the last raise
+
+- **What:** Each seat has an `acted` flag. Any move sets your own; a raise clears everyone else's. A round is over when every player who can still bet (not folded, not all-in) has acted and matched the highest bet. Betting is closed when at most one player still has chips and owes nothing, and then the board runs out.
+- **Why:** Heads-up used "two actions and equal bets", which breaks with more players as soon as someone raises after others have called. The flags also give the big blind its option: posting a blind isn't acting.
+- **Trade-off:** The minimum raise is still simplified (one big blind more), and a short all-in raise re-opens the betting, where real rules sometimes don't.
+
+## 43. Side pots are built from what each player put in
+
+- **What:** `committed[seat]` counts everything a player put in during the whole hand. At showdown, `buildPots` walks up the different amounts the remaining players put in. Each level makes one pot, and only players who reached that level can win it. Folded players' chips stay in as dead money. A bet nobody matched is returned before the showdown. Odd chips in a split go to the winner closest to the left of the button.
+- **Why:** You can only win from each opponent what you put in yourself. A single `pot` number can't tell you that. `buildPots` and `splitPot` are pure functions with hand-checked examples, and the stress test checks on every move that `committed` equals pot plus bets.
+- **Trade-off:** The result banner describes the main pot winner's hand only. Side-pot winners are named, but not their hands.
+
+## 44. New players sit down between hands; busted players sit out
+
+- **What:** `joinRoom` works while a game is being played. The newcomer takes the lowest free seat and is dealt in from the next hand, because `dealNextHand` builds the stacks from the player documents. When a hand ends, `saveHand` only updates the chips of players who were dealt in. A player with 0 chips gets no cards, and the game ends when fewer than two players have chips. The button moves to the next player with chips.
+- **Why:** Friends drift in and out of a home game, so waiting for the host to restart would be annoying. Updating only dealt-in players is what keeps a newcomer's starting chips from being wiped by a hand they weren't in. The smoke script checks exactly that.
+- **Trade-off:** There's no "leave the table" yet. Someone who walks away is timed out (check or fold) every turn, which slows a full table by up to 30 seconds per orbit. Busted players stay seated until they leave the page.
+
+## 45. The other players are placed around an oval by relative seat
+
+- **What:** You're always drawn at the bottom. Everyone else goes to one of seven spots around the felt, clockwise from your left, in seat order. With fewer players they're spread out instead of leaving gaps. Other players get a compact seat (small cards, name, chips, an "away" or "next hand" note), and the board and deck shrink on phones.
+- **Why:** Seeing the table from your own seat is how every poker app works. The layout is a pure function (`layoutSeats`) with tests, and the cards still fly from the deck because `FlyIn` measures positions instead of hard-coding them.
+- **Trade-off:** Eight players on a phone is tight, and the spots are percentages tuned by eye at 390 px and 1,200 px wide.

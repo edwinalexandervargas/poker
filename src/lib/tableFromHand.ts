@@ -14,6 +14,8 @@ interface TableFromHandInput {
   mySeat: Seat
   myCards: MyCards | null
   bigBlind: number
+  /** Seats whose screens have stopped checking in. */
+  awaySeats?: ReadonlySet<Seat>
 }
 
 function asPair(cards: Card[] | undefined): [Card, Card] | undefined {
@@ -23,7 +25,7 @@ function asPair(cards: Card[] | undefined): [Card, Card] | undefined {
 /**
  * Turns what the server publishes into what the table screen draws.
  * Pure: no Firebase, no React. This is where "who may see which cards" is decided
- * on the screen: my own cards always, the opponent's only once the server has shown them.
+ * on the screen: my own cards always, anyone else's only once the server has shown them.
  */
 export function tableFromHand({
   hand,
@@ -31,22 +33,29 @@ export function tableFromHand({
   mySeat,
   myCards,
   bigBlind,
+  awaySeats,
 }: TableFromHandInput): TableState {
-  function seatState(seat: Seat): SeatState {
+  function seatState(player: SeatedPlayer): SeatState {
+    const seat = player.seat
+    // Hands stored before multi-player support have no dealtIn list: everyone was dealt in.
+    const dealtIn = hand.dealtIn?.[seat] ?? true
+    const folded = hand.folded?.[seat] ?? false
     // My cards belong to a hand. If they are from an older hand, they are not mine to show yet.
     const mine =
       myCards && myCards.handNumber === hand.handNumber ? myCards.cards : undefined
-    const holeCards = seat === mySeat ? asPair(mine) : asPair(hand.shown?.[seat])
 
     return {
       seat,
-      name: players.find((p) => p.seat === seat)?.name ?? 'Player',
-      stack: hand.stacks[seat],
-      bet: hand.bets[seat],
+      name: player.name,
+      // Someone who sat down mid-hand isn't in the hand's numbers yet: show their own chips.
+      stack: dealtIn ? (hand.stacks[seat] ?? 0) : player.stack,
+      bet: hand.bets[seat] ?? 0,
       isDealer: hand.button === seat,
       isToAct: hand.toAct === seat,
-      inHand: true,
-      holeCards,
+      inHand: dealtIn && !folded,
+      dealtIn,
+      away: awaySeats?.has(seat) ?? false,
+      holeCards: seat === mySeat ? asPair(mine) : asPair(hand.shown?.[seat]),
     }
   }
 
@@ -57,7 +66,7 @@ export function tableFromHand({
     community: hand.community,
     mySeat,
     bigBlind,
-    seats: [seatState(0), seatState(1)],
+    seats: players.toSorted((a, b) => a.seat - b.seat).map(seatState),
     result: hand.result,
   }
 }

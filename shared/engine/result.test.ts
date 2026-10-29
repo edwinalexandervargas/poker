@@ -1,3 +1,4 @@
+import { headsUp, type HeadsUpFixture } from './testHand.js'
 import { describe, expect, it } from 'vitest'
 import { applyAction } from './apply.js'
 import type { HandState } from './hand.js'
@@ -8,8 +9,8 @@ const BIG_BLIND = 20
 const dryBoard: Card[] = ['2c', '7d', '9h', 'Js', '3d']
 const tieBoard: Card[] = ['Ts', 'Js', 'Qs', 'Ks', 'As']
 
-function showdownHand(overrides: Partial<HandState> = {}): HandState {
-  return {
+function showdownHand(overrides: Partial<HeadsUpFixture> = {}): HandState {
+  return headsUp({
     handNumber: 1,
     phase: 'showdown',
     button: 0,
@@ -25,12 +26,12 @@ function showdownHand(overrides: Partial<HandState> = {}): HandState {
     ],
     deck: [],
     ...overrides,
-  }
+  } as HeadsUpFixture)
 }
 
 // Seat 0 is the small blind and about to act, as right after startHand.
-function preflopHand(overrides: Partial<HandState> = {}): HandState {
-  return {
+function preflopHand(overrides: Partial<HeadsUpFixture> = {}): HandState {
+  return headsUp({
     handNumber: 1,
     phase: 'preflop',
     button: 0,
@@ -43,7 +44,7 @@ function preflopHand(overrides: Partial<HandState> = {}): HandState {
     holeCards: [[], []],
     deck: [],
     ...overrides,
-  }
+  } as HeadsUpFixture)
 }
 
 describe('result: a fold', () => {
@@ -54,6 +55,7 @@ describe('result: a fold', () => {
       winners: [1],
       payouts: [0, 30],
       handName: null,
+      pots: [{ amount: 30, winners: [1] }],
     })
   })
 
@@ -82,6 +84,7 @@ describe('result: a showdown', () => {
       winners: [0],
       payouts: [200, 0],
       handName: "Pair, A's",
+      pots: [{ amount: 200, winners: [0] }],
     })
   })
 
@@ -113,19 +116,26 @@ describe('result: a showdown', () => {
   })
 
   it('an odd pot gives the extra chip to the player who is not the button', () => {
+    // An odd pot needs dead money: a third player put in 1 chip and folded.
     const tie = {
       community: tieBoard,
+      stacks: [900, 900, 999],
+      bets: [0, 0, 0],
       holeCards: [
         ['2c', '3d'],
         ['4h', '5c'],
-      ] as [Card[], Card[]],
+        ['9d', '8d'],
+      ] as Card[][],
+      folded: [false, false, true],
+      committed: [100, 100, 1],
       pot: 201,
     }
+    // The odd chip goes to the first winner to the left of the button.
     expect(resolveShowdown(showdownHand({ ...tie, button: 0 })).result?.payouts).toEqual([
-      100, 101,
+      100, 101, 0,
     ])
     expect(resolveShowdown(showdownHand({ ...tie, button: 1 })).result?.payouts).toEqual([
-      101, 100,
+      101, 100, 0,
     ])
   })
 
@@ -139,7 +149,7 @@ describe('result: a showdown', () => {
       pot: 333,
     })
     const next = resolveShowdown(before)
-    expect(next.stacks[0] - before.stacks[0]).toBe(next.result?.payouts[0])
-    expect(next.stacks[1] - before.stacks[1]).toBe(next.result?.payouts[1])
+    expect(next.stacks[0]! - before.stacks[0]!).toBe(next.result!.payouts[0])
+    expect(next.stacks[1]! - before.stacks[1]!).toBe(next.result!.payouts[1])
   })
 })

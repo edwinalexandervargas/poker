@@ -15,6 +15,7 @@ export function useDealPlan(
   handNumber: number | undefined,
   phase: Phase,
   button: Seat | undefined,
+  dealtIn: readonly boolean[],
 ): DealPlan | null {
   const [decided, setDecided] = useState<{ hand: number; plan: DealPlan | null } | null>(
     null,
@@ -22,7 +23,7 @@ export function useDealPlan(
 
   if (handNumber !== undefined && button !== undefined && decided?.hand !== handNumber) {
     const firstEverSeen = decided === null
-    const plan = firstEverSeen && phase !== 'preflop' ? null : dealPlan(button)
+    const plan = firstEverSeen && phase !== 'preflop' ? null : dealPlan(button, dealtIn)
     // Setting state while rendering is allowed for values worked out from props: React
     // simply renders again straight away with the new value.
     setDecided({ hand: handNumber, plan })

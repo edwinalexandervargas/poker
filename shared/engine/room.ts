@@ -2,7 +2,7 @@
 // The Cloud Functions use these to validate input; the client uses them to tidy input.
 
 import { secureRandomInt, type RandomInt } from './deck.js'
-import type { Seat } from './types.js'
+import { MAX_SEATS, type Seat } from './types.js'
 
 /** No 0/O, 1/I/L, so a code read aloud or typed from a text can't be misread. */
 export const ROOM_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
@@ -72,9 +72,23 @@ export function cleanPlayerName(input: unknown): string | null {
   return name
 }
 
-/** The lowest free seat, or null if both are taken. */
+/** The lowest free seat, or null if all MAX_SEATS are taken. */
 export function pickFreeSeat(taken: readonly Seat[]): Seat | null {
-  if (!taken.includes(0)) return 0
-  if (!taken.includes(1)) return 1
+  for (let seat = 0; seat < MAX_SEATS; seat++) {
+    if (!taken.includes(seat)) return seat
+  }
   return null
+}
+
+/**
+ * Each seat's chips for the next hand, as a list of MAX_SEATS entries (0 for an empty seat
+ * or a busted player). Built from the player documents, so someone who sat down during the
+ * last hand is included.
+ */
+export function stacksBySeat(
+  players: readonly Pick<PlayerDoc, 'seat' | 'stack'>[],
+): number[] {
+  const stacks = Array<number>(MAX_SEATS).fill(0)
+  for (const player of players) stacks[player.seat] = player.stack
+  return stacks
 }

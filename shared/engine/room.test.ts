@@ -71,7 +71,11 @@ describe('pickFreeSeat', () => {
     expect(pickFreeSeat([1])).toBe(0)
   })
 
-  it('returns null when the table is full', () => {
-    expect(pickFreeSeat([0, 1])).toBeNull()
+  it('fills up to 8 seats', () => {
+    expect(pickFreeSeat([0, 1, 2, 3, 4, 5, 6])).toBe(7)
+  })
+
+  it('returns null when all 8 seats are taken', () => {
+    expect(pickFreeSeat([0, 1, 2, 3, 4, 5, 6, 7])).toBeNull()
   })
 })

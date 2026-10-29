@@ -16,7 +16,11 @@ export function Deck({ shuffle }: DeckProps) {
   const riffle = shuffle && !reduceMotion
 
   return (
-    <div data-deck aria-hidden className="absolute top-3 left-3 h-16 w-11">
+    <div
+      data-deck
+      aria-hidden
+      className="absolute top-[22%] left-[14%] h-10 w-7 sm:left-[18%] sm:h-14 sm:w-10"
+    >
       {Array.from({ length: CARDS_IN_PILE }, (_, i) => {
         const side = i % 2 === 0 ? -1 : 1
         return (
@@ -34,7 +38,7 @@ export function Deck({ shuffle }: DeckProps) {
             }
             transition={{ duration: 0.9, delay: i * 0.04, ease: 'easeInOut' }}
           >
-            <div className="absolute inset-1 rounded-sm border border-white/40" />
+            <div className="absolute inset-0.5 rounded-sm border border-white/40" />
           </motion.div>
         )
       })}

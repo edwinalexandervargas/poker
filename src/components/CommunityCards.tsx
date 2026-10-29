@@ -26,17 +26,17 @@ export function CommunityCards({ cards }: CommunityCardsProps) {
           return (
             <div
               key={`empty-${i}`}
-              className="h-24 w-16 rounded-lg border-2 border-dashed border-white/20 sm:h-28 sm:w-20"
+              className="h-16 w-11 rounded-lg border-2 border-dashed border-white/20 sm:h-24 sm:w-16"
             />
           )
         }
-        if (i < alreadyThere) return <Card key={card} card={card} faceUp />
+        if (i < alreadyThere) return <Card key={card} size="board" card={card} faceUp />
 
         // The flop's three cards leave one after another; the turn and river come alone.
         const delay = i < 3 ? i * 0.15 : 0
         return (
           <FlyIn key={card} delay={delay}>
-            <Card card={card} faceUp startFaceDown delay={delay + 0.45} />
+            <Card size="board" card={card} faceUp startFaceDown delay={delay + 0.45} />
           </FlyIn>
         )
       })}

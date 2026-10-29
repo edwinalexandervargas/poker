@@ -8,17 +8,16 @@ import { nextHand } from './nexthand.js'
 import { playTurn, settleShowdown } from './playTurn.js'
 import type { Action } from './types.js'
 
-// A stress test: play thousands of games with random (but legal) moves, and check that
+// A stress test: play hundreds of games of 2 to 8 players with random (but legal) moves, and check that
 // nothing impossible ever happens. When it fails, it prints the seed, so the exact same
 // game can be replayed and debugged.
 
-const STARTING_STACK = 1000
-const TOTAL_CHIPS = STARTING_STACK * 2
+const MAX_SEATS = 8
 const SMALL_BLIND = 10
 const BIG_BLIND = 20
-const GAMES = 400
+const GAMES = 600
 const MAX_HANDS_PER_GAME = 60
-const MAX_ACTIONS_PER_HAND = 100
+const MAX_ACTIONS_PER_HAND = 400
 
 /** A small repeatable random number generator (mulberry32). Same seed, same game. */
 function seeded(seed: number): () => number {
@@ -60,11 +59,21 @@ function playGame(seed: number): Failure | null {
   const randomInt: RandomInt = (max) => Math.floor(random() * max)
   const history: string[] = []
 
+  // 2 to 8 players scattered around an 8-seat table, with different stack sizes so that
+  // all-ins for different amounts (side pots) happen all the time.
+  const players = 2 + randomInt(MAX_SEATS - 1)
+  const stacks = Array<number>(MAX_SEATS).fill(0)
+  while (stacks.filter((chips) => chips > 0).length < players) {
+    stacks[randomInt(MAX_SEATS)] = 50 + randomInt(40) * 25
+  }
+  const TOTAL_CHIPS = stacks.reduce((a, b) => a + b, 0)
+  const button = stacks.findIndex((chips) => chips > 0)
+
   let hand: HandState | null = settleShowdown(
     startHand({
       handNumber: 1,
-      button: 0,
-      stacks: [STARTING_STACK, STARTING_STACK],
+      button,
+      stacks,
       smallBlind: SMALL_BLIND,
       bigBlind: BIG_BLIND,
       deck: shuffle(createDeck(), randomInt),
@@ -92,6 +101,8 @@ function playGame(seed: number): Failure | null {
     if (failure) return failure
 
     for (let step = 0; hand.phase !== 'complete'; step++) {
+      // Nobody may ever be asked to act after folding or with no chips (findProblems
+      // checks that), and the result of a finished hand must add up.
       if (step >= MAX_ACTIONS_PER_HAND) {
         return {
           seed,
@@ -117,6 +128,18 @@ function playGame(seed: number): Failure | null {
       hand = playTurn(hand, hand.toAct, action, BIG_BLIND).state
       failure = check(hand)
       if (failure) return failure
+    }
+
+    const paid = hand.result?.payouts.reduce((a, b) => a + b, 0) ?? 0
+    const inPots = hand.result?.pots.reduce((a, pot) => a + pot.amount, 0) ?? 0
+    if (paid !== inPots) {
+      return {
+        seed,
+        handNumber: hand.handNumber,
+        problems: [`paid ${paid} but the pots held ${inPots}`],
+        history: history.slice(-12),
+        state: hand,
+      }
     }
 
     const next = nextHand(hand, SMALL_BLIND, BIG_BLIND, shuffle(createDeck(), randomInt))

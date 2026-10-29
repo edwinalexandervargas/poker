@@ -27,8 +27,11 @@ export type Card = `${Rank}${Suit}`
 export type Phase =
   'waiting' | 'preflop' | 'flop' | 'turn' | 'river' | 'showdown' | 'complete'
 
-/** Heads-up: seat 0 and seat 1. */
-export type Seat = 0 | 1
+/** A seat at the table, 0 to MAX_SEATS - 1. Every per-player list in a hand is indexed by it. */
+export type Seat = number
+
+/** The most players one table can seat. */
+export const MAX_SEATS = 8
 
 /** Everything a player can do on their turn. Raise carries the total bet size. */
 export type Action =

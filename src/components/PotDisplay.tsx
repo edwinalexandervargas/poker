@@ -7,9 +7,9 @@ interface PotDisplayProps {
 
 export function PotDisplay({ pot }: PotDisplayProps) {
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center gap-1">
       {/* Reserve the height so the board doesn't jump when the pot first appears. */}
-      <div className="flex h-12 items-end">
+      <div className="flex h-8 items-end sm:h-12">
         <ChipStack amount={pot} size="sm" />
       </div>
       <div className="flex items-center gap-2 rounded-full bg-black/40 px-4 py-1.5">

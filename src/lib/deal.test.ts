@@ -1,36 +1,33 @@
 import { describe, expect, it } from 'vitest'
 import { DEAL_STEP_SECONDS, dealPlan, SHUFFLE_SECONDS } from './deal'
 
+const step = (n: number) => SHUFFLE_SECONDS + n * DEAL_STEP_SECONDS
+
 describe('dealPlan', () => {
-  it('deals the player after the button first, then the button, then around again', () => {
-    // Button on seat 0, so seat 1 gets the first card.
-    const { delays } = dealPlan(0)
-    expect(delays[1][0]).toBe(SHUFFLE_SECONDS)
-    expect(delays[0][0]).toBe(SHUFFLE_SECONDS + DEAL_STEP_SECONDS)
-    expect(delays[1][1]).toBe(SHUFFLE_SECONDS + 2 * DEAL_STEP_SECONDS)
-    expect(delays[0][1]).toBe(SHUFFLE_SECONDS + 3 * DEAL_STEP_SECONDS)
+  it('heads-up: the player after the button first, then the button, then around again', () => {
+    const { delays } = dealPlan(0, [true, true])
+    expect(delays[1]).toEqual([step(0), step(2)])
+    expect(delays[0]).toEqual([step(1), step(3)])
   })
 
-  it('swaps the order when the button is on seat 1', () => {
-    const { delays } = dealPlan(1)
-    expect(delays[0][0]).toBe(SHUFFLE_SECONDS)
-    expect(delays[1][0]).toBe(SHUFFLE_SECONDS + DEAL_STEP_SECONDS)
+  it('goes around a full table, starting after the button', () => {
+    const { delays } = dealPlan(2, [true, true, true, true])
+    // order: 3, 0, 1, 2, then 3, 0, 1, 2 again
+    expect(delays[3]).toEqual([step(0), step(4)])
+    expect(delays[2]).toEqual([step(3), step(7)])
   })
 
-  it('never starts dealing before the shuffle is over', () => {
-    for (const button of [0, 1] as const) {
-      for (const seat of delays(button)) {
-        for (const delay of seat) expect(delay).toBeGreaterThanOrEqual(SHUFFLE_SECONDS)
-      }
-    }
+  it('skips seats that are not dealt in', () => {
+    const { delays } = dealPlan(0, [true, false, true, false, true])
+    expect(delays[1]).toBeUndefined()
+    expect(delays[2]).toEqual([step(0), step(3)])
   })
 
-  it('gives every card a different moment', () => {
-    const all = dealPlan(0).delays.flat()
-    expect(new Set(all).size).toBe(4)
+  it('gives every card a different moment, none before the shuffle ends', () => {
+    const all = Object.values(dealPlan(5, Array(8).fill(true))).flatMap((d) =>
+      Object.values(d).flat(),
+    )
+    expect(new Set(all).size).toBe(16)
+    for (const delay of all) expect(delay).toBeGreaterThanOrEqual(SHUFFLE_SECONDS)
   })
 })
-
-function delays(button: 0 | 1) {
-  return dealPlan(button).delays
-}

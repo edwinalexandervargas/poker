@@ -1,9 +1,9 @@
-// Showdown: who has the best hand, and who gets the pot.
+// Showdown: who has the best hand, and who gets each pot.
 // Pure game logic: no React, no Firebase.
 
 import pokersolver from 'pokersolver'
-import type { HandState } from './hand.js'
-import { otherSeat } from './seats.js'
+import type { HandState, PotResult } from './hand.js'
+import { buildPots, splitPot } from './pots.js'
 import type { Card, Seat } from './types.js'
 
 // pokersolver is an old CommonJS package. Importing its default export and picking
@@ -11,76 +11,42 @@ import type { Card, Seat } from './types.js'
 const { Hand } = pokersolver
 
 /**
- * YOUR TURN (part 1): make the getWinners tests in showdown.test.ts pass.
- *
- * Each player's best hand is the best five of their 2 hole cards + the 5 board cards.
- * You don't have to work that out: the pokersolver library does it.
- *
- *   Hand.solve(cards)      takes a list of card codes like ['As', 'Kd', ...] and
- *                          returns that player's best hand
- *   Hand.winners(hands)    takes a list of those hands and returns the winning one(s)
- *                          (two when it is a tie)
- *
- * Steps:
- *   1. Solve a hand for EACH seat, using that seat's hole cards plus the community
- *      cards. Keep the results in a list where position 0 is seat 0 and position 1
- *      is seat 1.
- *   2. Ask Hand.winners for the winners among them.
- *   3. Return the SEATS whose hand is among the winners, in order: [0], [1], or [0, 1].
- *
- * Hint for step 3: `winners.includes(solved[seat])` tells you whether a seat won.
+ * The seats with the best hand among `contenders`, using each seat's hole cards plus the
+ * board. More than one seat means a tie. Defaults to every seat that has cards.
  */
 export function getWinners(
-  holeCards: [Card[], Card[]],
+  holeCards: readonly Card[][],
   community: readonly Card[],
+  contenders: readonly Seat[] = holeCards.flatMap((cards, seat) =>
+    cards.length > 0 ? [seat] : [],
+  ),
 ): Seat[] {
-  const solved = holeCards.map((cards) => Hand.solve([...cards, ...community]))
-  const winners = Hand.winners(solved)
-  const seats: Seat[] = []
-  if (winners.includes(solved[0]!)) seats.push(0)
-  if (winners.includes(solved[1]!)) seats.push(1)
-  return seats
+  const solved = contenders.map((seat) => Hand.solve([...holeCards[seat]!, ...community]))
+  const best = Hand.winners(solved)
+  return contenders.filter((_, i) => best.includes(solved[i]!))
 }
 
 /**
- * YOUR TURN (part 2): make the resolveShowdown tests in showdown.test.ts pass.
- *
- * Call this when the phase is 'showdown'. Throw an Error for any other phase.
- * Return a NEW HandState where:
- *
- *   - One winner:  the whole pot is added to the winner's stack.
- *   - A tie:       the pot is split in half, one half to each stack. If the pot is odd,
- *                  one chip is left over: it goes to the player who is NOT the button.
- *   - Then the pot is 0, the phase is 'complete', and toAct is null.
- *
- * Never change the hand that was passed in.
- *
- * Hint for the tie: Math.floor(pot / 2) is each player's half. What's left over is
- * pot minus both halves.
+ * Pays every pot at showdown. Each pot goes to the best hand among the players eligible for
+ * it (see pots.ts), split evenly on a tie.
  */
 export function resolveShowdown(hand: HandState): HandState {
-  if (hand.phase !== 'showdown') {
-    throw new Error(`No showdown in phase ${hand.phase}`)
-  }
-  const winners = getWinners(hand.holeCards, hand.community)
-  const stacks: [number, number] = [hand.stacks[0], hand.stacks[1]]
+  if (hand.phase !== 'showdown') throw new Error(`No showdown in phase ${hand.phase}`)
 
-  // How many chips each seat is awarded. Stored per seat (not as one number) because
-  // an odd pot split in a tie gives the two players different amounts, e.g. [121, 120].
-  const payouts: [number, number] = [0, 0]
-  if (winners.length === 1) {
-    payouts[winners[0]!] = hand.pot
-  } else {
-    const half = Math.floor(hand.pot / 2)
-    payouts[0] = half
-    payouts[1] = half
-    payouts[otherSeat(hand.button)] += hand.pot - half * 2
-  }
-  stacks[0] += payouts[0]
-  stacks[1] += payouts[1]
+  const count = hand.stacks.length
+  const payouts = Array<number>(count).fill(0)
+  const pots: PotResult[] = buildPots(hand.committed, hand.folded).map((pot) => {
+    const winners = getWinners(hand.holeCards, hand.community, pot.eligible)
+    for (const [seat, chips] of splitPot(pot.amount, winners, hand.button, count)) {
+      payouts[seat]! += chips
+    }
+    return { amount: pot.amount, winners }
+  })
 
-  // On a tie both hands are equal, so describing the first winner's hand is enough.
-  const best = Hand.solve([...hand.holeCards[winners[0]!], ...hand.community])
+  const stacks = hand.stacks.map((chips, seat) => chips + payouts[seat]!)
+  const winners = payouts.flatMap((chips, seat) => (chips > 0 ? [seat] : []))
+  const mainWinner = pots[0]!.winners[0]!
+  const handName = Hand.solve([...hand.holeCards[mainWinner]!, ...hand.community]).descr
 
   return {
     ...hand,
@@ -88,6 +54,6 @@ export function resolveShowdown(hand: HandState): HandState {
     toAct: null,
     stacks,
     pot: 0,
-    result: { reason: 'showdown', winners, payouts, handName: best.descr },
+    result: { reason: 'showdown', winners, payouts, handName, pots },
   }
 }

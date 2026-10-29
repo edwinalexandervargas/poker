@@ -1,6 +1,6 @@
 import { getLegalActions } from '@shared/engine/actions'
 import type { HandState } from '@shared/engine'
-import type { TableState } from '@/lib/fakeTable'
+import { seatAt, type TableState } from '@/lib/fakeTable'
 
 // Betting numbers for the action bar.
 //
@@ -9,10 +9,10 @@ import type { TableState } from '@/lib/fakeTable'
 // offer something the server will refuse. The server still has the final say.
 
 export interface BettingOptions {
-  /** Chips needed to match the opponent's bet (capped by my stack). */
+  /** Chips needed to match the biggest bet (capped by my stack). */
   toCall: number
   canCheck: boolean
-  /** Raising is possible at all (false when the opponent is all-in, for example). */
+  /** Raising is possible at all (false when everyone else is all-in, for example). */
   canRaise: boolean
   /** Smallest and largest legal "raise to" totals. */
   minRaiseTo: number
@@ -25,28 +25,36 @@ export interface BettingOptions {
 const clamp = (n: number, min: number, max: number) => Math.min(Math.max(n, min), max)
 
 export function getBettingOptions(table: TableState): BettingOptions {
-  const me = table.seats[table.mySeat]
-  const opp = table.seats[table.mySeat === 0 ? 1 : 0]
+  const me = seatAt(table, table.mySeat)!
+  const seatCount = Math.max(...table.seats.map((s) => s.seat)) + 1
+  const list = <T>(pick: (s: TableState['seats'][number]) => T, empty: T) =>
+    Array.from({ length: seatCount }, (_, seat) => {
+      const s = seatAt(table, seat)
+      return s ? pick(s) : empty
+    })
 
   // Describe the table to the engine as if it were my turn. (The action bar is greyed out
-  // when it is not, but it still shows sensible numbers.)
+  // when it is not, but it still shows sensible numbers.) Only the fields the betting rules
+  // read matter here.
   const forEngine: HandState = {
     handNumber: 0,
     phase: table.phase,
-    button: table.seats[0].isDealer ? 0 : 1,
+    button: table.seats.find((s) => s.isDealer)?.seat ?? 0,
     toAct: table.mySeat,
-    stacks: [table.seats[0].stack, table.seats[1].stack],
-    bets: [table.seats[0].bet, table.seats[1].bet],
+    stacks: list((s) => s.stack, 0),
+    bets: list((s) => s.bet, 0),
+    committed: list((s) => s.bet, 0),
+    folded: list((s) => !s.inHand && s.seat !== table.mySeat, true),
+    acted: list(() => false, false),
     pot: table.pot,
-    actionsThisRound: 0,
     community: [],
-    holeCards: [[], []],
+    holeCards: list(() => [], []),
     deck: [],
   }
   const legal = getLegalActions(forEngine, table.bigBlind)!
 
   // Pot-sized raise = match the bet, then bet the size of the pot after matching.
-  const totalPot = table.pot + me.bet + opp.bet
+  const totalPot = table.pot + table.seats.reduce((sum, s) => sum + s.bet, 0)
   const potAfterCall = totalPot + legal.callAmount
   const raiseToForFraction = (fraction: number) =>
     clamp(

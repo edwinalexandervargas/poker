@@ -4,7 +4,7 @@ Cover the answer, say it out loud, then compare. Each answer is short on purpose
 
 ## The 30-second pitch
 
-> "It's a play-money heads-up Texas Hold'em app, React and TypeScript on the front, Firebase on the back. The interesting part is that the browser never decides anything: every move goes to a Cloud Function that validates it with a pure TypeScript game engine, and a player can only ever read their own hole cards. I wrote the engine test-first, and a randomized stress test found a real bug that all my hand-written tests missed."
+> "It's a play-money Texas Hold'em app for 2 to 8 players, live on Firebase, with React and TypeScript on the front. The interesting part is that the browser never decides anything: every move goes to a Cloud Function that validates it with a pure TypeScript game engine, and a player can only ever read their own hole cards. I wrote the engine test-first, and a randomized stress test found a real bug that all my hand-written tests missed."
 
 ## Architecture and security
 
@@ -47,9 +47,21 @@ Cover the answer, say it out loud, then compare. Each answer is short on purpose
 28. **How do you tell a new hand from someone reloading the page?** A hand that appears while the screen is open is always dealt on screen; the first hand a screen sees is only dealt if it's at preflop. [38]
 29. **How do the cards fly out of the deck?** `FlyIn` measures the deck and the card's final spot and animates between them with Motion, so it works for any seat or board slot and any screen size. [38]
 
+## Deploying, and going from 2 to 8 players
+
+30. **What broke when you deployed?** The first deploy hit a Google permissions delay, so four functions were missing public access and players saw "Could not reach the game server". I curled every function: a 401 with my own "Sign in first." message meant my code was running, while a 403 HTML page meant Google refused the call before it reached my code. I fixed those four in Cloud Run. [39]
+31. **Isn't "public access" a security hole?** No. It only means the request reaches my code. Every function checks the sign-in and the seat itself, and the database rules still block every client write. [39]
+32. **How did you make the first load faster?** The browser was downloading the hand evaluator, which only the server uses, because of a barrel import of a CommonJS package. I imported from the exact files instead and lazy-loaded the table page and Firestore: 311 KB to 160 KB gzipped. [40]
+33. **How did the engine change for 8 players?** Every per-player list is indexed by table seat 0 to 7, and a seat that isn't playing is just "no cards, folded". So `player.seat` is a direct index everywhere, and heads-up became a special case of the general rules. [41]
+34. **When is a betting round over with 6 players?** When everyone who can still bet has acted since the last raise and matched the highest bet. A raise clears everyone else's "acted" flag. Heads-up I'd used "two actions", which breaks once someone raises after others called. [42]
+35. **Explain side pots.** You can only win from each player what you put in yourself. If A is all-in for 100 and B and C put in 300, the main pot is 300 (anyone can win it) and the side pot is 400 (only B or C). I track what each player committed over the whole hand and build one pot per contribution level. [43]
+36. **How did you test 8-player play?** The same seeded stress test, now with 2 to 8 players and random stack sizes so all-ins for different amounts happen constantly. It checks chips and cards after every move and that payouts equal the pots. A probe run covered about 2,000 hands, 500 of them with side pots. I also kept every heads-up test, with a small helper that converts the old fixtures. [41-43]
+37. **What happens when someone joins mid-game?** They take a free seat and are dealt in next hand. The tricky part: when a hand ends, the server must only update the chips of players who were in it, or the newcomer's starting chips get overwritten with 0. [44]
+
 ## Honest limitations (say these before they ask)
 
-- It runs on the Firebase emulators only; I haven't deployed it. I'd need to retest after deploying (quotas, App Check). [4]
+- It's deployed, but without App Check, so anyone with the web settings could call the functions (they still enforce every rule). [39]
+- There's no "leave table" button: someone who walks away gets timed out every turn, which slows a full table. [44]
 - The minimum raise is simplified: at least one big blind more, not the full "match the previous raise" rule. [26]
 - If both players leave, nobody is there to call time, so a hand waits until someone returns (a scheduled function would fix this once deployed). [35]
-- The browser bundle includes `pokersolver` because the UI imports the engine through its barrel file. [25]
+- The result banner names side-pot winners but only describes the main pot winner's hand. [43]

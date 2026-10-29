@@ -64,7 +64,7 @@ describe('startHand: blinds', () => {
     for (const button of [0, 1] as const) {
       const hand = startHand(input({ button, stacks: [1500, 500] }))
       const total =
-        hand.stacks[0] + hand.stacks[1] + hand.bets[0] + hand.bets[1] + hand.pot
+        hand.stacks[0]! + hand.stacks[1]! + hand.bets[0]! + hand.bets[1]! + hand.pot
       expect(total).toBe(2000)
     }
   })

@@ -15,6 +15,8 @@ const hand: PublicHandState = {
   toAct: 0,
   stacks: [900, 800],
   bets: [0, 40],
+  dealtIn: [true, true],
+  folded: [false, false],
   pot: 260,
   community: ['As', 'Kd', '7h'],
   shown: null,
@@ -60,16 +62,16 @@ describe('tableFromHand: the public numbers', () => {
   it('works from the other player’s point of view', () => {
     const table = build({ mySeat: 1, myCards: { handNumber: 3, cards: ['2c', '3c'] } })
     expect(table.mySeat).toBe(1)
-    expect(table.seats[1].holeCards).toEqual(['2c', '3c'])
-    expect(table.seats[0].holeCards).toBeUndefined()
+    expect(table.seats[1]!.holeCards).toEqual(['2c', '3c'])
+    expect(table.seats[0]!.holeCards).toBeUndefined()
   })
 })
 
 describe('tableFromHand: who sees which cards', () => {
   it('shows my cards and hides the opponent’s', () => {
     const [mine, theirs] = build().seats
-    expect(mine.holeCards).toEqual(['Qs', 'Jd'])
-    expect(theirs.holeCards).toBeUndefined()
+    expect(mine!.holeCards).toEqual(['Qs', 'Jd'])
+    expect(theirs!.holeCards).toBeUndefined()
   })
 
   it('shows the opponent’s cards once the server has revealed them', () => {
@@ -84,15 +86,15 @@ describe('tableFromHand: who sees which cards', () => {
         ],
       },
     })
-    expect(table.seats[1].holeCards).toEqual(['9c', '9d'])
+    expect(table.seats[1]!.holeCards).toEqual(['9c', '9d'])
   })
 
   it('does not show cards that belong to an earlier hand', () => {
     const table = build({ myCards: { handNumber: 2, cards: ['Qs', 'Jd'] } })
-    expect(table.seats[0].holeCards).toBeUndefined()
+    expect(table.seats[0]!.holeCards).toBeUndefined()
   })
 
   it('handles my cards not having arrived yet', () => {
-    expect(build({ myCards: null }).seats[0].holeCards).toBeUndefined()
+    expect(build({ myCards: null }).seats[0]!.holeCards).toBeUndefined()
   })
 })

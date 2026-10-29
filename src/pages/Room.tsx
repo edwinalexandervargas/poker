@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import type { Action, RoomDoc } from '@shared/engine'
+import type { Action, RoomDoc, Seat } from '@shared/engine'
+import { MAX_SEATS } from '@shared/engine/types'
 import { JoinPrompt } from '@/components/JoinPrompt'
 import { ConnectionBanner } from '@/components/ConnectionBanner'
 import { Table } from '@/components/Table'
@@ -43,9 +44,11 @@ function RoomScreen({ code }: { code: string }) {
   const { room, players, myUid } = view
   const me = players.find((p) => p.uid === myUid)
 
-  // Opened an invite link without being seated yet.
+  // Opened an invite link without being seated yet. While a game is on you can still sit
+  // down: you're dealt in from the next hand.
   if (!me) {
-    if (players.length >= 2) return <Message>That table is full.</Message>
+    if (players.length >= MAX_SEATS) return <Message>That table is full.</Message>
+    if (room.status === 'finished') return <Message>That game is over.</Message>
     return <JoinPrompt code={code} />
   }
 
@@ -107,7 +110,7 @@ interface GameProps {
 function Game({ code, room, players, me }: GameProps) {
   const handView = useHand(code, me.uid)
   const { pending, error, run } = useServerCall()
-  // Both players' screens watch the clock; whichever gets there first asks the server to act.
+  // Every player's screen watches the clock; whichever gets there first asks the server to act.
   const { online, clockOffset } = usePresence(code)
   const now = useNow(5000)
   useTimeoutClaim(code, handView.status === 'ready' ? handView.turn : null, online)
@@ -116,16 +119,20 @@ function Game({ code, room, players, me }: GameProps) {
   if (handView.status === 'error') return <Message>{handView.message}</Message>
   if (handView.hand === null) return <Message>Waiting for the first hand…</Message>
 
+  // Whose screens have stopped checking in.
+  const awaySeats = new Set<Seat>(
+    players
+      .filter((p) => p.uid !== me.uid && isAway(p.lastSeen, now + clockOffset))
+      .map((p) => p.seat),
+  )
   const table = tableFromHand({
     hand: handView.hand,
     players,
     mySeat: me.seat,
     myCards: handView.myCards,
     bigBlind: room.config.bigBlind,
+    awaySeats,
   })
-
-  const opponent = players.find((p) => p.seat !== me.seat)
-  const opponentAway = opponent ? isAway(opponent.lastSeen, now + clockOffset) : false
 
   return (
     <>
@@ -137,7 +144,6 @@ function Game({ code, room, players, me }: GameProps) {
         error={error}
         gameOver={room.status === 'finished'}
         turn={handView.turn}
-        opponentAway={opponentAway}
         onAction={(action: Action) => run(() => playAction(code, action))}
         onNextHand={() => run(() => dealNextHand(code))}
       />

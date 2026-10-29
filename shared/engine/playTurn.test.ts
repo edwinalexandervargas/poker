@@ -1,3 +1,4 @@
+import { headsUp, type HeadsUpFixture } from './testHand.js'
 import { describe, expect, it } from 'vitest'
 import { createDeck } from './deck.js'
 import type { HandState } from './hand.js'
@@ -9,8 +10,8 @@ const deck = createDeck().slice(4)
 const board: Card[] = ['2c', '7d', '9h', 'Js', '3d']
 
 // Seat 0 holds pocket aces, seat 1 holds king-queen. Seat 0 wins any showdown on this board.
-function hand(overrides: Partial<HandState> = {}): HandState {
-  return {
+function hand(overrides: Partial<HeadsUpFixture> = {}): HandState {
+  return headsUp({
     handNumber: 1,
     phase: 'preflop',
     button: 0,
@@ -20,10 +21,13 @@ function hand(overrides: Partial<HandState> = {}): HandState {
     pot: 0,
     actionsThisRound: 0,
     community: [],
-    holeCards: [['As', 'Ad'], ['Kh', 'Qc']],
+    holeCards: [
+      ['As', 'Ad'],
+      ['Kh', 'Qc'],
+    ],
     deck,
     ...overrides,
-  }
+  } as HeadsUpFixture)
 }
 
 describe('playTurn: whose turn it is', () => {
@@ -97,7 +101,7 @@ describe('playTurn: reaching showdown', () => {
     expect(result.state.phase).toBe('complete')
     expect(result.reveal).toBe(true)
     const { stacks, bets, pot } = result.state
-    expect(stacks[0] + stacks[1] + bets[0] + bets[1] + pot).toBe(700)
+    expect(stacks[0]! + stacks[1]! + bets[0]! + bets[1]! + pot).toBe(700)
     expect(pot).toBe(0)
   })
 })

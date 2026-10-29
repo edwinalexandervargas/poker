@@ -7,7 +7,7 @@
 //   4. write the result, again inside the transaction
 //
 // Where things are stored (see firestore.rules for who can read what):
-//   rooms/{code}/secret/hand      the full hand, deck and hole cards included. Nobody can read it.
+//   rooms/{code}/secret/hand      the full hand, deck and everyone's hole cards. Nobody can read it.
 //   rooms/{code}/hand/current     the censored copy every player may see
 //   rooms/{code}/private/{uid}    that one player's two hole cards. Only they can read it.
 
@@ -29,6 +29,7 @@ import {
   playTurn,
   shuffle,
   settleShowdown,
+  stacksBySeat,
   startHand,
   timeoutAction,
   toPublicState,
@@ -96,7 +97,7 @@ async function readHand(tx: Transaction, table: Table): Promise<HandState> {
 
 /**
  * Writes a hand to all three places. `reveal` is true when a showdown just happened, so
- * the public copy includes both players' hole cards.
+ * the public copy includes the hole cards of everyone still in at the end.
  */
 function saveHand(
   tx: Transaction,
@@ -108,7 +109,7 @@ function saveHand(
 
   tx.set(roomRef.collection('secret').doc('hand'), { state: packHand(state) })
 
-  // The clock is the server's, so both players count down to the same moment. A finished
+  // The clock is the server's, so every screen counts down to the same moment. A finished
   // hand has nobody on the clock.
   const turnStartedAt = Date.now()
   tx.set(roomRef.collection('hand').doc('current'), {
@@ -119,12 +120,15 @@ function saveHand(
   })
 
   for (const player of players) {
+    // Someone who sat down mid-hand has no cards in this hand: an empty list.
+    const cards = state.holeCards[player.seat] ?? []
     tx.set(roomRef.collection('private').doc(player.uid), {
       handNumber: state.handNumber,
-      cards: state.holeCards[player.seat],
+      cards,
     })
-    // When a hand ends, remember each player's chips on their own document.
-    if (state.phase === 'complete') {
+    // When a hand ends, remember each player's chips on their own document. Only for
+    // players who were dealt in: a newcomer's starting chips must not be overwritten.
+    if (state.phase === 'complete' && cards.length > 0) {
       tx.update(roomRef.collection('players').doc(player.uid), {
         stack: state.stacks[player.seat],
       })
@@ -140,7 +144,7 @@ function asRuleError(error: unknown): HttpsError {
   )
 }
 
-/** The host starts the game once two players are seated. Deals hand number 1. */
+/** The host starts the game once at least two players are seated. Deals hand number 1. */
 export const startGame = onCall<GameInput>(async (request) => {
   const uid = requireUid(request.auth?.uid)
   const code = requireCode(request.data?.code)
@@ -155,17 +159,20 @@ export const startGame = onCall<GameInput>(async (request) => {
     if (room.status !== 'waiting') {
       throw new HttpsError('failed-precondition', 'The game has already started.')
     }
-    const seat0 = players.find((p) => p.seat === 0)
-    const seat1 = players.find((p) => p.seat === 1)
-    if (!seat0 || !seat1) {
-      throw new HttpsError('failed-precondition', 'You need two players to start.')
+    if (players.length < 2) {
+      throw new HttpsError(
+        'failed-precondition',
+        'You need at least two players to start.',
+      )
     }
 
+    // One entry per seat (8), 0 for empty seats. The lowest occupied seat starts on the button.
+    const stacks = stacksBySeat(players)
     const { state, reveal } = settleShowdown(
       startHand({
         handNumber: 1,
-        button: 0,
-        stacks: [seat0.stack, seat1.stack],
+        button: Math.min(...players.map((p) => p.seat)),
+        stacks,
         smallBlind: room.config.smallBlind,
         bigBlind: room.config.bigBlind,
         deck: shuffle(createDeck()),
@@ -202,7 +209,11 @@ export const playAction = onCall<GameInput>(async (request) => {
   })
 })
 
-/** After a hand ends, either seated player can deal the next one. Ends the game if someone is out. */
+/**
+ * After a hand ends, any seated player can deal the next one. Chips come from the player
+ * documents, so anyone who sat down during the last hand is dealt in, and busted players
+ * (0 chips) sit out. The game ends when fewer than two players have chips.
+ */
 export const dealNextHand = onCall<GameInput>(async (request) => {
   const uid = requireUid(request.auth?.uid)
   const code = requireCode(request.data?.code)
@@ -219,6 +230,7 @@ export const dealNextHand = onCall<GameInput>(async (request) => {
         table.room.config.smallBlind,
         table.room.config.bigBlind,
         shuffle(createDeck()),
+        stacksBySeat(table.players),
       )
     } catch (error) {
       throw asRuleError(error)
@@ -236,7 +248,7 @@ export const dealNextHand = onCall<GameInput>(async (request) => {
 })
 
 /**
- * Either seated player can call this once the player on the clock has run out of time.
+ * Any seated player can call this once the player on the clock has run out of time.
  * The server checks the deadline itself (a browser's clock can't be trusted), then plays the
  * automatic move: check if that's free, otherwise fold.
  */
@@ -273,7 +285,7 @@ export const claimTimeout = onCall<GameInput>(async (request) => {
 
 /**
  * A player's open table screen checks in every few seconds. We record when, so the other
- * player's screen can tell "away" from "thinking". Returns the server's clock so the caller
+ * players' screens can tell "away" from "thinking". Returns the server's clock so the caller
  * can correct for its own clock being off.
  */
 export const heartbeat = onCall<GameInput>(async (request) => {

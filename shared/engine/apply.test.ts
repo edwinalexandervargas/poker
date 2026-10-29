@@ -1,3 +1,4 @@
+import { headsUp, type HeadsUpFixture } from './testHand.js'
 import { describe, expect, it } from 'vitest'
 import { applyAction } from './apply.js'
 import { createDeck } from './deck.js'
@@ -6,8 +7,8 @@ import type { HandState } from './hand.js'
 const BIG_BLIND = 20
 
 // Seat 0 is the small blind and about to act, as right after startHand.
-function hand(overrides: Partial<HandState> = {}): HandState {
-  return {
+function hand(overrides: Partial<HeadsUpFixture> = {}): HandState {
+  return headsUp({
     handNumber: 1,
     phase: 'preflop',
     button: 0,
@@ -20,12 +21,14 @@ function hand(overrides: Partial<HandState> = {}): HandState {
     holeCards: [[], []],
     deck: [],
     ...overrides,
-  }
+  } as HeadsUpFixture)
 }
 
 describe('applyAction: nobody to act', () => {
   it('throws', () => {
-    expect(() => applyAction(hand({ toAct: null }), { type: 'check' }, BIG_BLIND)).toThrow()
+    expect(() =>
+      applyAction(hand({ toAct: null }), { type: 'check' }, BIG_BLIND),
+    ).toThrow()
   })
 })
 
@@ -70,7 +73,11 @@ describe('applyAction: call', () => {
 
   it('throws when there is nothing to call', () => {
     expect(() =>
-      applyAction(hand({ toAct: 1, bets: [20, 20], stacks: [980, 980] }), { type: 'call' }, BIG_BLIND),
+      applyAction(
+        hand({ toAct: 1, bets: [20, 20], stacks: [980, 980] }),
+        { type: 'call' },
+        BIG_BLIND,
+      ),
     ).toThrow()
   })
 })
@@ -88,12 +95,18 @@ describe('applyAction: raise', () => {
   })
 
   it('throws above the maximum raise', () => {
-    expect(() => applyAction(hand(), { type: 'raise', amount: 5000 }, BIG_BLIND)).toThrow()
+    expect(() =>
+      applyAction(hand(), { type: 'raise', amount: 5000 }, BIG_BLIND),
+    ).toThrow()
   })
 
   it('throws when the opponent is all-in and a raise is impossible', () => {
     expect(() =>
-      applyAction(hand({ bets: [0, 100], stacks: [500, 0] }), { type: 'raise', amount: 200 }, BIG_BLIND),
+      applyAction(
+        hand({ bets: [0, 100], stacks: [500, 0] }),
+        { type: 'raise', amount: 200 },
+        BIG_BLIND,
+      ),
     ).toThrow()
   })
 })
@@ -121,7 +134,8 @@ describe('applyAction: fold', () => {
   it('never creates or destroys chips', () => {
     const before = hand({ pot: 100 })
     const next = applyAction(before, { type: 'fold' }, BIG_BLIND)
-    const total = (h: HandState) => h.stacks[0] + h.stacks[1] + h.bets[0] + h.bets[1] + h.pot
+    const total = (h: HandState) =>
+      h.stacks[0]! + h.stacks[1]! + h.bets[0]! + h.bets[1]! + h.pot
     expect(total(next)).toBe(total(before))
   })
 })

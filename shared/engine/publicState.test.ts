@@ -1,9 +1,10 @@
+import { headsUp, type HeadsUpFixture } from './testHand.js'
 import { describe, expect, it } from 'vitest'
 import type { HandResult, HandState } from './hand.js'
 import { toPublicState } from './publicState.js'
 
-function hand(overrides: Partial<HandState> = {}): HandState {
-  return {
+function hand(overrides: Partial<HeadsUpFixture> = {}): HandState {
+  return headsUp({
     handNumber: 4,
     phase: 'turn',
     button: 1,
@@ -19,7 +20,7 @@ function hand(overrides: Partial<HandState> = {}): HandState {
     ],
     deck: ['3d', '4d', '5d', '6d'],
     ...overrides,
-  }
+  } as HeadsUpFixture)
 }
 
 describe('toPublicState: what everyone may see', () => {
@@ -56,7 +57,8 @@ describe('toPublicState: keeping secrets', () => {
 
   it('does not leak other fields of the full state', () => {
     const view = toPublicState(hand(), false) as unknown as Record<string, unknown>
-    expect(view).not.toHaveProperty('actionsThisRound')
+    expect(view).not.toHaveProperty('committed')
+    expect(view).not.toHaveProperty('acted')
   })
 })
 
@@ -94,7 +96,13 @@ describe('toPublicState: the result', () => {
   })
 
   it('carries the result once the hand is over, even when nobody reveals cards', () => {
-    const result: HandResult = { reason: 'fold', winners: [1], payouts: [0, 30], handName: null }
+    const result: HandResult = {
+      reason: 'fold',
+      winners: [1],
+      payouts: [0, 30],
+      handName: null,
+      pots: [{ amount: 30, winners: [1] }],
+    }
     const view = toPublicState(hand({ phase: 'complete', result }), false)
     expect(view.result).toEqual(result)
     expect(view.shown).toBeNull()

@@ -89,7 +89,11 @@ export const createRoom = onCall<RoomInput>(async (request) => {
   throw new HttpsError('resource-exhausted', 'Could not make a table. Try again.')
 })
 
-/** Seats the caller at an existing table. Calling it again from a seated player is fine. */
+/**
+ * Seats the caller at an existing table, in the lowest free seat (up to 8). Allowed while the
+ * game is being played too: the newcomer is dealt in from the next hand. Calling it again
+ * from a seated player is fine.
+ */
 export const joinRoom = onCall<RoomInput>(async (request) => {
   const uid = requireUid(request.auth?.uid)
   const name = requireName(request.data?.name)
@@ -116,8 +120,8 @@ export const joinRoom = onCall<RoomInput>(async (request) => {
     const existing = players.find((p) => p.uid === uid)
     if (existing) return { code, seat: existing.seat }
 
-    if (room.status !== 'waiting') {
-      throw new HttpsError('failed-precondition', 'That game has already started.')
+    if (room.status === 'finished') {
+      throw new HttpsError('failed-precondition', 'That game is over.')
     }
     const seat = pickFreeSeat(players.map((p) => p.seat))
     if (seat === null) throw new HttpsError('failed-precondition', 'That table is full.')

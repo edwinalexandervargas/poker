@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { MAX_SEATS } from '@shared/engine/types'
 import type { SeatedPlayer } from '@/lib/useRoom'
 
 interface WaitingRoomProps {
@@ -22,7 +23,8 @@ export function WaitingRoom({
   error,
 }: WaitingRoomProps) {
   const [copied, setCopied] = useState(false)
-  const full = players.length >= 2
+  const full = players.length >= MAX_SEATS
+  const canStart = players.length >= 2
 
   async function share() {
     const url = `${window.location.origin}/room/${code}`
@@ -64,12 +66,14 @@ export function WaitingRoom({
           ))}
         {!full && (
           <li className="rounded-lg border-2 border-dashed border-white/20 px-4 py-3 text-white/50">
-            Waiting for an opponent…
+            {canStart
+              ? `${players.length} of ${MAX_SEATS} seats taken. More can join, even after you start.`
+              : 'Waiting for at least one more player…'}
           </li>
         )}
       </ul>
 
-      {full &&
+      {canStart &&
         (isHost ? (
           <button
             type="button"

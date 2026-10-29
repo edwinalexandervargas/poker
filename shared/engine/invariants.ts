@@ -16,7 +16,7 @@ const BOARD_SIZE = { preflop: 0, flop: 3, turn: 4, river: 5, showdown: 5 } as co
  * Return a list of plain-English problems found in `hand`. An empty list means the hand
  * is healthy. `totalChips` is how many chips existed when the game began.
  *
- * Check these seven things (the test names say what each one looks like):
+ * Originally written for heads-up; now checks every seat. Check these things (the test names say what each one looks like):
  *
  *   1. Chips are conserved: both stacks + both bets + the pot add up to totalChips.
  *   2. Chip amounts are sane: every stack, bet and the pot is a whole number, 0 or more.
@@ -38,36 +38,41 @@ const BOARD_SIZE = { preflop: 0, flop: 3, turn: 4, river: 5, showdown: 5 } as co
  */
 export function findProblems(hand: HandState, totalChips: number): string[] {
   const problems: string[] = []
+  const sum = (list: readonly number[]) => list.reduce((a, b) => a + b, 0)
 
-  const chips = hand.stacks[0] + hand.stacks[1] + hand.bets[0] + hand.bets[1] + hand.pot
+  const chips = sum(hand.stacks) + sum(hand.bets) + hand.pot
   if (chips !== totalChips) {
     problems.push(`chips: expected ${totalChips}, got ${chips}`)
   }
-  const amounts = [hand.stacks[0], hand.stacks[1], hand.bets[0], hand.bets[1], hand.pot]
-  for (const amount of amounts) {
+  for (const amount of [...hand.stacks, ...hand.bets, ...hand.committed, hand.pot]) {
     if (!Number.isInteger(amount) || amount < 0) {
       problems.push(`bad chip amount: ${amount}`)
     }
   }
+  // While a hand is live, everything put in is either in the pot or a current bet.
+  if (hand.phase !== 'complete' && sum(hand.committed) !== hand.pot + sum(hand.bets)) {
+    problems.push('chips: committed does not match pot + bets')
+  }
 
-  const cards = [
-    ...hand.deck,
-    ...hand.holeCards[0],
-    ...hand.holeCards[1],
-    ...hand.community,
-  ]
+  const cards = [...hand.deck, ...hand.holeCards.flat(), ...hand.community]
   if (cards.length !== 52) {
     problems.push(`cards: expected 52, found ${cards.length}`)
   }
   if (new Set(cards).size !== cards.length) {
     problems.push('cards: a card appears twice')
   }
-
-  if (hand.holeCards[0].length !== 2 || hand.holeCards[1].length !== 2) {
-    problems.push(
-      `cards: each player needs 2 hole cards, got ${hand.holeCards[0].length}/${hand.holeCards[1].length}`,
-    )
+  hand.holeCards.forEach((holeCards, seat) => {
+    if (holeCards.length !== 0 && holeCards.length !== 2) {
+      problems.push(`cards: seat ${seat} has ${holeCards.length} hole cards`)
+    }
+    if (holeCards.length === 0 && !hand.folded[seat]) {
+      problems.push(`seat ${seat} is in the hand without cards`)
+    }
+  })
+  if (hand.holeCards.filter((c) => c.length === 2).length < 2) {
+    problems.push('cards: fewer than two players were dealt in')
   }
+
   if (hand.phase in BOARD_SIZE) {
     const expected = BOARD_SIZE[hand.phase as keyof typeof BOARD_SIZE]
     if (hand.community.length !== expected) {
@@ -91,6 +96,9 @@ export function findProblems(hand: HandState, totalChips: number): string[] {
   }
   if (hand.toAct !== null && hand.stacks[hand.toAct] === 0) {
     problems.push(`turn: seat ${hand.toAct} is to act with no chips`)
+  }
+  if (hand.toAct !== null && hand.folded[hand.toAct]) {
+    problems.push(`turn: seat ${hand.toAct} is to act after folding`)
   }
   return problems
 }

@@ -2,33 +2,33 @@
 // Pure game logic: no React, no Firebase.
 
 import { draw } from './deck.js'
-import type { HandState } from './hand.js'
-import { firstToAct } from './seats.js'
+import { canAct, type HandState } from './hand.js'
+import { firstToAct } from './ring.js'
 import type { Phase } from './types.js'
 
 /**
- * YOUR TURN (part 1): make the isRoundOver tests in street.test.ts pass.
+ * A betting round is over when every player who can still bet (not folded, not all-in)
+ * has acted since the last raise AND has matched the highest bet.
  *
- * A betting round is over when BOTH players have had a turn AND the betting has settled.
- *
- *   both have acted   actionsThisRound is at least 2
- *   settled           EITHER the two bets are equal,
- *                     OR the player with the smaller bet has no chips left
- *                     (they are all-in for less, so nobody can bet any more)
- *
- * Why "at least 2"? Preflop the small blind can call and the bets are equal (20 and 20),
- * but the big blind has not had their turn yet (their "option" to raise).
+ * "Has acted" matters preflop: the big blind's bet already matches when everyone calls,
+ * but the big blind still gets a turn (its "option" to raise).
  */
 export function isRoundOver(hand: HandState): boolean {
-  const bothActed = hand.actionsThisRound >= 2
-  const equalBets = hand.bets[0] === hand.bets[1]
+  const highest = Math.max(...hand.bets)
+  return hand.stacks.every(
+    (_, seat) => !canAct(hand, seat) || (hand.acted[seat] && hand.bets[seat] === highest),
+  )
+}
 
-  const [b0, b1] = hand.bets
-  const seat0AllInShort = b0 < b1 && hand.stacks[0] === 0
-  const seat1AllInShort = b1 < b0 && hand.stacks[1] === 0
-
-  const settled = equalBets || seat0AllInShort || seat1AllInShort
-  return bothActed && settled
+/**
+ * Can anybody still bet? No when at most one player has chips left AND that player has
+ * nothing to call. Everyone else is all-in (or folded), so the board just runs out.
+ */
+export function bettingClosed(hand: HandState): boolean {
+  const highest = Math.max(...hand.bets)
+  const bettors = hand.stacks.flatMap((_, seat) => (canAct(hand, seat) ? [seat] : []))
+  if (bettors.length === 0) return true
+  return bettors.length === 1 && hand.bets[bettors[0]!] === highest
 }
 
 // What comes next after each phase, and how many cards are dealt to the board.
@@ -40,89 +40,60 @@ const NEXT: Partial<Record<Phase, { phase: Phase; cards: number }>> = {
 }
 
 /**
- * YOUR TURN (part 2): make the advanceStreet tests in street.test.ts pass.
- *
- * Call this when a betting round is over. Return a NEW HandState where:
- *
- *   1. Bets are collected. The chips BOTH players have matched go into the pot:
- *        matched = the smaller of the two bets
- *        pot     = old pot + matched * 2
- *      Any extra a player bet that the other couldn't match goes back to that player's
- *      stack (stack + bet - matched). Then both bets are [0, 0].
- *   2. The phase moves to the next one, using NEXT above. If the phase has no entry in
- *      NEXT (showdown, complete, waiting), throw an Error.
- *   3. Deal that many cards off the top of the deck onto the community cards
- *      (the `draw` function does this). Community cards add up across streets.
- *   4. actionsThisRound goes back to 0.
- *   5. toAct is the first player to act in the new phase (you wrote firstToAct;
- *      it gives null for showdown).
- *
- * Never change the hand that was passed in.
- *
- * Not in this exercise: if a player is all-in, nobody can bet, so the board should be
- * dealt all the way out. We'll add that later. For now: one street at a time.
+ * Ends a betting round:
+ *   1. An uncalled bet goes back. If the biggest bet is larger than every other bet,
+ *      nobody matched the extra, so it returns to its owner's stack.
+ *   2. All bets go into the pot.
+ *   3. The next street's cards are dealt, and the first player to act is worked out.
  */
 export function advanceStreet(hand: HandState): HandState {
-  const matched = Math.min(hand.bets[0], hand.bets[1])
-  const pot = hand.pot + matched * 2
-  const stacks: [number, number] = [
-    hand.stacks[0] + hand.bets[0] - matched,
-    hand.stacks[1] + hand.bets[1] - matched,
-  ]
   const step = NEXT[hand.phase]
-  if (!step) {
-    throw new Error(`Cannot advance from ${hand.phase}`)
+  if (!step) throw new Error(`Cannot advance from ${hand.phase}`)
+
+  const stacks = [...hand.stacks]
+  const bets = [...hand.bets]
+  const committed = [...hand.committed]
+
+  const highest = Math.max(...bets)
+  const top = bets.indexOf(highest)
+  const second = Math.max(0, ...bets.filter((_, seat) => seat !== top))
+  if (highest > second) {
+    const refund = highest - second
+    stacks[top]! += refund
+    bets[top]! -= refund
+    committed[top]! -= refund
   }
 
+  const pot = hand.pot + bets.reduce((a, b) => a + b, 0)
   const { drawn, rest } = draw(hand.deck, step.cards)
-  return {
+  const next: HandState = {
     ...hand,
     phase: step.phase,
     pot,
     stacks,
-    bets: [0, 0],
-    actionsThisRound: 0,
+    committed,
+    bets: bets.map(() => 0),
+    acted: bets.map(() => false),
     community: [...hand.community, ...drawn],
     deck: rest,
-    toAct: firstToAct(hand.button, step.phase),
   }
+  // After the flop, "first after the button" only looks at players still in the hand.
+  // (A seat that was never dealt in is marked folded too.)
+  const stillIn = next.folded.map((out) => !out)
+  const bettors = stacks.map((_, seat) => canAct(next, seat))
+  return { ...next, toAct: firstToAct(hand.button, step.phase, stillIn, bettors) }
 }
 
 /**
- * Can anybody still bet? No when one player is all-in and the other has nothing
- * left to call: either they have matched the all-in bet, or they have bet more.
- */
-export function bettingClosed(hand: HandState): boolean {
-  for (const seat of [0, 1] as const) {
-    const other = seat === 0 ? 1 : 0
-
-    // `seat` is all-in...
-    if (hand.stacks[seat] === 0) {
-      // ...and the other player either has no chips too, or has already matched
-      // (or beaten) the all-in bet. Nobody can do anything.
-      if (hand.stacks[other] === 0 || hand.bets[other] >= hand.bets[seat]) {
-        return true
-      }
-    }
-  }
-  return false
-}
-
-/**
- * Call after anything that could end the betting. If the round is over, or nobody
- * can bet any more, move to the next street, and keep dealing until the river
- * if somebody is all-in.
+ * Call after anything that could end the betting. If the round is over, or nobody can bet
+ * any more, move to the next street, and keep dealing until the river if everyone is all-in.
  */
 export function settleBetting(hand: HandState): HandState {
-  if (!isRoundOver(hand) && !bettingClosed(hand)) {
-    return hand
-  }
+  if (!isRoundOver(hand) && !bettingClosed(hand)) return hand
 
   let next = advanceStreet(hand)
-
   while (next.phase !== 'showdown' && bettingClosed(next)) {
     next = advanceStreet(next)
   }
-
   return next
 }

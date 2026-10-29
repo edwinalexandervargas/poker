@@ -1,12 +1,13 @@
+import { headsUp, type HeadsUpFixture } from './testHand.js'
 import { describe, expect, it } from 'vitest'
 import { createDeck } from './deck.js'
 import type { HandState } from './hand.js'
 import { findProblems } from './invariants.js'
 
 // A healthy hand on the flop: 52 cards all accounted for, 2000 chips all accounted for.
-function healthy(overrides: Partial<HandState> = {}): HandState {
+function healthy(overrides: Partial<HeadsUpFixture> = {}): HandState {
   const all = createDeck()
-  return {
+  return headsUp({
     handNumber: 1,
     phase: 'flop',
     button: 0,
@@ -19,7 +20,7 @@ function healthy(overrides: Partial<HandState> = {}): HandState {
     holeCards: [all.slice(0, 2), all.slice(2, 4)],
     deck: all.slice(7),
     ...overrides,
-  }
+  } as HeadsUpFixture)
 }
 
 const TOTAL = 2000
@@ -83,7 +84,7 @@ describe('findProblems: cards', () => {
 
   it('catches a duplicated card', () => {
     const hand = healthy()
-    const dup = { ...hand, deck: [...hand.deck.slice(1), hand.holeCards[0][0]!] }
+    const dup = { ...hand, deck: [...hand.deck.slice(1), hand.holeCards[0]![0]!] }
     expect(findProblems(dup, TOTAL).length).toBeGreaterThan(0)
   })
 

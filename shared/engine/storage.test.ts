@@ -11,7 +11,9 @@ const hand: HandState = {
   stacks: [900, 1000],
   bets: [0, 0],
   pot: 100,
-  actionsThisRound: 0,
+  committed: [50, 50],
+  folded: [false, false],
+  acted: [false, false],
   community: ['2c', '7d', '9h'],
   holeCards: [
     ['As', 'Ad'],

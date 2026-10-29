@@ -1,31 +1,29 @@
 // Converting hands to and from the shape Firestore can store.
 // Pure logic: no React, no Firebase.
 //
-// Firestore refuses arrays inside arrays, and the engine's hole cards are a pair of lists:
-//   [['As', 'Ad'], ['Kh', 'Qc']]
-// So before saving we turn that pair into a map keyed by seat, and turn it back on loading.
+// Firestore refuses arrays inside arrays, and the engine's hole cards are a list of lists:
+//   [['As', 'Ad'], ['Kh', 'Qc'], [], ...]
+// So before saving we turn that into a map keyed by seat ("seat0", "seat1"...), and turn
+// it back on loading.
 
 import type { HandState } from './hand.js'
 import type { PublicHandState } from './publicState.js'
 import type { Card } from './types.js'
 
-/** One list of cards per seat, as a map instead of a pair. */
-export interface SeatCards {
-  seat0: Card[]
-  seat1: Card[]
-}
+/** One list of cards per seat, as a map instead of a list of lists. */
+export type SeatCards = Record<string, Card[]>
 
 export type StoredHand = Omit<HandState, 'holeCards'> & { holeCards: SeatCards }
 export type StoredPublicHand = Omit<PublicHandState, 'shown'> & {
   shown: SeatCards | null
 }
 
-function packCards(cards: [Card[], Card[]]): SeatCards {
-  return { seat0: [...cards[0]], seat1: [...cards[1]] }
+function packCards(cards: readonly Card[][]): SeatCards {
+  return Object.fromEntries(cards.map((list, seat) => [`seat${seat}`, [...list]]))
 }
 
-function unpackCards(cards: SeatCards): [Card[], Card[]] {
-  return [[...cards.seat0], [...cards.seat1]]
+function unpackCards(cards: SeatCards, seatCount: number): Card[][] {
+  return Array.from({ length: seatCount }, (_, seat) => [...(cards[`seat${seat}`] ?? [])])
 }
 
 export function packHand(hand: HandState): StoredHand {
@@ -33,7 +31,7 @@ export function packHand(hand: HandState): StoredHand {
 }
 
 export function unpackHand(stored: StoredHand): HandState {
-  return { ...stored, holeCards: unpackCards(stored.holeCards) }
+  return { ...stored, holeCards: unpackCards(stored.holeCards, stored.stacks.length) }
 }
 
 export function packPublic(view: PublicHandState): StoredPublicHand {
@@ -41,5 +39,8 @@ export function packPublic(view: PublicHandState): StoredPublicHand {
 }
 
 export function unpackPublic(stored: StoredPublicHand): PublicHandState {
-  return { ...stored, shown: stored.shown ? unpackCards(stored.shown) : null }
+  return {
+    ...stored,
+    shown: stored.shown ? unpackCards(stored.shown, stored.stacks.length) : null,
+  }
 }

@@ -1,3 +1,4 @@
+import { headsUp, type HeadsUpFixture } from './testHand.js'
 import { describe, expect, it } from 'vitest'
 import { applyAction } from './apply.js'
 import { createDeck } from './deck.js'
@@ -6,8 +7,8 @@ import type { HandState } from './hand.js'
 const BIG_BLIND = 20
 const deck = createDeck().slice(4)
 
-function hand(overrides: Partial<HandState> = {}): HandState {
-  return {
+function hand(overrides: Partial<HeadsUpFixture> = {}): HandState {
+  return headsUp({
     handNumber: 1,
     phase: 'preflop',
     button: 0,
@@ -20,7 +21,7 @@ function hand(overrides: Partial<HandState> = {}): HandState {
     holeCards: [[], []],
     deck,
     ...overrides,
-  }
+  } as HeadsUpFixture)
 }
 
 describe('all-in runout: nobody can bet, so the board deals itself', () => {
@@ -90,7 +91,8 @@ describe('all-in runout: nobody can bet, so the board deals itself', () => {
       deck: deck.slice(3),
     })
     const next = applyAction(before, { type: 'call' }, BIG_BLIND)
-    const total = (h: HandState) => h.stacks[0] + h.stacks[1] + h.bets[0] + h.bets[1] + h.pot
+    const total = (h: HandState) =>
+      h.stacks[0]! + h.stacks[1]! + h.bets[0]! + h.bets[1]! + h.pot
     expect(total(next)).toBe(total(before))
   })
 })

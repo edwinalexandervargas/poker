@@ -1,3 +1,4 @@
+import { headsUp, type HeadsUpFixture } from './testHand.js'
 import { describe, expect, it } from 'vitest'
 import { applyAction } from './apply.js'
 import { createDeck } from './deck.js'
@@ -6,8 +7,8 @@ import type { HandState } from './hand.js'
 const BIG_BLIND = 20
 const deck = createDeck().slice(4)
 
-function hand(overrides: Partial<HandState> = {}): HandState {
-  return {
+function hand(overrides: Partial<HeadsUpFixture> = {}): HandState {
+  return headsUp({
     handNumber: 1,
     phase: 'preflop',
     button: 0,
@@ -20,15 +21,27 @@ function hand(overrides: Partial<HandState> = {}): HandState {
     holeCards: [[], []],
     deck,
     ...overrides,
-  }
+  } as HeadsUpFixture)
 }
 
 describe('applyAction: counting moves', () => {
-  it('check, call and raise each count as one move', () => {
-    expect(applyAction(hand(), { type: 'call' }, BIG_BLIND).actionsThisRound).toBe(1)
-    expect(applyAction(hand(), { type: 'raise', amount: 60 }, BIG_BLIND).actionsThisRound).toBe(1)
+  it('check, call and raise each mark the player as having acted', () => {
+    expect(applyAction(hand(), { type: 'call' }, BIG_BLIND).acted).toEqual([true, false])
+    expect(applyAction(hand(), { type: 'raise', amount: 60 }, BIG_BLIND).acted).toEqual([
+      true,
+      false,
+    ])
     const checkSpot = hand({ phase: 'flop', toAct: 1, bets: [0, 0], stacks: [900, 900] })
-    expect(applyAction(checkSpot, { type: 'check' }, BIG_BLIND).actionsThisRound).toBe(1)
+    expect(applyAction(checkSpot, { type: 'check' }, BIG_BLIND).acted).toEqual([
+      false,
+      true,
+    ])
+  })
+
+  it('a raise means everyone else has to act again', () => {
+    const afterCall = applyAction(hand(), { type: 'call' }, BIG_BLIND)
+    const raised = applyAction(afterCall, { type: 'raise', amount: 60 }, BIG_BLIND)
+    expect(raised.acted).toEqual([false, true])
   })
 })
 
@@ -70,7 +83,7 @@ describe('applyAction: the round ends', () => {
     expect(next.bets).toEqual([0, 0])
     expect(next.community).toEqual(deck.slice(0, 3))
     expect(next.toAct).toBe(1)
-    expect(next.actionsThisRound).toBe(0)
+    expect(next.acted).toEqual([false, false])
   })
 
   it('a raise that gets called ends the round', () => {

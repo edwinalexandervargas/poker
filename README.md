@@ -1,6 +1,6 @@
-# Heads-Up Poker
+# Poker Table
 
-Play-money heads-up Texas Hold'em. React + TypeScript + Tailwind on the front end, Firebase (Auth, Firestore, Cloud Functions) on the back end, running **entirely on the local emulators** for now.
+Play-money Texas Hold'em for 2 to 8 players. React + TypeScript + Tailwind on the front end, Firebase (Auth, Firestore, Cloud Functions) on the back end. Development runs on the local emulators; the live version is on Firebase Hosting.
 
 ## Prerequisites
 
@@ -51,7 +51,7 @@ shared/engine/   Pure TypeScript game logic: no React, no Firebase.
 functions/       Cloud Functions (import shared/engine)
 firestore.rules  Clients read only; hole cards readable only by their owner
 firebase.json    Emulator ports and config
-scripts/         smoke.mjs: plays a hand against the emulators and tries to cheat
+scripts/         smoke.mjs / smoke-multi.mjs: play hands against the emulators (2 and 4 players) and try to cheat
 ```
 
 ## Architecture rule
@@ -70,18 +70,17 @@ A hand is stored in three places, written together in one transaction:
 
 - **Unit tests** cover every engine function, written test-first.
 - **Stress test** (`shared/engine/fuzz.test.ts`): plays 400 random seeded games and, after every move, checks the rules that must always hold (`shared/engine/invariants.ts`): chips conserved, 52 unique cards, the right board size, two hole cards each, and a sensible turn. A failure prints the seed so the exact game can be replayed.
-- **Smoke test** (`node scripts/smoke.mjs`): with the emulators running, plays a full hand through the real functions and tries to cheat (reading the deck, reading the opponent's cards, moving out of turn, sending a malformed or illegal move).
+- **Smoke test** (`node scripts/smoke.mjs`): with the emulators running, plays a full hand through the real functions and tries to cheat (reading the deck, reading the opponent's cards, moving out of turn, sending a malformed or illegal move). `node scripts/smoke-multi.mjs` plays a 3-player hand, has a 4th player sit down mid-game, and checks they're dealt in next hand with their chips intact.
 
 ## Status
 
-Done: rooms and joining, the full hand engine (blinds, betting, all-ins, showdown, split pots, next hand), the server functions, the live table, the result banner, a 30-second turn clock with automatic timeout, reconnect handling (heartbeat, "away" notice, offline banner), chip stacks, and the shuffle and deal animation.
+Done: rooms for up to 8 players (joining between hands, busted players sit out), the full hand engine (blinds, betting, all-ins, side pots, showdown, split pots, next hand), the server functions, the live table, the result banner, a 30-second turn clock with automatic timeout, reconnect handling (heartbeat, "away" notice, offline banner), chip stacks, and the shuffle and deal animation.
 
 Not done yet:
 
 1. Chips sliding into the pot at the end of a street
 2. A running action log ("Alice raised to 40")
 3. Full no-limit minimum-raise rule (currently: at least one big blind more)
-4. Deploy to a real Firebase project, then PWA setup, and a scheduled function so a hand can't stall if both players leave
-5. Trim the bundle (`pokersolver` currently ships to the browser)
+4. A "leave table" button, App Check, PWA setup, and a scheduled function so a hand can't stall if everyone leaves
 
 The reasoning behind the design choices is in [DECISIONS.md](DECISIONS.md), and [INTERVIEW_PREP.md](INTERVIEW_PREP.md) has the questions to practise.

@@ -20,7 +20,7 @@ describe('getBettingOptions', () => {
   it('no bet to face: can check, min bet is the big blind', () => {
     const table: TableState = {
       ...fakeTable,
-      seats: [fakeTable.seats[0], { ...fakeTable.seats[1], bet: 0 }],
+      seats: [fakeTable.seats[0]!, { ...fakeTable.seats[1]!, bet: 0 }],
     }
     const o = getBettingOptions(table)
     expect(o.canCheck).toBe(true)
@@ -31,7 +31,7 @@ describe('getBettingOptions', () => {
   it('never lets a raise exceed my stack', () => {
     const table: TableState = {
       ...fakeTable,
-      seats: [{ ...fakeTable.seats[0], stack: 50 }, fakeTable.seats[1]],
+      seats: [{ ...fakeTable.seats[0]!, stack: 50 }, fakeTable.seats[1]!],
     }
     const o = getBettingOptions(table)
     expect(o.maxRaiseTo).toBe(50)
@@ -43,7 +43,7 @@ describe('getBettingOptions', () => {
     // The opponent has a bet of 40 and only 60 behind, so 100 is the most they can have in.
     const table: TableState = {
       ...fakeTable,
-      seats: [fakeTable.seats[0], { ...fakeTable.seats[1], stack: 60 }],
+      seats: [fakeTable.seats[0]!, { ...fakeTable.seats[1]!, stack: 60 }],
     }
     const o = getBettingOptions(table)
     expect(o.maxRaiseTo).toBe(100)
@@ -53,7 +53,7 @@ describe('getBettingOptions', () => {
   it('cannot raise when the opponent is already all-in', () => {
     const table: TableState = {
       ...fakeTable,
-      seats: [fakeTable.seats[0], { ...fakeTable.seats[1], stack: 0 }],
+      seats: [fakeTable.seats[0]!, { ...fakeTable.seats[1]!, stack: 0 }],
     }
     const o = getBettingOptions(table)
     expect(o.canRaise).toBe(false)

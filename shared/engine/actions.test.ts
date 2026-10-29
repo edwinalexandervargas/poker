@@ -1,3 +1,4 @@
+import { headsUp, type HeadsUpFixture } from './testHand.js'
 import { describe, expect, it } from 'vitest'
 import { getLegalActions } from './actions.js'
 import type { HandState } from './hand.js'
@@ -5,8 +6,8 @@ import type { HandState } from './hand.js'
 const BIG_BLIND = 20
 
 // Builds a hand state by hand so each test shows exactly the chips that matter.
-function hand(overrides: Partial<HandState> = {}): HandState {
-  return {
+function hand(overrides: Partial<HeadsUpFixture> = {}): HandState {
+  return headsUp({
     handNumber: 1,
     phase: 'preflop',
     button: 0,
@@ -19,7 +20,7 @@ function hand(overrides: Partial<HandState> = {}): HandState {
     holeCards: [[], []],
     deck: [],
     ...overrides,
-  }
+  } as HeadsUpFixture)
 }
 
 describe('getLegalActions: nobody to act', () => {
@@ -46,7 +47,10 @@ describe('getLegalActions: facing a bet', () => {
 
 describe('getLegalActions: nothing to call', () => {
   it('the big blind may check when the small blind just called', () => {
-    const legal = getLegalActions(hand({ toAct: 1, bets: [20, 20], stacks: [980, 980] }), BIG_BLIND)!
+    const legal = getLegalActions(
+      hand({ toAct: 1, bets: [20, 20], stacks: [980, 980] }),
+      BIG_BLIND,
+    )!
     expect(legal.canCheck).toBe(true)
     expect(legal.callAmount).toBe(0)
     expect(legal.minRaiseTo).toBe(40)
