@@ -331,3 +331,10 @@ Each entry: what I did, why, what else I considered, and what it costs.
 - **Why:** At a home game with friends, busting out shouldn't mean watching for the rest of the night. Rebuy only works at 0 chips, so it can't be used to top up a short stack. The rule is a pure function in the engine with tests, and the server is the one that enforces it.
 - **How it fits:** The chips on a player's document only change when a hand ends (entry 44), so you can't rebuy while you're still in a hand, even if you're all-in. `dealNextHand` already builds stacks from the player documents, so nothing else had to change.
 - **Trade-off:** Unlimited rebuys at no cost, which is fine for play money. A real-money game would need limits and a ledger.
+
+## 47. The action log is written by the server from the hand before and after each move
+
+- **What:** Every move adds short lines to `rooms/{code}/events`, such as "Alex raises to 80", "Flop: A♠ K♦ 7♥" or "Maria wins (300) with Pair, A's". The lines come from pure engine functions (`describeStart`, `describeMove`, `describeEnd`) that compare the hand before and after the move. Each screen follows only the newest 40 lines, sorted by one `seq` number (the server's clock times 100, plus the line's place in its batch). The panel shows the latest line and opens into the recent history.
+- **Why:** Only the server knows both states for certain, so the log can never disagree with the game, and a client can't write a fake line because clients can't write at all. Keeping the wording in the engine means it's tested like everything else (11 tests). One combined sort field avoids needing a composite Firestore index.
+- **Alternative I rejected:** Each screen working out the lines by comparing snapshots. It misses moves when two arrive close together or the tab was asleep, and every screen could tell a slightly different story.
+- **Trade-off:** One extra small write per line, which is nothing at this scale. Old lines are never deleted, but only the newest 40 are downloaded.

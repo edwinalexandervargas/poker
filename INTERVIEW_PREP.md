@@ -60,6 +60,8 @@ Cover the answer, say it out loud, then compare. Each answer is short on purpose
 
 38. **How did you add rebuys without touching the engine's betting code?** Chips between hands live on each player's document, and the next hand is always built from those. A rebuy just sets a busted player's chips back to the starting stack (the server checks they really have 0), and the next deal picks them up. [44, 46]
 
+39. **How does the action log work?** After each move, the server compares the hand before and after and writes lines like "Alex raises to 80" to an `events` collection, and every screen follows the newest 40. The wording is a pure, tested engine function, and only the server writes, so the log can't be faked or get out of sync. [47]
+
 ## Honest limitations (say these before they ask)
 
 - It's deployed, but without App Check, so anyone with the web settings could call the functions (they still enforce every rule). [39]

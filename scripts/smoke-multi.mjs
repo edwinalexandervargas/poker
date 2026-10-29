@@ -6,7 +6,16 @@
 
 import { initializeApp } from 'firebase/app'
 import { connectAuthEmulator, getAuth, signInAnonymously } from 'firebase/auth'
-import { connectFirestoreEmulator, doc, getDoc, getFirestore } from 'firebase/firestore'
+import {
+  collection,
+  connectFirestoreEmulator,
+  doc,
+  getDoc,
+  getDocs,
+  getFirestore,
+  orderBy,
+  query,
+} from 'firebase/firestore'
 import { connectFunctionsEmulator, getFunctions, httpsCallable } from 'firebase/functions'
 
 const HOST = '127.0.0.1'
@@ -27,6 +36,10 @@ function makeClient(label) {
     auth,
     call: async (name, data) => (await httpsCallable(functions, name)(data)).data,
     read: async (path) => (await getDoc(doc(db, path))).data(),
+    log: async (code) =>
+      (
+        await getDocs(query(collection(db, 'rooms', code, 'events'), orderBy('seq')))
+      ).docs.map((d) => d.data().text),
   }
 }
 
@@ -142,6 +155,15 @@ console.log(
 if (sum(second.stacks) + sum(second.bets) + second.pot !== 4000) {
   fail('chips not conserved after Dan joined')
 }
+
+console.log('\nThe action log (last 12 lines)')
+const log = await alice.log(code)
+for (const line of log.slice(-12)) console.log(`  ${line}`)
+if (!log.some((l) => l.startsWith('Hand 1:'))) fail('no "Hand 1" line in the log')
+if (!log.some((l) => l.includes('raises to 60')))
+  fail('the raise is missing from the log')
+if (!log.some((l) => l === 'Dan sits down'))
+  fail('Dan sitting down is missing from the log')
 
 console.log(process.exitCode ? '\nSomething went wrong (see !! above)' : '\nAll good')
 process.exit()

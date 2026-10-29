@@ -133,6 +133,13 @@ export const joinRoom = onCall<RoomInput>(async (request) => {
       connected: true,
     }
     tx.create(playersRef.doc(uid), player)
+    if (room.status === 'playing') {
+      tx.set(roomRef.collection('events').doc(), {
+        seq: Date.now() * 100,
+        handNumber: 0,
+        text: `${name} sits down`,
+      })
+    }
     return { code, seat }
   })
 })

@@ -10,6 +10,7 @@
 //   rooms/{code}/secret/hand      the full hand, deck and everyone's hole cards. Nobody can read it.
 //   rooms/{code}/hand/current     the censored copy every player may see
 //   rooms/{code}/private/{uid}    that one player's two hole cards. Only they can read it.
+//   rooms/{code}/events/{id}      the action log ("Alex raises to 80"). Every player can read it.
 
 import './options.js'
 import {
@@ -22,6 +23,9 @@ import { HttpsError, onCall } from 'firebase-functions/v2/https'
 import {
   canRebuy,
   createDeck,
+  describeEnd,
+  describeMove,
+  describeStart,
   nextHand,
   normalizeRoomCode,
   packHand,
@@ -33,6 +37,7 @@ import {
   stacksBySeat,
   startHand,
   timeoutAction,
+  type Action,
   toPublicState,
   unpackHand,
   type HandState,
@@ -96,17 +101,53 @@ async function readHand(tx: Transaction, table: Table): Promise<HandState> {
   return unpackHand(snap.get('state') as StoredHand)
 }
 
+/** A seat's player name, for the action log. */
+function namer(table: Table): (seat: number) => string {
+  return (seat) => table.players.find((p) => p.seat === seat)?.name ?? `Seat ${seat + 1}`
+}
+
+/** The log lines for a move, plus the end of the hand if the move finished it. */
+function moveLines(
+  table: Table,
+  before: HandState,
+  action: Action,
+  after: HandState,
+): string[] {
+  const name = namer(table)
+  return [
+    ...describeMove(before, action, after, table.room.config.bigBlind, name),
+    ...describeEnd(after, name),
+  ]
+}
+
+/** The log lines for a freshly dealt hand (and its end, if the blinds already decided it). */
+function startLines(table: Table, hand: HandState): string[] {
+  const name = namer(table)
+  return [...describeStart(hand, name), ...describeEnd(hand, name)]
+}
+
 /**
- * Writes a hand to all three places. `reveal` is true when a showdown just happened, so
- * the public copy includes the hole cards of everyone still in at the end.
+ * Writes a hand to all three places, and `lines` to the action log. `reveal` is true when a
+ * showdown just happened, so the public copy includes the hole cards of everyone still in.
  */
 function saveHand(
   tx: Transaction,
   table: Table,
   state: HandState,
   reveal: boolean,
+  lines: string[] = [],
 ): void {
   const { roomRef, players } = table
+
+  // One document per line. `seq` sorts them: the time, then the line's place in this batch.
+  const now = Date.now()
+  lines.forEach((text, i) => {
+    tx.set(roomRef.collection('events').doc(), {
+      seq: now * 100 + i,
+      handNumber: state.handNumber,
+      text,
+    })
+  })
 
   tx.set(roomRef.collection('secret').doc('hand'), { state: packHand(state) })
 
@@ -180,7 +221,7 @@ export const startGame = onCall<GameInput>(async (request) => {
       }),
     )
 
-    saveHand(tx, table, state, reveal)
+    saveHand(tx, table, state, reveal, startLines(table, state))
     tx.update(table.roomRef, { status: 'playing' })
     return { handNumber: state.handNumber }
   })
@@ -205,7 +246,13 @@ export const playAction = onCall<GameInput>(async (request) => {
       throw asRuleError(error)
     }
 
-    saveHand(tx, table, result.state, result.reveal)
+    saveHand(
+      tx,
+      table,
+      result.state,
+      result.reveal,
+      moveLines(table, state, action, result.state),
+    )
     return { phase: result.state.phase }
   })
 })
@@ -243,7 +290,7 @@ export const dealNextHand = onCall<GameInput>(async (request) => {
     }
     // Blinds can put a player all-in before anyone acts; then the hand is already at showdown.
     const dealt = settleShowdown(next)
-    saveHand(tx, table, dealt.state, dealt.reveal)
+    saveHand(tx, table, dealt.state, dealt.reveal, startLines(table, dealt.state))
     return { finished: false, handNumber: dealt.state.handNumber }
   })
 })
@@ -272,14 +319,19 @@ export const claimTimeout = onCall<GameInput>(async (request) => {
     }
 
     const bigBlind = table.room.config.bigBlind
+    const action = timeoutAction(state, bigBlind)
     let result
     try {
-      result = playTurn(state, state.toAct, timeoutAction(state, bigBlind), bigBlind)
+      result = playTurn(state, state.toAct, action, bigBlind)
     } catch (error) {
       throw asRuleError(error)
     }
 
-    saveHand(tx, table, result.state, result.reveal)
+    const name = namer(table)(state.toAct)
+    saveHand(tx, table, result.state, result.reveal, [
+      `${name} ran out of time`,
+      ...moveLines(table, state, action, result.state),
+    ])
     return { phase: result.state.phase }
   })
 })
@@ -330,6 +382,11 @@ export const rebuy = onCall<GameInput>(async (request) => {
     if (table.room.status === 'finished') {
       tx.update(table.roomRef, { status: 'playing' })
     }
+    tx.set(table.roomRef.collection('events').doc(), {
+      seq: Date.now() * 100,
+      handNumber: 0,
+      text: `${me.name} rebuys for ${stack.toLocaleString('en-US')}`,
+    })
     return { stack }
   })
 })

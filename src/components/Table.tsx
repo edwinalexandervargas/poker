@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import type { Action } from '@shared/engine'
 import { MAX_SEATS } from '@shared/engine/types'
 import { ActionBar } from '@/components/ActionBar'
+import { ActionLog } from '@/components/ActionLog'
 import { BetChips } from '@/components/BetChips'
 import { CommunityCards } from '@/components/CommunityCards'
 import { Deck } from '@/components/Deck'
@@ -16,6 +17,7 @@ import { betSpot, layoutSeats, MY_SPOT } from '@/lib/seatLayout'
 import { useDealPlan } from '@/lib/useDealPlan'
 import { seatAt, type TableState } from '@/lib/fakeTable'
 import type { TurnClock } from '@/lib/turnClock'
+import type { LogLine } from '@/lib/useEvents'
 
 interface TableProps {
   table: TableState
@@ -35,6 +37,8 @@ interface TableProps {
   canRebuy?: boolean
   rebuyAmount?: number
   onRebuy?: () => void
+  /** The action log, oldest line first. */
+  log?: LogLine[]
 }
 
 /** The whole table screen. It draws whatever TableState it is given. */
@@ -50,6 +54,7 @@ export function Table({
   canRebuy = false,
   rebuyAmount = 0,
   onRebuy,
+  log = [],
 }: TableProps) {
   const me = seatAt(table, table.mySeat)!
   const others = table.seats.filter((s) => s.seat !== table.mySeat)
@@ -210,6 +215,8 @@ export function Table({
           )}
         </>
       )}
+
+      <ActionLog lines={log} />
 
       {error && (
         <p role="alert" className="text-red-300">

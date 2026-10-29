@@ -10,6 +10,7 @@ import { WaitingRoom } from '@/components/WaitingRoom'
 import { dealNextHand, errorMessage, playAction, rebuy, startGame } from '@/lib/api'
 import { isAway } from '@/lib/presence'
 import { tableFromHand } from '@/lib/tableFromHand'
+import { useEvents } from '@/lib/useEvents'
 import { useHand } from '@/lib/useHand'
 import { useNow, usePresence } from '@/lib/usePresence'
 import { useTimeoutClaim } from '@/lib/useTimeoutClaim'
@@ -110,6 +111,7 @@ interface GameProps {
 
 function Game({ code, room, players, me }: GameProps) {
   const handView = useHand(code, me.uid)
+  const log = useEvents(code)
   const { pending, error, run } = useServerCall()
   // Every player's screen watches the clock; whichever gets there first asks the server to act.
   const { online, clockOffset } = usePresence(code)
@@ -151,6 +153,7 @@ function Game({ code, room, players, me }: GameProps) {
         canRebuy={canRebuy(me.stack, room.status)}
         rebuyAmount={room.config.startingStack}
         onRebuy={() => run(() => rebuy(code))}
+        log={log}
       />
     </>
   )
