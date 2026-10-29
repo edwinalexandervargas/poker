@@ -51,40 +51,46 @@ export function findProblems(hand: HandState, totalChips: number): string[] {
   }
 
   const cards = [
-  ...hand.deck,
-  ...hand.holeCards[0],
-  ...hand.holeCards[1],
-  ...hand.community,
-]
-if (cards.length !== 52) {
-  problems.push(`cards: expected 52, found ${cards.length}`)
-}
-if (new Set(cards).size !== cards.length) {
-  problems.push('cards: a card appears twice')
-}
-if (hand.phase in BOARD_SIZE) {
-  const expected = BOARD_SIZE[hand.phase as keyof typeof BOARD_SIZE]
-  if (hand.community.length !== expected) {
+    ...hand.deck,
+    ...hand.holeCards[0],
+    ...hand.holeCards[1],
+    ...hand.community,
+  ]
+  if (cards.length !== 52) {
+    problems.push(`cards: expected 52, found ${cards.length}`)
+  }
+  if (new Set(cards).size !== cards.length) {
+    problems.push('cards: a card appears twice')
+  }
+
+  if (hand.holeCards[0].length !== 2 || hand.holeCards[1].length !== 2) {
     problems.push(
-      `board: ${hand.phase} should have ${expected} cards, has ${hand.community.length}`,
+      `cards: each player needs 2 hole cards, got ${hand.holeCards[0].length}/${hand.holeCards[1].length}`,
     )
   }
-}
+  if (hand.phase in BOARD_SIZE) {
+    const expected = BOARD_SIZE[hand.phase as keyof typeof BOARD_SIZE]
+    if (hand.community.length !== expected) {
+      problems.push(
+        `board: ${hand.phase} should have ${expected} cards, has ${hand.community.length}`,
+      )
+    }
+  }
 
-const betting =
-  hand.phase === 'preflop' ||
-  hand.phase === 'flop' ||
-  hand.phase === 'turn' ||
-  hand.phase === 'river'
+  const betting =
+    hand.phase === 'preflop' ||
+    hand.phase === 'flop' ||
+    hand.phase === 'turn' ||
+    hand.phase === 'river'
 
-if (betting && hand.toAct === null) {
-  problems.push(`turn: nobody to act in ${hand.phase}`)
-}
-if (!betting && hand.toAct !== null) {
-  problems.push(`turn: seat ${hand.toAct} is to act in ${hand.phase}`)
-}
-if (hand.toAct !== null && hand.stacks[hand.toAct] === 0) {
-  problems.push(`turn: seat ${hand.toAct} is to act with no chips`)
-}
+  if (betting && hand.toAct === null) {
+    problems.push(`turn: nobody to act in ${hand.phase}`)
+  }
+  if (!betting && hand.toAct !== null) {
+    problems.push(`turn: seat ${hand.toAct} is to act in ${hand.phase}`)
+  }
+  if (hand.toAct !== null && hand.stacks[hand.toAct] === 0) {
+    problems.push(`turn: seat ${hand.toAct} is to act with no chips`)
+  }
   return problems
 }
