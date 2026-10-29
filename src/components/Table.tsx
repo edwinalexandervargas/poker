@@ -252,6 +252,7 @@ export function Table({
               options={getBettingOptions(table)}
               disabled={!me.isToAct || pending}
               onAction={onAction}
+              bigBlind={table.bigBlind}
             />
           ) : (
             <p className="text-white/60">

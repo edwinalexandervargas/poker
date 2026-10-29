@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getBettingOptions } from './betting'
+import { getBettingOptions, stepBet } from './betting'
 import { fakeTable, type TableState } from './fakeTable'
 
 describe('getBettingOptions', () => {
@@ -66,5 +66,22 @@ describe('getBettingOptions', () => {
       expect(o.halfPotRaiseTo % 5).toBe(0)
       expect(o.potRaiseTo % 5).toBe(0)
     }
+  })
+})
+
+describe('stepBet', () => {
+  it('moves by 5', () => {
+    expect(stepBet(60, 5, 40, 500)).toBe(65)
+    expect(stepBet(60, -5, 40, 500)).toBe(55)
+  })
+  it('never goes below the minimum raise or above all-in', () => {
+    expect(stepBet(40, -5, 40, 500)).toBe(40)
+    expect(stepBet(500, 5, 40, 500)).toBe(500)
+  })
+  it('reaches an all-in that is not a multiple of 5', () => {
+    expect(stepBet(935, 5, 40, 937)).toBe(937)
+  })
+  it('snaps an in-between value onto a 5', () => {
+    expect(stepBet(62, 0, 40, 500)).toBe(60)
   })
 })

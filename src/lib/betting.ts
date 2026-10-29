@@ -77,3 +77,14 @@ export function getBettingOptions(table: TableState): BettingOptions {
     potRaiseTo: raiseToForFraction(1),
   }
 }
+
+/**
+ * Moves a bet by `delta` chips and keeps it legal: snapped to a whole 5-chip, and inside
+ * [min, max]. Reaching max is always allowed even when it isn't a multiple of 5 (all-in).
+ */
+export function stepBet(value: number, delta: number, min: number, max: number): number {
+  const next = toChip(value + delta)
+  if (next >= max) return max
+  if (next <= min) return min
+  return next
+}

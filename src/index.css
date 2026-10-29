@@ -162,29 +162,43 @@ body {
   }
 
   /* The raise slider. */
+  /* Gold fill up to the thumb (--fill is set by the component), dim track after it. */
   .slider {
     -webkit-appearance: none;
     appearance: none;
-    height: 6px;
+    height: 8px;
     border-radius: 9999px;
-    background: rgb(255 255 255 / 0.12);
+    background: linear-gradient(
+      90deg,
+      #d4a945 0,
+      #f0d27f var(--fill, 0%),
+      rgb(255 255 255 / 0.1) var(--fill, 0%)
+    );
+    cursor: pointer;
   }
   .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 22px;
-    height: 22px;
+    width: 26px;
+    height: 26px;
     border-radius: 9999px;
-    background: linear-gradient(180deg, #f0d27f, #d4a945);
-    box-shadow: 0 2px 8px rgb(0 0 0 / 0.5);
-    cursor: pointer;
+    background: radial-gradient(circle at 50% 35%, #fff6d8, #e3be62 60%, #b98a2c);
+    border: 3px solid #0e1713;
+    box-shadow:
+      0 0 0 1.5px rgb(227 190 98 / 0.8),
+      0 4px 12px rgb(0 0 0 / 0.55),
+      0 0 18px rgb(227 190 98 / 0.35);
+    transition: transform 120ms ease;
+  }
+  .slider:active::-webkit-slider-thumb {
+    transform: scale(1.12);
   }
   .slider::-moz-range-thumb {
     width: 22px;
     height: 22px;
-    border: 0;
     border-radius: 9999px;
-    background: linear-gradient(180deg, #f0d27f, #d4a945);
-    cursor: pointer;
+    background: radial-gradient(circle at 50% 35%, #fff6d8, #e3be62 60%, #b98a2c);
+    border: 3px solid #0e1713;
+    box-shadow: 0 0 0 1.5px rgb(227 190 98 / 0.8);
   }
   .slider:disabled {
     opacity: 0.4;
