@@ -392,3 +392,10 @@ Each entry: what I did, why, what else I considered, and what it costs.
 - **What:** `firebase.json` sends `Cache-Control: no-cache` for everything, so the browser checks for a newer version every time it loads. Files in `/assets`, whose names include a hash of their content, get `max-age=31536000, immutable` instead.
 - **Why:** After a deploy, phones and the installed app kept showing the old version for up to an hour, because Firebase Hosting lets browsers reuse files for an hour by default. `index.html` is tiny and points at the current build's files, so always checking it costs almost nothing. The asset files change name whenever their content changes, so caching them forever is safe and makes repeat visits instant.
 - **Trade-off:** Each load does one quick check for `index.html`. That's negligible.
+
+## 57. An open app checks for updates by itself
+
+- **What:** Every build gets a new id. It's baked into the app as `__APP_VERSION__` and written to `/version.json` (a small plugin in `vite.config.ts`). The app fetches `/version.json` with `cache: 'no-store'` when it comes back on screen and every 5 minutes. If the id differs (`hasUpdate`, a pure tested function), the lobby reloads on its own, and at a table a "New version available · Refresh" pill appears instead, so nobody's hand reloads mid-decision.
+- **Why:** An app installed on an iPhone is usually resumed, not restarted, so it kept running the old version long after a deploy. This way everyone plays the version I just shipped, which matters most after server changes. It's one tiny file from Hosting, with no Firestore or Functions calls, so it costs nothing that matters.
+- **Alternative I rejected:** A service worker. It's the usual tool for this, but it's built for offline caching, which this online-only game doesn't need, and a badly handled service worker is itself a classic cause of stale versions.
+- **Trade-off:** A reload costs a moment of loading. At a table it's up to the player when to refresh.

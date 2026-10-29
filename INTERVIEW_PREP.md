@@ -70,6 +70,8 @@ Cover the answer, say it out loud, then compare. Each answer is short on purpose
 
 44. **Why can't you raise to 63?** The smallest chip is a 5, so every amount at the table stays a multiple of 5 and can be drawn with real chips. The engine refuses other raises (except all-in), splits pots in 5s, and the slider steps in 5s. It's one constant, `CHIP_UNIT`, used everywhere. [54]
 
+45. **How do you ship updates to an installed web app?** Each build stamps an id into the code and writes it to `version.json`. The app re-checks that file when it comes back on screen and every 5 minutes. If it changed, the lobby reloads and a table shows a Refresh pill. I also send `no-cache` for the page and cache the hashed asset files forever. No service worker needed. [56, 57]
+
 ## Honest limitations (say these before they ask)
 
 - It's deployed, but without App Check, so anyone with the web settings could call the functions (they still enforce every rule). [39]
