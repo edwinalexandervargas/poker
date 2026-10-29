@@ -92,5 +92,15 @@ switch (action.type) {
 }
 
 function finish(hand: HandState): HandState {
-  return isRoundOver(hand) ? advanceStreet(hand) : hand
+  if (!isRoundOver(hand)) {
+    return hand 
+  }
+
+  let next = advanceStreet(hand)
+
+  while (next.phase !== 'showdown' && (next.stacks[0] === 0 || next.stacks[1] === 0)) {
+    next = advanceStreet(next)
+  }
+
+  return next
 }
