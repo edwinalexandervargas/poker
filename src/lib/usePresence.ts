@@ -26,7 +26,7 @@ export function useOnline(): boolean {
  * computer's clock is from the server's (needed to judge the other player's last check-in).
  *
  * It checks in straight away when the tab becomes visible again, because phones freeze timers
- * in background tabs.
+ * in background tabs, and says goodbye when the tab is hidden or closed.
  */
 export function usePresence(code: string) {
   const online = useOnline()
@@ -38,6 +38,8 @@ export function usePresence(code: string) {
     let cancelled = false
 
     async function beat() {
+      // A hidden tab stays quiet, so a regular check-in can't cancel its goodbye.
+      if (document.visibilityState === 'hidden') return
       try {
         const sentAt = Date.now()
         const serverNow = await heartbeat(code)
@@ -49,17 +51,24 @@ export function usePresence(code: string) {
       }
     }
 
+    // Say goodbye when the screen is hidden or closed, so the others see it at once. It's best
+    // effort: a closing tab may not get the request out, and then the silence gives us away.
+    const leave = () => void heartbeat(code, true).catch(() => {})
+
     void beat()
     const timer = setInterval(beat, HEARTBEAT_MS)
-    const onVisible = () => {
+    const onVisibility = () => {
       if (document.visibilityState === 'visible') void beat()
+      else leave()
     }
-    document.addEventListener('visibilitychange', onVisible)
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('pagehide', leave)
 
     return () => {
       cancelled = true
       clearInterval(timer)
-      document.removeEventListener('visibilitychange', onVisible)
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('pagehide', leave)
     }
   }, [code, online])
 

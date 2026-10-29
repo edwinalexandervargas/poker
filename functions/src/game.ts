@@ -21,6 +21,7 @@ import {
 } from 'firebase-admin/firestore'
 import { HttpsError, onCall } from 'firebase-functions/v2/https'
 import {
+  isGone,
   canReactAgain,
   canRebuy,
   isReaction,
@@ -180,6 +181,23 @@ function saveHand(
   }
 }
 
+/** Players who have left (see isGone) but still have chips: they sit out the next hand. */
+function goneWithChips(table: Table): SeatedPlayer[] {
+  const now = Date.now()
+  const gone = table.players.filter((p) => p.stack > 0 && isGone(p, now))
+  const present = table.players.filter((p) => p.stack > 0 && !gone.includes(p))
+  // Only sit people out if at least two players are still here; otherwise deal everyone,
+  // so the game doesn't end just because someone stepped away.
+  return present.length >= 2 ? gone : []
+}
+
+/** Chips per seat for the next hand, with anyone sitting out left at 0 (not dealt in). */
+function stacksForNextHand(table: Table, sittingOut: SeatedPlayer[]): number[] {
+  const stacks = stacksBySeat(table.players)
+  for (const p of sittingOut) stacks[p.seat] = 0
+  return stacks
+}
+
 /** Turns an engine error ("Not your turn", "Cannot check...") into a friendly error. */
 function asRuleError(error: unknown): HttpsError {
   return new HttpsError(
@@ -272,6 +290,7 @@ export const dealNextHand = onCall<GameInput>(async (request) => {
     const table = await readTable(tx, code)
     requireSeated(table, uid)
     const previous = await readHand(tx, table)
+    const sittingOut = goneWithChips(table)
 
     let next
     try {
@@ -280,7 +299,7 @@ export const dealNextHand = onCall<GameInput>(async (request) => {
         table.room.config.smallBlind,
         table.room.config.bigBlind,
         shuffle(createDeck()),
-        stacksBySeat(table.players),
+        stacksForNextHand(table, sittingOut),
       )
     } catch (error) {
       throw asRuleError(error)
@@ -292,7 +311,11 @@ export const dealNextHand = onCall<GameInput>(async (request) => {
     }
     // Blinds can put a player all-in before anyone acts; then the hand is already at showdown.
     const dealt = settleShowdown(next)
-    saveHand(tx, table, dealt.state, dealt.reveal, startLines(table, dealt.state))
+    const name = namer(table)
+    saveHand(tx, table, dealt.state, dealt.reveal, [
+      ...sittingOut.map((p) => `${name(p.seat)} is away and sits out`),
+      ...startLines(table, dealt.state),
+    ])
     return { finished: false, handNumber: dealt.state.handNumber }
   })
 })
@@ -316,7 +339,10 @@ export const claimTimeout = onCall<GameInput>(async (request) => {
     if (state.toAct === null || typeof deadline !== 'number') {
       throw new HttpsError('failed-precondition', 'Nobody is on the clock.')
     }
-    if (Date.now() < deadline) {
+    // Don't wait out the clock for someone who has left: play their move now.
+    const acting = table.players.find((p) => p.seat === state.toAct)
+    const gone = acting !== undefined && isGone(acting, Date.now())
+    if (Date.now() < deadline && !gone) {
       throw new HttpsError('failed-precondition', 'Time is not up yet.')
     }
 
@@ -331,7 +357,9 @@ export const claimTimeout = onCall<GameInput>(async (request) => {
 
     const name = namer(table)(state.toAct)
     saveHand(tx, table, result.state, result.reveal, [
-      `${name} ran out of time`,
+      gone && Date.now() < deadline
+        ? `${name} has left the table`
+        : `${name} ran out of time`,
       ...moveLines(table, state, action, result.state),
     ])
     return { phase: result.state.phase }
@@ -339,17 +367,22 @@ export const claimTimeout = onCall<GameInput>(async (request) => {
 })
 
 /**
- * A player's open table screen checks in every few seconds. We record when, so the other
- * players' screens can tell "away" from "thinking". Returns the server's clock so the caller
+ * A player's open table screen checks in every few seconds, and says goodbye when it's hidden
+ * or closed. We record both, so everyone can tell "away" from "thinking", and the server can
+ * stop waiting for someone who has gone (see isGone). Returns the server's clock so the caller
  * can correct for its own clock being off.
  */
-export const heartbeat = onCall<GameInput>(async (request) => {
+export const heartbeat = onCall<GameInput & { leaving?: unknown }>(async (request) => {
   const uid = requireUid(request.auth?.uid)
   const code = requireCode(request.data?.code)
   const now = Date.now()
+  // A screen that is being hidden or closed says goodbye, so the others see it at once.
+  // Any normal check-in clears it again.
+  const update =
+    request.data?.leaving === true ? { leftAt: now } : { lastSeen: now, leftAt: null }
 
   try {
-    await getFirestore().doc(`rooms/${code}/players/${uid}`).update({ lastSeen: now })
+    await getFirestore().doc(`rooms/${code}/players/${uid}`).update(update)
   } catch {
     // update() fails when the document doesn't exist: this person isn't seated here.
     throw new HttpsError('permission-denied', 'You are not seated at this table.')

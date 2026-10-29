@@ -66,10 +66,12 @@ Cover the answer, say it out loud, then compare. Each answer is short on purpose
 41. **Why no service worker for your PWA?** The game only works online, so offline caching would only add the risk of serving an old version. The manifest and icons are enough to install it to the home screen. [51]
 42. **How does the scoreboard handle rebuys?** Each rebuy counts as another buy-in, so a player who rebought twice is measured against 3,000, not 1,000. A test checks that with no rebuys everyone's results add up to zero. [49]
 
+43. **What happens when someone closes the tab mid-hand?** Their screen says goodbye as it's hidden, and if that request never makes it out, 12 seconds of missed check-ins tell us anyway. After an 8-second grace period, the others' screens ask the server to play their check or fold, the server re-checks with the same `isGone` rule, and they sit out new hands until they're back. [53]
+
 ## Honest limitations (say these before they ask)
 
 - It's deployed, but without App Check, so anyone with the web settings could call the functions (they still enforce every rule). [39]
-- There's no "leave table" button: someone who walks away gets timed out every turn, which slows a full table. [44]
+- There's no "leave table" button. Someone who walks away is detected and sat out, but the goodbye from a closing tab is best effort. [53]
 - The minimum raise is simplified: at least one big blind more, not the full "match the previous raise" rule. [26]
 - If both players leave, nobody is there to call time, so a hand waits until someone returns (a scheduled function would fix this once deployed). [35]
 - The result banner names side-pot winners but only describes the main pot winner's hand. [43]

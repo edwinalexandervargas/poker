@@ -30,7 +30,7 @@ const claimTimeoutFn = httpsCallable<{ code: string }, { phase: string }>(
   functions,
   'claimTimeout',
 )
-const heartbeatFn = httpsCallable<{ code: string }, { now: number }>(
+const heartbeatFn = httpsCallable<{ code: string; leaving: boolean }, { now: number }>(
   functions,
   'heartbeat',
 )
@@ -89,9 +89,9 @@ export async function claimTimeout(code: string): Promise<void> {
 }
 
 /** "I'm still here." Returns the server's clock in milliseconds. */
-export async function heartbeat(code: string): Promise<number> {
+export async function heartbeat(code: string, leaving = false): Promise<number> {
   await ensureSignedIn()
-  const { data } = await heartbeatFn({ code })
+  const { data } = await heartbeatFn({ code, leaving })
   return data.now
 }
 

@@ -16,7 +16,7 @@ import {
   rebuy,
   startGame,
 } from '@/lib/api'
-import { isAway } from '@/lib/presence'
+import { isAway, isGone } from '@/lib/presence'
 import { tableFromHand } from '@/lib/tableFromHand'
 import { useEvents } from '@/lib/useEvents'
 import { useHand } from '@/lib/useHand'
@@ -123,8 +123,19 @@ function Game({ code, room, players, me }: GameProps) {
   const { pending, error, run } = useServerCall()
   // Every player's screen watches the clock; whichever gets there first asks the server to act.
   const { online, clockOffset } = usePresence(code)
-  const now = useNow(5000)
-  useTimeoutClaim(code, handView.status === 'ready' ? handView.turn : null, online)
+  const now = useNow(2000)
+  const serverNow = now + clockOffset
+  // If the player on the clock has left, every other screen asks the server to move on.
+  const actingSeat = handView.status === 'ready' ? handView.hand?.toAct : null
+  const acting = players.find((p) => p.seat === actingSeat)
+  const actingGone =
+    acting !== undefined && acting.uid !== me.uid && isGone(acting, serverNow)
+  useTimeoutClaim(
+    code,
+    handView.status === 'ready' ? handView.turn : null,
+    online,
+    actingGone,
+  )
 
   if (handView.status === 'loading') return <Message>Dealing…</Message>
   if (handView.status === 'error') return <Message>{handView.message}</Message>
@@ -132,9 +143,7 @@ function Game({ code, room, players, me }: GameProps) {
 
   // Whose screens have stopped checking in.
   const awaySeats = new Set<Seat>(
-    players
-      .filter((p) => p.uid !== me.uid && isAway(p.lastSeen, now + clockOffset))
-      .map((p) => p.seat),
+    players.filter((p) => p.uid !== me.uid && isAway(p, serverNow)).map((p) => p.seat),
   )
   const table = tableFromHand({
     hand: handView.hand,

@@ -69,7 +69,7 @@ export function OpponentSeat({ seat, handNumber = 0, dealDelays }: OpponentSeatP
           {stack > 0 || inHand ? stack.toLocaleString() : 'Out'}
         </p>
         {away && <p className="text-[0.65rem] text-amber-300">away</p>}
-        {!dealtIn && stack > 0 && (
+        {!dealtIn && stack > 0 && !away && (
           <p className="text-[0.65rem] text-white/60">next hand</p>
         )}
       </div>

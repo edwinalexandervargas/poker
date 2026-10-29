@@ -39,6 +39,8 @@ export interface PlayerDoc {
   connected: boolean
   /** The server's clock (ms) when this player's screen last checked in. Missing until then. */
   lastSeen?: number
+  /** The server's clock when this player's screen was hidden or closed. Null once they're back. */
+  leftAt?: number | null
   /** How many times this player has bought back in after busting. Missing means never. */
   rebuys?: number
   /** Their latest emoji reaction and when it was sent (server clock, ms). */

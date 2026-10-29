@@ -9,11 +9,18 @@ const MAX_RETRIES = 2
 
 /**
  * When the clock runs out, ask the server to play the automatic move.
- * Both players' screens do this, so a player who closed the tab can't stall the table.
+ * Every player's screen does this, so a player who closed the tab can't stall the table. If
+ * the player on the clock has left (see isGone), it asks straight away; the server checks.
  * Whichever call reaches the server first wins; the other is refused, and that is fine,
  * so errors are ignored. The server is the one that checks the deadline.
  */
-export function useTimeoutClaim(code: string, turn: TurnClock | null, online = true) {
+export function useTimeoutClaim(
+  code: string,
+  turn: TurnClock | null,
+  online = true,
+  /** The player on the clock has left: ask right away instead of waiting out the clock. */
+  actingGone = false,
+) {
   const deadline = turn?.deadline ?? null
   const totalMs = turn?.totalMs ?? 0
   const clockOffset = turn?.clockOffset ?? 0
@@ -36,7 +43,9 @@ export function useTimeoutClaim(code: string, turn: TurnClock | null, online = t
       }
     }
 
-    const wait = msLeft({ deadline, totalMs, clockOffset }, Date.now()) + CLAIM_DELAY_MS
+    const wait = actingGone
+      ? 0
+      : msLeft({ deadline, totalMs, clockOffset }, Date.now()) + CLAIM_DELAY_MS
     timer = setTimeout(() => claim(MAX_RETRIES), wait)
 
     // A new turn (new deadline) cancels this one.
@@ -44,5 +53,5 @@ export function useTimeoutClaim(code: string, turn: TurnClock | null, online = t
       cancelled = true
       clearTimeout(timer)
     }
-  }, [code, deadline, totalMs, clockOffset, online])
+  }, [code, deadline, totalMs, clockOffset, online, actingGone])
 }
