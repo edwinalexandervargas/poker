@@ -15,6 +15,7 @@ export interface HandState {
   bets: [number, number]
   /** Chips from finished betting rounds. */
   pot: number
+  actionsThisRound: number
   community: Card[]
   /** Each player's two private cards. Only ever sent to that player. */
   holeCards: [Card[], Card[]]
@@ -80,6 +81,7 @@ button,
 toAct: firstToAct(button, 'preflop'),
 stacks: left,
 bets,
+actionsThisRound: 0,
 pot: 0,
 community: [],
 holeCards,
