@@ -39,6 +39,8 @@ export interface PlayerDoc {
   connected: boolean
   /** The server's clock (ms) when this player's screen last checked in. Missing until then. */
   lastSeen?: number
+  /** How many times this player has bought back in after busting. Missing means never. */
+  rebuys?: number
 }
 
 /** A random room code such as "K7MQ2". */
@@ -91,4 +93,13 @@ export function stacksBySeat(
   const stacks = Array<number>(MAX_SEATS).fill(0)
   for (const player of players) stacks[player.seat] = player.stack
   return stacks
+}
+
+/**
+ * Can this player buy back in? Only once they have no chips left: a rebuy is for getting
+ * back into the game, not for topping up a short stack. `playerStack` is the chips on their
+ * player document, which the server updates when each hand ends.
+ */
+export function canRebuy(playerStack: number, status: RoomStatus): boolean {
+  return playerStack === 0 && status !== 'waiting'
 }

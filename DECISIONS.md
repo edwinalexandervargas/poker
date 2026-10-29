@@ -324,3 +324,10 @@ Each entry: what I did, why, what else I considered, and what it costs.
 - **What:** You're always drawn at the bottom. Everyone else goes to one of seven spots around the felt, clockwise from your left, in seat order. With fewer players they're spread out instead of leaving gaps. Other players get a compact seat (small cards, name, chips, an "away" or "next hand" note), and the board and deck shrink on phones.
 - **Why:** Seeing the table from your own seat is how every poker app works. The layout is a pure function (`layoutSeats`) with tests, and the cards still fly from the deck because `FlyIn` measures positions instead of hard-coding them.
 - **Trade-off:** Eight players on a phone is tight, and the spots are percentages tuned by eye at 390 px and 1,200 px wide.
+
+## 46. Busted players can rebuy for the starting stack
+
+- **What:** A player with 0 chips sees a "Rebuy for 1,000" button. The `rebuy` function checks `canRebuy` (no chips left, game started), sets their chips back to the table's starting stack, and counts their rebuys. They're dealt in from the next hand, the same way a newcomer is. If the game had ended because only one player had chips, it starts up again.
+- **Why:** At a home game with friends, busting out shouldn't mean watching for the rest of the night. Rebuy only works at 0 chips, so it can't be used to top up a short stack. The rule is a pure function in the engine with tests, and the server is the one that enforces it.
+- **How it fits:** The chips on a player's document only change when a hand ends (entry 44), so you can't rebuy while you're still in a hand, even if you're all-in. `dealNextHand` already builds stacks from the player documents, so nothing else had to change.
+- **Trade-off:** Unlimited rebuys at no cost, which is fine for play money. A real-money game would need limits and a ledger.

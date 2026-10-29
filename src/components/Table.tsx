@@ -31,6 +31,10 @@ interface TableProps {
   gameOver?: boolean
   /** The countdown for whoever is on the clock. */
   turn?: TurnClock | null
+  /** I'm out of chips and may buy back in. */
+  canRebuy?: boolean
+  rebuyAmount?: number
+  onRebuy?: () => void
 }
 
 /** The whole table screen. It draws whatever TableState it is given. */
@@ -43,6 +47,9 @@ export function Table({
   onNextHand,
   gameOver = false,
   turn = null,
+  canRebuy = false,
+  rebuyAmount = 0,
+  onRebuy,
 }: TableProps) {
   const me = seatAt(table, table.mySeat)!
   const others = table.seats.filter((s) => s.seat !== table.mySeat)
@@ -135,6 +142,21 @@ export function Table({
         >
           {acting.name} seems to be away. The clock keeps running.
         </p>
+      )}
+
+      {canRebuy && (
+        <div className="flex w-full max-w-md flex-col items-center gap-2 rounded-2xl bg-black/40 p-4 text-center">
+          <p className="font-semibold">You’re out of chips.</p>
+          <button
+            type="button"
+            onClick={onRebuy}
+            disabled={pending}
+            className="bg-chip-gold rounded-lg px-8 py-3 font-semibold text-black disabled:opacity-50"
+          >
+            {pending ? 'Buying in…' : `Rebuy for ${rebuyAmount.toLocaleString()}`}
+          </button>
+          <p className="text-sm text-white/60">You’ll be dealt in from the next hand.</p>
+        </div>
       )}
 
       {handOver ? (

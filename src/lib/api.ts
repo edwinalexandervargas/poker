@@ -34,6 +34,7 @@ const heartbeatFn = httpsCallable<{ code: string }, { now: number }>(
   functions,
   'heartbeat',
 )
+const rebuyFn = httpsCallable<{ code: string }, { stack: number }>(functions, 'rebuy')
 
 export async function createRoom(name: string): Promise<string> {
   await ensureSignedIn()
@@ -60,6 +61,12 @@ export async function playAction(code: string, action: Action): Promise<void> {
 }
 
 /** After a hand ends, deal the next one (or end the game if someone is out of chips). */
+/** A busted player buys back in for the starting stack, dealt in from the next hand. */
+export async function rebuy(code: string): Promise<void> {
+  await ensureSignedIn()
+  await rebuyFn({ code })
+}
+
 export async function dealNextHand(code: string): Promise<void> {
   await ensureSignedIn()
   await dealNextHandFn({ code })

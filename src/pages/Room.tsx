@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import type { Action, RoomDoc, Seat } from '@shared/engine'
+import { canRebuy } from '@shared/engine/room'
 import { MAX_SEATS } from '@shared/engine/types'
 import { JoinPrompt } from '@/components/JoinPrompt'
 import { ConnectionBanner } from '@/components/ConnectionBanner'
 import { Table } from '@/components/Table'
 import { WaitingRoom } from '@/components/WaitingRoom'
-import { dealNextHand, errorMessage, playAction, startGame } from '@/lib/api'
+import { dealNextHand, errorMessage, playAction, rebuy, startGame } from '@/lib/api'
 import { isAway } from '@/lib/presence'
 import { tableFromHand } from '@/lib/tableFromHand'
 import { useHand } from '@/lib/useHand'
@@ -146,6 +147,10 @@ function Game({ code, room, players, me }: GameProps) {
         turn={handView.turn}
         onAction={(action: Action) => run(() => playAction(code, action))}
         onNextHand={() => run(() => dealNextHand(code))}
+        // My chips as the server last recorded them (updated when each hand ends).
+        canRebuy={canRebuy(me.stack, room.status)}
+        rebuyAmount={room.config.startingStack}
+        onRebuy={() => run(() => rebuy(code))}
       />
     </>
   )

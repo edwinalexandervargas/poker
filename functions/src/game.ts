@@ -20,6 +20,7 @@ import {
 } from 'firebase-admin/firestore'
 import { HttpsError, onCall } from 'firebase-functions/v2/https'
 import {
+  canRebuy,
   createDeck,
   nextHand,
   normalizeRoomCode,
@@ -300,4 +301,35 @@ export const heartbeat = onCall<GameInput>(async (request) => {
     throw new HttpsError('permission-denied', 'You are not seated at this table.')
   }
   return { now }
+})
+
+/**
+ * A busted player buys back in for the table's starting stack. Their chips are on their
+ * player document, so they're dealt in from the next hand, like a newcomer. If the game had
+ * ended because too few players had chips, it starts up again.
+ */
+export const rebuy = onCall<GameInput>(async (request) => {
+  const uid = requireUid(request.auth?.uid)
+  const code = requireCode(request.data?.code)
+
+  return getFirestore().runTransaction(async (tx) => {
+    const table = await readTable(tx, code)
+    const me = requireSeated(table, uid)
+    if (!canRebuy(me.stack, table.room.status)) {
+      throw new HttpsError(
+        'failed-precondition',
+        me.stack > 0 ? 'You still have chips.' : 'The game has not started yet.',
+      )
+    }
+
+    const stack = table.room.config.startingStack
+    tx.update(table.roomRef.collection('players').doc(uid), {
+      stack,
+      rebuys: (me.rebuys ?? 0) + 1,
+    })
+    if (table.room.status === 'finished') {
+      tx.update(table.roomRef, { status: 'playing' })
+    }
+    return { stack }
+  })
 })

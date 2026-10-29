@@ -3,6 +3,7 @@ import {
   MAX_PLAYER_NAME_LENGTH,
   ROOM_CODE_ALPHABET,
   ROOM_CODE_LENGTH,
+  canRebuy,
   cleanPlayerName,
   generateRoomCode,
   normalizeRoomCode,
@@ -77,5 +78,20 @@ describe('pickFreeSeat', () => {
 
   it('returns null when all 8 seats are taken', () => {
     expect(pickFreeSeat([0, 1, 2, 3, 4, 5, 6, 7])).toBeNull()
+  })
+})
+
+describe('canRebuy', () => {
+  it('a busted player can buy back in during a game', () => {
+    expect(canRebuy(0, 'playing')).toBe(true)
+  })
+  it('also after the game ended because too few players had chips', () => {
+    expect(canRebuy(0, 'finished')).toBe(true)
+  })
+  it('not while you still have chips (no topping up)', () => {
+    expect(canRebuy(5, 'playing')).toBe(false)
+  })
+  it('not before the game has started', () => {
+    expect(canRebuy(0, 'waiting')).toBe(false)
   })
 })

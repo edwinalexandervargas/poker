@@ -58,6 +58,8 @@ Cover the answer, say it out loud, then compare. Each answer is short on purpose
 36. **How did you test 8-player play?** The same seeded stress test, now with 2 to 8 players and random stack sizes so all-ins for different amounts happen constantly. It checks chips and cards after every move and that payouts equal the pots. A probe run covered about 2,000 hands, 500 of them with side pots. I also kept every heads-up test, with a small helper that converts the old fixtures. [41-43]
 37. **What happens when someone joins mid-game?** They take a free seat and are dealt in next hand. The tricky part: when a hand ends, the server must only update the chips of players who were in it, or the newcomer's starting chips get overwritten with 0. [44]
 
+38. **How did you add rebuys without touching the engine's betting code?** Chips between hands live on each player's document, and the next hand is always built from those. A rebuy just sets a busted player's chips back to the starting stack (the server checks they really have 0), and the next deal picks them up. [44, 46]
+
 ## Honest limitations (say these before they ask)
 
 - It's deployed, but without App Check, so anyone with the web settings could call the functions (they still enforce every rule). [39]
