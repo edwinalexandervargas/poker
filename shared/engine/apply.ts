@@ -6,6 +6,7 @@ import { getLegalActions } from './actions.js'
 import type { HandState } from './hand.js'
 import { otherSeat } from './seats.js'
 import type { Action } from './types.js'
+import { advanceStreet, isRoundOver } from './street.js'
 
 /**
  * YOUR TURN: make the tests in apply.test.ts pass.  Run them with:  npm run test:watch
@@ -51,7 +52,7 @@ switch (action.type) {
     if (!legal.canCheck) {
       throw new Error('Cannot check: there is a bet to call')
     }
-    return { ...hand, toAct: opp}
+    return finish({ ...hand, toAct: opp, actionsThisRound: hand.actionsThisRound + 1 })
   }
 
   case 'call' : {
@@ -60,7 +61,7 @@ switch (action.type) {
     }
     stacks[me] -= legal.callAmount
     bets[me] += legal.callAmount
-    return { ...hand, stacks, bets, toAct: opp}
+    return finish({ ...hand, stacks, bets, toAct: opp, actionsThisRound: hand.actionsThisRound + 1 })
   }
 
   case 'raise' : {
@@ -73,7 +74,7 @@ switch (action.type) {
     }
     stacks[me] -= action.amount - bets[me]
     bets[me] = action.amount
-    return { ...hand, stacks, bets, toAct: opp }
+    return finish({ ...hand, stacks, bets, toAct: opp, actionsThisRound: hand.actionsThisRound + 1 })
   }
 
   case 'fold' : {
@@ -88,4 +89,8 @@ switch (action.type) {
     }
   }
 }
+}
+
+function finish(hand: HandState): HandState {
+  return isRoundOver(hand) ? advanceStreet(hand) : hand
 }
