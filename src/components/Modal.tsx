@@ -16,14 +16,14 @@ export function Modal({ title, onClose, children }: ModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-4 backdrop-blur-sm sm:items-center"
       onClick={onClose}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="bg-felt-900 flex max-h-[80svh] w-full max-w-md flex-col rounded-2xl border border-white/10 shadow-2xl"
+        className="bg-ink-raised flex max-h-[80svh] w-full max-w-md flex-col rounded-3xl border border-white/10 shadow-[0_30px_80px_rgb(0_0_0/0.7)]"
         onClick={(e) => e.stopPropagation()}
       >
         <header className="flex items-center justify-between border-b border-white/10 px-4 py-3">

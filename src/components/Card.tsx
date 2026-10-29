@@ -1,9 +1,7 @@
 import { motion, useReducedMotion } from 'motion/react'
 import { useEffect, useState } from 'react'
-import type { Card as CardCode, Suit } from '@shared/engine'
-
-const SUIT_SYMBOL: Record<Suit, string> = { s: '♠', h: '♥', d: '♦', c: '♣' }
-const RED_SUITS: ReadonlySet<Suit> = new Set(['h', 'd'])
+import type { Card as CardCode } from '@shared/engine'
+import { CardFace } from '@/components/CardFace'
 
 interface CardProps {
   /** The card to show. Omit for an opponent's hidden card. */
@@ -18,18 +16,33 @@ interface CardProps {
   className?: string
 }
 
+// Each size: the card box, the corner index (rank + small suit), and the big centre suit.
+// The small seat cards are too small for a corner index, so they show rank and suit stacked.
 const SIZE_CLASSES = {
   md: {
     box: 'h-24 w-16 sm:h-28 sm:w-20',
-    text: 'text-2xl sm:text-3xl',
+    rank: 'text-xl sm:text-2xl',
+    pip: 'text-xs sm:text-sm',
+    centre: 'text-4xl sm:text-5xl',
+    corner: 'top-1.5 left-2',
     inset: 'inset-2',
   },
   board: {
     box: 'h-16 w-11 sm:h-24 sm:w-16',
-    text: 'text-lg sm:text-2xl',
+    rank: 'text-base sm:text-xl',
+    pip: 'text-[0.6rem] sm:text-xs',
+    centre: 'text-2xl sm:text-4xl',
+    corner: 'top-1 left-1.5 sm:top-1.5 sm:left-2',
     inset: 'inset-1 sm:inset-2',
   },
-  sm: { box: 'h-12 w-8 sm:h-14 sm:w-10', text: 'text-sm sm:text-base', inset: 'inset-1' },
+  sm: {
+    box: 'h-12 w-8 sm:h-14 sm:w-10',
+    rank: 'text-sm sm:text-base',
+    pip: 'text-xs sm:text-sm',
+    centre: '',
+    corner: '',
+    inset: 'inset-1',
+  },
 } as const
 
 /** A playing card that flips between back and face using rotateY. */
@@ -51,9 +64,6 @@ export function Card({
     const timer = setTimeout(() => setSettled(true), (delay + 0.6) * 1000)
     return () => clearTimeout(timer)
   }, [delay])
-  const rank = card ? card[0] : ''
-  const suit = card ? (card[1] as Suit) : undefined
-  const displayRank = rank === 'T' ? '10' : rank
 
   return (
     <div className={`${sizes.box} [perspective:800px] ${className}`}>
@@ -68,22 +78,15 @@ export function Card({
         }
       >
         {/* Back (visible when rotateY = 0) */}
-        <div className="bg-card-back absolute inset-0 rounded-lg border-2 border-white shadow-lg [backface-visibility:hidden]">
+        <div className="card-back absolute inset-0 rounded-lg shadow-lg [backface-visibility:hidden]">
           <div
-            className={`absolute ${sizes.inset} rounded-md border border-white/40 bg-[repeating-linear-gradient(45deg,transparent_0_6px,rgb(255_255_255/0.12)_6px_8px)]`}
+            className={`absolute ${sizes.inset} rounded-md border border-[#e3be62]/30`}
           />
         </div>
 
-        {/* Face (pre-rotated so it shows when the card is flipped) */}
-        <div
-          className={`absolute inset-0 flex [transform:rotateY(180deg)] flex-col items-center justify-center rounded-lg border border-slate-300 bg-white shadow-lg [backface-visibility:hidden] ${
-            suit && RED_SUITS.has(suit) ? 'text-red-600' : 'text-slate-900'
-          }`}
-        >
-          <span className={`${sizes.text} leading-none font-bold`}>{displayRank}</span>
-          <span className={`${sizes.text} leading-none`}>
-            {suit ? SUIT_SYMBOL[suit] : ''}
-          </span>
+        {/* Face (pre-rotated so it shows when the card is flipped), printed like a real card. */}
+        <div className="absolute inset-0 [transform:rotateY(180deg)] overflow-hidden rounded-lg bg-gradient-to-b from-[#fffdf8] to-[#f1ede3] shadow-[0_6px_16px_rgb(0_0_0/0.45),inset_0_0_0_1px_rgb(0_0_0/0.1)] [backface-visibility:hidden]">
+          {card && <CardFace card={card} size={size} />}
         </div>
       </motion.div>
     </div>

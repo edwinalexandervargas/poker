@@ -7,13 +7,13 @@ const CHIP_COLOR: Record<
   number,
   { face: string; edge: string; spot: string; ink: string }
 > = {
-  1: { face: '#f1f5f9', edge: '#cbd5e1', spot: '#1e3a8a', ink: '#1e3a8a' },
-  5: { face: '#dc2626', edge: '#991b1b', spot: '#ffffff', ink: '#ffffff' },
-  10: { face: '#2563eb', edge: '#1e40af', spot: '#ffffff', ink: '#ffffff' },
-  25: { face: '#16a34a', edge: '#166534', spot: '#ffffff', ink: '#ffffff' },
-  100: { face: '#1f2937', edge: '#030712', spot: '#ffffff', ink: '#ffffff' },
-  500: { face: '#7c3aed', edge: '#4c1d95', spot: '#fde68a', ink: '#ffffff' },
-  1000: { face: '#f5c542', edge: '#b45309', spot: '#7c2d12', ink: '#7c2d12' },
+  1: { face: '#ebe8e0', edge: '#b9b4a8', spot: '#2a4a8a', ink: '#1f2f55' },
+  5: { face: '#c8323a', edge: '#86171d', spot: '#f6f1e6', ink: '#ffffff' },
+  10: { face: '#2a6fca', edge: '#16437f', spot: '#f6f1e6', ink: '#ffffff' },
+  25: { face: '#1f8a52', edge: '#0f5131', spot: '#f6f1e6', ink: '#ffffff' },
+  100: { face: '#1c2024', edge: '#050607', spot: '#e3be62', ink: '#f2efe6' },
+  500: { face: '#6d3fd1', edge: '#3d1e86', spot: '#f6e2a6', ink: '#ffffff' },
+  1000: { face: '#d9ad48', edge: '#8a6417', spot: '#1c2024', ink: '#2a1d05' },
 }
 
 const SIZES = {
@@ -83,27 +83,38 @@ export function ChipStack({ amount, size = 'md' }: ChipStackProps) {
                         'inset 0 -2px 2px rgb(0 0 0 / 0.35), 0 1px 0 rgb(0 0 0 / 0.45)',
                     }}
                   />
-                  {/* The top face, with an inner ring like a real chip's inlay. */}
+                  {/* The top face: edge spots around the rim and a lighter inlay in the middle,
+                      where the value is printed. */}
                   <div
                     className="absolute inset-x-0 top-0 flex items-center justify-center rounded-[50%]"
                     style={{
                       height: face,
-                      background: `radial-gradient(ellipse at 40% 35%, rgb(255 255 255 / 0.35), transparent 60%), ${color.face}`,
-                      border: `1px solid ${color.edge}`,
+                      background: `radial-gradient(ellipse at 40% 30%, rgb(255 255 255 / 0.3), transparent 55%), ${color.face}`,
+                      boxShadow: `inset 0 0 0 1px ${color.edge}`,
                     }}
                   >
+                    {/* Rim spots: a thick dashed ring reads as the inserts on a clay chip. */}
                     <div
                       className="absolute rounded-[50%]"
                       style={{
-                        inset: size === 'md' ? 3 : 2,
-                        border: `1px dashed ${color.spot}`,
-                        opacity: 0.8,
+                        inset: 1,
+                        border: `${size === 'md' ? 2.5 : 1.5}px dashed ${color.spot}`,
+                        opacity: 0.9,
+                      }}
+                    />
+                    {/* The inlay. */}
+                    <div
+                      className="absolute rounded-[50%]"
+                      style={{
+                        inset: size === 'md' ? '22% 24%' : '24% 26%',
+                        background: `color-mix(in srgb, ${color.face} 70%, white)`,
+                        boxShadow: `inset 0 0 0 1px ${color.edge}`,
                       }}
                     />
                     {isTop && label && (
                       <span
-                        className="relative rounded-full px-0.5 text-[7px] leading-none font-black"
-                        style={{ color: color.ink, backgroundColor: color.face }}
+                        className="relative text-[7px] leading-none font-extrabold tracking-tight"
+                        style={{ color: color.ink }}
                       >
                         {chipLabel(value)}
                       </span>

@@ -362,3 +362,9 @@ Each entry: what I did, why, what else I considered, and what it costs.
 - **What:** A web app manifest (name, colours, standalone display, 192/512 px icons plus a maskable one), an Apple touch icon and the iPhone meta tags, and a new spade icon replacing the default Vite logo.
 - **Why:** On the home screen it opens full-screen like a real app, which is how friends will actually use it. I left out a service worker on purpose: the game only works online, so offline caching would add complexity and stale-version bugs for no benefit. Current Chrome doesn't require one to install.
 - **Trade-off:** No offline page. If the connection drops, the app shows the offline banner like the website does.
+
+## 52. A dark, sleek look with one standout element: the table
+
+- **What:** A near-black room with a soft light over an emerald felt that glows from the centre, a dark rail with a thin gold line, frosted-glass panels and name plates, pill-shaped buttons (red fold, blue call, gold raise), dark card backs with a gold lattice, and Inter with tabular figures so chip counts line up. All of it is a small set of tokens and component classes in `index.css` (`glass`, `btn`, `btn-gold`, `field`, `felt`, `card-back`, `slider`), so every screen shares one look.
+- **Why:** The table is what people look at, so it gets the drama and everything around it stays quiet. Shared classes mean a colour or radius changes in one place, and components just pick from them instead of each inventing its own style.
+- **Trade-off:** `backdrop-filter` blur costs a little GPU on older phones. Without it the panels are still readable, just less frosted.

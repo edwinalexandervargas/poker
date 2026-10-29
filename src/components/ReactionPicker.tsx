@@ -15,7 +15,7 @@ export function ReactionPicker({ onReact, disabled = false }: ReactionPickerProp
           type="button"
           onClick={() => onReact(emoji)}
           disabled={disabled}
-          className="rounded-full bg-black/30 px-2 py-1 text-lg transition hover:bg-black/50 active:scale-90 disabled:opacity-40"
+          className="glass-dark rounded-full px-2.5 py-1 text-lg transition hover:bg-white/10 active:scale-90 disabled:opacity-40"
         >
           {emoji}
         </button>

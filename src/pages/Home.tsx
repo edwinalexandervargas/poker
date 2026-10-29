@@ -69,7 +69,12 @@ export default function Home() {
 
   return (
     <main className="mx-auto flex min-h-svh max-w-md flex-col items-center gap-8 px-4 py-10">
-      <h1 className="text-4xl font-bold tracking-tight">Heads-Up Poker</h1>
+      <div className="text-center">
+        <h1 className="text-5xl font-extrabold tracking-[-0.04em]">Poker Table</h1>
+        <p className="mt-2 text-white/60">
+          Texas Hold’em with friends. Up to 8 players, play money.
+        </p>
+      </div>
 
       {/* Card flip demo: click to deal the flop */}
       <button
@@ -89,13 +94,13 @@ export default function Home() {
           onChange={(e) => setPlayerName(e.target.value)}
           placeholder="Your name"
           maxLength={20}
-          className="rounded-lg bg-white/10 px-4 py-3 placeholder:text-white/50 focus:ring-2 focus:ring-white/60 focus:outline-none"
+          className="field"
         />
         <button
           type="button"
           disabled={!hasName || busy}
           onClick={handleCreate}
-          className="bg-chip-gold rounded-lg px-4 py-3 font-semibold text-black disabled:opacity-40"
+          className="btn btn-gold"
         >
           {busy ? 'Working…' : 'Create table'}
         </button>
@@ -105,13 +110,13 @@ export default function Home() {
             onChange={(e) => setCode(e.target.value.toUpperCase())}
             placeholder="Table code"
             maxLength={6}
-            className="min-w-0 flex-1 rounded-lg bg-white/10 px-4 py-3 tracking-widest uppercase placeholder:tracking-normal placeholder:text-white/50 focus:ring-2 focus:ring-white/60 focus:outline-none"
+            className="field min-w-0 flex-1 tracking-widest uppercase placeholder:tracking-normal"
           />
           <button
             type="button"
             disabled={!hasName || !normalizedCode || busy}
             onClick={handleJoin}
-            className="rounded-lg bg-white/15 px-4 py-3 font-semibold disabled:opacity-40"
+            className="btn btn-ghost"
           >
             Join
           </button>

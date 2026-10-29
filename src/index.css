@@ -3,22 +3,32 @@
 @theme {
   --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
 
-  /* Table + card palette */
-  --color-felt-900: #0b3d2e;
-  --color-felt-800: #0f5132;
-  --color-felt-700: #146c43;
-  --color-rail: #3b2a1a;
-  --color-card-back: #1d3a8a;
-  --color-chip-gold: #f5c542;
+  /* Dark & sleek. One loud thing: the glowing felt. Everything else stays quiet. */
+  --color-ink: #070d0a; /* the room */
+  --color-ink-raised: #0e1713; /* dialogs */
+  --color-felt-900: #0b4a30; /* felt edge */
+  --color-felt-800: #106341;
+  --color-felt-700: #1a8f5c; /* felt centre, under the light */
+  --color-rail: #120d09;
+  --color-gold: #e3be62;
+  --color-chip-gold: #e3be62;
+  --color-paper: #f2efe6; /* text */
+  --color-card-back: #13211a;
+  --color-fold: #d9444b;
+  --color-call: #2f7fd1;
 
   --animate-turn-glow: turn-glow 1.6s ease-in-out infinite;
   @keyframes turn-glow {
     0%,
     100% {
-      box-shadow: 0 0 0 0 rgb(245 197 66 / 0.55);
+      box-shadow:
+        0 0 0 1.5px rgb(227 190 98 / 0.95),
+        0 0 0 0 rgb(227 190 98 / 0.45);
     }
     50% {
-      box-shadow: 0 0 0 10px rgb(245 197 66 / 0);
+      box-shadow:
+        0 0 0 1.5px rgb(227 190 98 / 0.95),
+        0 0 18px 6px rgb(227 190 98 / 0);
     }
   }
 }
@@ -31,8 +41,158 @@ body,
 
 body {
   margin: 0;
-  background: var(--color-felt-900);
-  color: white;
+  /* A dim room with a light over the table. */
+  background:
+    radial-gradient(ellipse 80% 55% at 50% 30%, rgb(26 143 92 / 0.16), transparent 70%),
+    var(--color-ink);
+  background-attachment: fixed;
+  color: var(--color-paper);
   font-family: var(--font-sans);
+  font-feature-settings:
+    'tnum', 'cv11'; /* numbers line up and don't jitter as they change */
   -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+@layer components {
+  /* Card backs: dark green-black with a fine gold lattice, to match the table. */
+  .card-back {
+    background:
+      repeating-linear-gradient(45deg, rgb(227 190 98 / 0.13) 0 1px, transparent 1px 7px),
+      repeating-linear-gradient(
+        -45deg,
+        rgb(227 190 98 / 0.13) 0 1px,
+        transparent 1px 7px
+      ),
+      linear-gradient(160deg, #1b3326, #0c1611);
+    border: 1.5px solid rgb(227 190 98 / 0.75);
+  }
+
+  /* Frosted glass: every panel, plate and pill. */
+  .glass {
+    background: rgb(255 255 255 / 0.06);
+    border: 1px solid rgb(255 255 255 / 0.09);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    box-shadow: 0 8px 30px rgb(0 0 0 / 0.35);
+  }
+  .glass-dark {
+    background: rgb(5 10 8 / 0.62);
+    border: 1px solid rgb(255 255 255 / 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  /* Pill buttons. */
+  .btn {
+    border-radius: 9999px;
+    padding: 0.8rem 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    transition:
+      transform 120ms ease,
+      filter 120ms ease,
+      opacity 120ms ease;
+  }
+  .btn:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  .btn:hover:not(:disabled) {
+    filter: brightness(1.08);
+  }
+  .btn:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+  }
+  .btn-gold {
+    background: linear-gradient(180deg, #f0d27f, #d4a945);
+    color: #1c1405;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.45),
+      0 6px 20px rgb(227 190 98 / 0.22);
+  }
+  .btn-fold {
+    background: linear-gradient(180deg, #e2585e, #b9343b);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2);
+  }
+  .btn-call {
+    background: linear-gradient(180deg, #4a95e0, #2667b0);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2);
+  }
+  .btn-ghost {
+    background: rgb(255 255 255 / 0.07);
+    border: 1px solid rgb(255 255 255 / 0.1);
+  }
+
+  .field {
+    border-radius: 9999px;
+    padding: 0.8rem 1.25rem;
+    background: rgb(255 255 255 / 0.06);
+    border: 1px solid rgb(255 255 255 / 0.1);
+    color: var(--color-paper);
+  }
+  .field::placeholder {
+    color: rgb(242 239 230 / 0.45);
+  }
+  .field:focus {
+    outline: none;
+    border-color: rgb(227 190 98 / 0.7);
+    box-shadow: 0 0 0 3px rgb(227 190 98 / 0.15);
+  }
+
+  /* The table: emerald under a spotlight, a dark rail with a thin gold line. */
+  .felt {
+    background: radial-gradient(
+      ellipse 70% 60% at 50% 42%,
+      var(--color-felt-700),
+      var(--color-felt-800) 55%,
+      var(--color-felt-900) 100%
+    );
+    border: 10px solid var(--color-rail);
+    box-shadow:
+      0 0 0 1px rgb(227 190 98 / 0.55),
+      inset 0 0 0 1px rgb(227 190 98 / 0.25),
+      inset 0 0 60px rgb(0 0 0 / 0.5),
+      0 30px 80px rgb(0 0 0 / 0.6),
+      0 0 120px rgb(26 143 92 / 0.18);
+  }
+
+  /* The raise slider. */
+  .slider {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 0.12);
+  }
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 9999px;
+    background: linear-gradient(180deg, #f0d27f, #d4a945);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.5);
+    cursor: pointer;
+  }
+  .slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border: 0;
+    border-radius: 9999px;
+    background: linear-gradient(180deg, #f0d27f, #d4a945);
+    cursor: pointer;
+  }
+  .slider:disabled {
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
 }

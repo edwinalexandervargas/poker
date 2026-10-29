@@ -26,7 +26,7 @@ export function Deck({ shuffle }: DeckProps) {
         return (
           <motion.div
             key={i}
-            className="bg-card-back absolute inset-0 rounded-md border border-white shadow"
+            className="card-back absolute inset-0 rounded-md shadow"
             style={{ top: -i * 1.5, left: -i * 0.5 }}
             animate={
               riffle
@@ -38,7 +38,7 @@ export function Deck({ shuffle }: DeckProps) {
             }
             transition={{ duration: 0.9, delay: i * 0.04, ease: 'easeInOut' }}
           >
-            <div className="absolute inset-0.5 rounded-sm border border-white/40" />
+            <div className="absolute inset-0.5 rounded-sm border border-[#e3be62]/30" />
           </motion.div>
         )
       })}

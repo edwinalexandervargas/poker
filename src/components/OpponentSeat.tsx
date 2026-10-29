@@ -52,13 +52,13 @@ export function OpponentSeat({ seat, handNumber = 0, dealDelays }: OpponentSeatP
       </div>
 
       <div
-        className={`relative w-full rounded-lg bg-black/60 px-1.5 py-1 text-center shadow ${
+        className={`glass-dark relative w-full rounded-2xl px-1.5 py-1 text-center ${
           isToAct ? 'animate-turn-glow ring-chip-gold ring-2' : ''
         }`}
       >
         {isDealer && (
           <span
-            className="bg-chip-gold absolute -top-2 -right-2 flex size-5 items-center justify-center rounded-full text-[0.65rem] font-bold text-black"
+            className="absolute -top-2 -right-2 flex size-5 items-center justify-center rounded-full bg-gradient-to-b from-[#f6e2a6] to-[#c99a35] text-[0.65rem] font-bold text-black"
             title="Dealer button"
           >
             D

@@ -37,7 +37,7 @@ export function HandHistory({ code }: { code: string }) {
   return (
     <ol className="space-y-2">
       {hands.map((hand) => (
-        <li key={hand.handNumber} className="rounded-lg bg-black/30">
+        <li key={hand.handNumber} className="glass-dark rounded-2xl">
           <button
             type="button"
             onClick={() => setOpen(open === hand.handNumber ? null : hand.handNumber)}

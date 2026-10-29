@@ -47,11 +47,7 @@ export function WaitingRoom({
       <h1 className="text-6xl font-bold tracking-[0.3em]">{code}</h1>
 
       {!full && (
-        <button
-          type="button"
-          onClick={share}
-          className="bg-chip-gold rounded-lg px-6 py-3 font-semibold text-black"
-        >
+        <button type="button" onClick={share} className="btn btn-gold">
           {copied ? 'Link copied!' : 'Share invite link'}
         </button>
       )}
@@ -60,7 +56,10 @@ export function WaitingRoom({
         {players
           .toSorted((a, b) => a.seat - b.seat)
           .map((player) => (
-            <li key={player.uid} className="rounded-lg bg-black/30 px-4 py-3">
+            <li
+              key={player.uid}
+              className="glass rounded-full px-5 py-3 text-left font-medium"
+            >
               {player.name}
             </li>
           ))}
@@ -79,7 +78,7 @@ export function WaitingRoom({
             type="button"
             onClick={onStart}
             disabled={starting}
-            className="bg-chip-gold rounded-lg px-8 py-3 text-lg font-semibold text-black disabled:opacity-50"
+            className="btn btn-gold text-lg"
           >
             {starting ? 'Dealing…' : 'Start game'}
           </button>

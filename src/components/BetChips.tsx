@@ -36,7 +36,7 @@ export function BetChips({ amount, from, to }: BetChipsProps) {
       transition={{ duration: 0.35, ease: 'easeOut' }}
     >
       <ChipStack amount={amount} size="sm" />
-      <span className="rounded-full bg-black/60 px-1.5 text-[0.7rem] leading-4 font-bold">
+      <span className="glass-dark rounded-full px-1.5 text-[0.7rem] leading-4 font-bold">
         {amount.toLocaleString()}
       </span>
     </motion.div>

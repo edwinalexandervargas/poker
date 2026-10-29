@@ -24,7 +24,7 @@ export function ActionLog({ lines }: ActionLogProps) {
 
   return (
     <section
-      className="w-full max-w-md rounded-2xl bg-black/30 text-sm"
+      className="glass w-full max-w-md rounded-3xl text-sm"
       aria-label="Action log"
     >
       <button

@@ -32,9 +32,9 @@ export function TurnTimer({ turn, label }: TurnTimerProps) {
           {Math.ceil(left / 1000)}s
         </span>
       </div>
-      <div className="h-2 overflow-hidden rounded-full bg-white/15">
+      <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
         <div
-          className={`h-full rounded-full transition-[width] duration-300 ease-linear ${low ? 'bg-red-400' : 'bg-chip-gold'}`}
+          className={`h-full rounded-full transition-[width] duration-300 ease-linear ${low ? 'bg-gradient-to-r from-[#e2585e] to-[#ff8a7a]' : 'bg-gradient-to-r from-[#d4a945] to-[#f0d27f]'}`}
           style={{ width: `${share * 100}%` }}
         />
       </div>

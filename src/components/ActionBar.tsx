@@ -37,14 +37,16 @@ export function ActionBar({ options, disabled, onAction }: ActionBarProps) {
 
   return (
     <div
-      className="flex w-full max-w-md flex-col gap-3 rounded-2xl bg-black/40 p-4"
+      className="glass flex w-full max-w-md flex-col gap-4 rounded-3xl p-4"
       aria-label="Your actions"
     >
       {/* Raise slider and quick-bet buttons */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-white/70">Raise to</span>
-          <span className="text-lg font-bold">{raiseTo.toLocaleString()}</span>
+          <span className="text-white/60">Raise to</span>
+          <span className="text-2xl font-bold tracking-tight">
+            {raiseTo.toLocaleString()}
+          </span>
         </div>
         <input
           type="range"
@@ -54,7 +56,7 @@ export function ActionBar({ options, disabled, onAction }: ActionBarProps) {
           value={raiseTo}
           disabled={disabled || !canRaise || minRaiseTo >= maxRaiseTo}
           onChange={(e) => setPendingBet(Number(e.target.value))}
-          className="accent-chip-gold w-full"
+          className="slider w-full"
           aria-label="Raise amount"
         />
         <div className="flex gap-2">
@@ -64,7 +66,7 @@ export function ActionBar({ options, disabled, onAction }: ActionBarProps) {
               type="button"
               disabled={disabled}
               onClick={() => setPendingBet(value)}
-              className="flex-1 rounded-lg bg-white/10 py-1.5 text-sm font-semibold hover:bg-white/20 disabled:opacity-40"
+              className="btn btn-ghost flex-1 !py-1.5 text-sm"
             >
               {label}
             </button>
@@ -78,7 +80,7 @@ export function ActionBar({ options, disabled, onAction }: ActionBarProps) {
           type="button"
           disabled={disabled}
           onClick={() => onAction({ type: 'fold' })}
-          className="rounded-lg bg-red-700 py-3 font-semibold hover:bg-red-600 disabled:opacity-40"
+          className="btn btn-fold !px-2"
         >
           Fold
         </button>
@@ -86,7 +88,7 @@ export function ActionBar({ options, disabled, onAction }: ActionBarProps) {
           type="button"
           disabled={disabled}
           onClick={() => onAction(canCheck ? { type: 'check' } : { type: 'call' })}
-          className="rounded-lg bg-sky-700 py-3 font-semibold hover:bg-sky-600 disabled:opacity-40"
+          className="btn btn-call !px-2"
         >
           {canCheck ? 'Check' : `Call ${toCall.toLocaleString()}`}
         </button>
@@ -94,7 +96,7 @@ export function ActionBar({ options, disabled, onAction }: ActionBarProps) {
           type="button"
           disabled={disabled || !canRaise}
           onClick={() => onAction({ type: 'raise', amount: raiseTo })}
-          className="bg-chip-gold rounded-lg py-3 font-semibold text-black hover:brightness-110 disabled:opacity-40"
+          className="btn btn-gold !px-2"
         >
           Raise
         </button>

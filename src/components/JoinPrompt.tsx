@@ -34,13 +34,13 @@ export function JoinPrompt({ code }: JoinPromptProps) {
         onChange={(e) => setPlayerName(e.target.value)}
         placeholder="Your name"
         maxLength={20}
-        className="w-full rounded-lg bg-white/10 px-4 py-3 placeholder:text-white/50 focus:ring-2 focus:ring-white/60 focus:outline-none"
+        className="field w-full"
       />
       <button
         type="button"
         disabled={!playerName.trim() || busy}
         onClick={join}
-        className="bg-chip-gold w-full rounded-lg px-4 py-3 font-semibold text-black disabled:opacity-40"
+        className="btn btn-gold w-full"
       >
         {busy ? 'Joining…' : 'Join table'}
       </button>

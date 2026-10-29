@@ -52,13 +52,13 @@ export function Seat({ seat, handNumber = 0, dealDelays }: SeatProps) {
       {/* Name plate, with the chips they have left beside it. Glows while it is this player's turn. */}
       <div className="flex items-end gap-3">
         <div
-          className={`relative min-w-36 rounded-xl bg-black/40 px-4 py-2 text-center ${
+          className={`glass relative min-w-40 rounded-3xl px-5 py-2.5 text-center ${
             isToAct ? 'animate-turn-glow ring-chip-gold ring-2' : ''
           }`}
         >
           {isDealer && (
             <span
-              className="bg-chip-gold absolute -top-3 -right-3 flex size-7 items-center justify-center rounded-full text-sm font-bold text-black"
+              className="absolute -top-3 -right-3 flex size-7 items-center justify-center rounded-full bg-gradient-to-b from-[#f6e2a6] to-[#c99a35] text-sm font-bold text-black"
               title="Dealer button"
             >
               D

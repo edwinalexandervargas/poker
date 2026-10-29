@@ -131,7 +131,7 @@ export function Table({
 
       {/* The table: everyone else around the oval, board and pot in the middle. */}
       <div className="relative mt-2 aspect-[4/5] w-full max-w-2xl sm:aspect-[16/11]">
-        <section className="border-rail bg-felt-700 absolute inset-x-[4%] inset-y-[14%] flex flex-col items-center justify-center gap-2 rounded-[45%] border-[6px] shadow-[inset_0_0_40px_rgb(0_0_0/0.45)] sm:inset-x-[8%]">
+        <section className="felt absolute inset-x-[4%] inset-y-[14%] flex flex-col items-center justify-center gap-2 rounded-[45%] sm:inset-x-[8%]">
           <Deck key={`deck-${table.handNumber}`} shuffle={dealPlan !== null} />
           <PotDisplay pot={table.pot} />
           <CommunityCards key={`board-${table.handNumber}`} cards={table.community} />
@@ -185,20 +185,20 @@ export function Table({
       {awayActing && (
         <p
           role="status"
-          className="rounded-full bg-black/40 px-3 py-1 text-sm text-white/70"
+          className="glass-dark rounded-full px-3 py-1 text-sm text-white/70"
         >
           {acting.name} seems to be away. The clock keeps running.
         </p>
       )}
 
       {canRebuy && (
-        <div className="flex w-full max-w-md flex-col items-center gap-2 rounded-2xl bg-black/40 p-4 text-center">
+        <div className="glass flex w-full max-w-md flex-col items-center gap-2 rounded-3xl p-4 text-center">
           <p className="font-semibold">You’re out of chips.</p>
           <button
             type="button"
             onClick={onRebuy}
             disabled={pending}
-            className="bg-chip-gold rounded-lg px-8 py-3 font-semibold text-black disabled:opacity-50"
+            className="btn btn-gold"
           >
             {pending ? 'Buying in…' : `Rebuy for ${rebuyAmount.toLocaleString()}`}
           </button>
@@ -207,7 +207,7 @@ export function Table({
       )}
 
       {handOver ? (
-        <div className="flex w-full max-w-md flex-col items-center gap-3 rounded-2xl bg-black/40 p-4 text-center">
+        <div className="glass flex w-full max-w-md flex-col items-center gap-3 rounded-3xl p-4 text-center">
           {resultText && (
             <p role="status" className="text-lg font-bold">
               {resultText}
@@ -231,7 +231,7 @@ export function Table({
                 type="button"
                 onClick={onNextHand}
                 disabled={pending}
-                className="bg-chip-gold rounded-lg px-8 py-3 font-semibold text-black disabled:opacity-50"
+                className="btn btn-gold"
               >
                 {pending ? 'Dealing…' : 'Next hand'}
               </button>
