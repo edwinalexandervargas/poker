@@ -19,7 +19,7 @@ export function Deck({ shuffle }: DeckProps) {
     <div
       data-deck
       aria-hidden
-      className="absolute top-[22%] left-[14%] h-10 w-7 sm:left-[18%] sm:h-14 sm:w-10"
+      className="absolute top-[24%] left-[39%] h-10 w-7 sm:top-[14%] sm:left-[40%] sm:h-14 sm:w-10"
     >
       {Array.from({ length: CARDS_IN_PILE }, (_, i) => {
         const side = i % 2 === 0 ? -1 : 1

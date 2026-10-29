@@ -1,5 +1,4 @@
 import { Card } from '@/components/Card'
-import { ChipStack } from '@/components/ChipStack'
 import { FlyIn } from '@/components/FlyIn'
 import type { SeatState } from '@/lib/fakeTable'
 
@@ -16,7 +15,7 @@ interface OpponentSeatProps {
  * seven of them fit around the felt on a phone.
  */
 export function OpponentSeat({ seat, handNumber = 0, dealDelays }: OpponentSeatProps) {
-  const { name, stack, bet, isDealer, isToAct, inHand, dealtIn, away, holeCards } = seat
+  const { name, stack, isDealer, isToAct, inHand, dealtIn, away, holeCards } = seat
 
   return (
     <div
@@ -69,16 +68,6 @@ export function OpponentSeat({ seat, handNumber = 0, dealDelays }: OpponentSeatP
         {away && <p className="text-[0.65rem] text-amber-300">away</p>}
         {!dealtIn && stack > 0 && (
           <p className="text-[0.65rem] text-white/60">next hand</p>
-        )}
-      </div>
-
-      {/* Chips bet this round. The space is kept so seats don't jump. */}
-      <div className="flex h-6 items-center gap-1">
-        {bet > 0 && (
-          <>
-            <ChipStack amount={bet} size="sm" />
-            <span className="text-xs font-bold">{bet.toLocaleString()}</span>
-          </>
         )}
       </div>
     </div>

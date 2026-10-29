@@ -11,17 +11,20 @@ import type { Seat } from '@shared/engine'
 export interface Spot {
   left: number
   top: number
+  /** Where this seat's bet sits on the felt. */
+  bet?: { left: number; top: number }
 }
 
-// Seven spots, clockwise from bottom-left to bottom-right.
+// Seven spots, clockwise from bottom-left to bottom-right. Each has a hand-placed spot for
+// that player's bet: on the felt in front of them, clear of the board cards in the middle.
 const SPOTS: Spot[] = [
-  { left: 12, top: 74 },
-  { left: 10, top: 42 },
-  { left: 25, top: 13 },
-  { left: 50, top: 11 },
-  { left: 75, top: 13 },
-  { left: 90, top: 42 },
-  { left: 88, top: 74 },
+  { left: 12, top: 74, bet: { left: 27, top: 77 } },
+  { left: 10, top: 42, bet: { left: 26, top: 40 } },
+  { left: 25, top: 13, bet: { left: 32, top: 29 } },
+  { left: 50, top: 11, bet: { left: 50, top: 27 } },
+  { left: 75, top: 13, bet: { left: 68, top: 29 } },
+  { left: 90, top: 42, bet: { left: 74, top: 40 } },
+  { left: 88, top: 74, bet: { left: 73, top: 77 } },
 ]
 
 // Which of the seven spots to use for each number of other players.
@@ -52,4 +55,22 @@ export function layoutSeats(
     )
   const chosen = SPOTS_FOR[others.length] ?? []
   return new Map(others.map((seat, i) => [seat, SPOTS[chosen[i]!]!]))
+}
+
+/** Where my own seat is, for working out where my bet goes (just below the oval). */
+export const MY_SPOT: Spot = { left: 50, top: 96, bet: { left: 50, top: 78 } }
+
+/** The middle of the felt, where the pot sits. */
+export const POT_SPOT: Spot = { left: 50, top: 46 }
+
+/**
+ * Where a seat's bet sits: its hand-placed spot, or otherwise part of the way from the seat
+ * towards the pot, like chips pushed forward on a real table.
+ */
+export function betSpot(seat: Spot, share = 0.42): Spot {
+  if (seat.bet) return seat.bet
+  return {
+    left: seat.left + (POT_SPOT.left - seat.left) * share,
+    top: seat.top + (POT_SPOT.top - seat.top) * share,
+  }
 }

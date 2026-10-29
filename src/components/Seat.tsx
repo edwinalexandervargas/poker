@@ -11,9 +11,9 @@ interface SeatProps {
   dealDelays?: [number, number]
 }
 
-/** One player's spot at the table: cards, name plate, and the chips they've bet. */
+/** Your spot at the table: cards and name plate. Your bet sits on the felt (see BetChips). */
 export function Seat({ seat, handNumber = 0, dealDelays }: SeatProps) {
-  const { name, stack, bet, isDealer, isToAct, inHand, holeCards } = seat
+  const { name, stack, isDealer, isToAct, inHand, holeCards } = seat
 
   return (
     <div
@@ -22,16 +22,6 @@ export function Seat({ seat, handNumber = 0, dealDelays }: SeatProps) {
       }`}
       aria-label={`${name}'s seat`}
     >
-      {/* Chips bet this round. Reserve the space so seats don't jump when a bet appears. */}
-      <div className="flex h-14 items-end gap-2">
-        {bet > 0 && (
-          <>
-            <ChipStack amount={bet} />
-            <span className="text-sm font-bold">{bet.toLocaleString()}</span>
-          </>
-        )}
-      </div>
-
       {/* Hole cards: face up when we know them, face down when we don't. */}
       <div className="flex min-h-24 gap-2 sm:min-h-28">
         {inHand &&

@@ -1,7 +1,9 @@
+import { AnimatePresence } from 'motion/react'
 import { Link } from 'react-router-dom'
 import type { Action } from '@shared/engine'
 import { MAX_SEATS } from '@shared/engine/types'
 import { ActionBar } from '@/components/ActionBar'
+import { BetChips } from '@/components/BetChips'
 import { CommunityCards } from '@/components/CommunityCards'
 import { Deck } from '@/components/Deck'
 import { OpponentSeat } from '@/components/OpponentSeat'
@@ -10,7 +12,7 @@ import { Seat } from '@/components/Seat'
 import { TurnTimer } from '@/components/TurnTimer'
 import { getBettingOptions } from '@/lib/betting'
 import { describeResult } from '@/lib/resultText'
-import { layoutSeats } from '@/lib/seatLayout'
+import { betSpot, layoutSeats, MY_SPOT } from '@/lib/seatLayout'
 import { useDealPlan } from '@/lib/useDealPlan'
 import { seatAt, type TableState } from '@/lib/fakeTable'
 import type { TurnClock } from '@/lib/turnClock'
@@ -81,6 +83,24 @@ export function Table({
           <CommunityCards key={`board-${table.handNumber}`} cards={table.community} />
         </section>
 
+        {/* Bets on the felt, between each seat and the pot. Keyed by street, so when a
+            betting round ends they all sweep into the pot together. */}
+        <AnimatePresence>
+          {table.seats
+            .filter((seat) => seat.bet > 0)
+            .map((seat) => {
+              const from = seat.seat === table.mySeat ? MY_SPOT : spots.get(seat.seat)!
+              return (
+                <BetChips
+                  key={`${table.handNumber}-${table.phase}-${seat.seat}`}
+                  amount={seat.bet}
+                  from={from}
+                  to={betSpot(from)}
+                />
+              )
+            })}
+        </AnimatePresence>
+
         {others.map((seat) => {
           const spot = spots.get(seat.seat)!
           return (
@@ -100,7 +120,7 @@ export function Table({
       </div>
 
       {/* Me: pulled up into the space under the oval. */}
-      <div className="relative -mt-16 sm:-mt-28">
+      <div className="relative -mt-14 sm:-mt-16">
         <Seat
           seat={me}
           handNumber={table.handNumber}
