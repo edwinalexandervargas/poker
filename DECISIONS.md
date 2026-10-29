@@ -163,3 +163,15 @@ How does the waiting room update by itself when a friend joins?
 Why does startHand take the deck as an input instead of shuffling it itself?
 What does Math.min(smallBlind, left[...]) protect against?
 Why is the pot 0 at the start even though blinds have been paid?
+
+In heads-up poker, who posts the small blind, and who acts first before the flop versus after it? Why does the engine keep these rules in functions like firstToAct instead of writing them inline?
+
+startHand
+2. Why does startHand take an already-shuffled deck as an input instead of shuffling it itself?
+3. What does Math.min(smallBlind, left[...]) protect against, and what would go wrong without it?
+4. The pot is 0 after blinds are posted. Where did the blind chips go, and why keep them out of the pot for now?
+5. Why did you write the dealing order as a list (order) and loop over it, instead of writing four separate lines?
+
+getLegalActions
+6. Why is maxRaiseTo the smaller of the two totals? Give an example with real numbers.
+7. Who will call this function later, and why does it matter that it lives in shared/engine with no React or Firebase in it?
