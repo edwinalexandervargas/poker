@@ -52,6 +52,7 @@ export function tableFromHand({
 
   return {
     phase: hand.phase,
+    handNumber: hand.handNumber,
     pot: hand.pot,
     community: hand.community,
     mySeat,

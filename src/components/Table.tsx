@@ -2,11 +2,13 @@ import { Link } from 'react-router-dom'
 import type { Action } from '@shared/engine'
 import { ActionBar } from '@/components/ActionBar'
 import { CommunityCards } from '@/components/CommunityCards'
+import { Deck } from '@/components/Deck'
 import { PotDisplay } from '@/components/PotDisplay'
 import { Seat } from '@/components/Seat'
 import { TurnTimer } from '@/components/TurnTimer'
 import { getBettingOptions } from '@/lib/betting'
 import { describeResult } from '@/lib/resultText'
+import { useDealPlan } from '@/lib/useDealPlan'
 import type { TableState } from '@/lib/fakeTable'
 import type { TurnClock } from '@/lib/turnClock'
 
@@ -43,6 +45,8 @@ export function Table({
   const me = table.seats[table.mySeat]
   const opponent = table.seats[table.mySeat === 0 ? 1 : 0]
   const handOver = table.phase === 'complete'
+  const button = table.seats.find((s) => s.isDealer)?.seat
+  const dealPlan = useDealPlan(table.handNumber, table.phase, button)
   const resultText = table.result
     ? describeResult(table.result, table.mySeat, [
         table.seats[0].name,
@@ -61,19 +65,31 @@ export function Table({
       </header>
 
       {/* Opponent on top, board in the middle, me at the bottom */}
-      <Seat seat={opponent} />
+      <Seat
+        seat={opponent}
+        handNumber={table.handNumber}
+        dealDelays={dealPlan?.delays[opponent.seat]}
+      />
       {opponentAway && (
-        <p role="status" className="rounded-full bg-black/40 px-3 py-1 text-sm text-white/70">
+        <p
+          role="status"
+          className="rounded-full bg-black/40 px-3 py-1 text-sm text-white/70"
+        >
           {opponent.name} seems to be away. The clock keeps running.
         </p>
       )}
 
-      <section className="border-rail bg-felt-700 flex flex-col items-center gap-3 rounded-[2rem] border-4 px-4 py-6 shadow-inner sm:px-8">
+      <section className="border-rail bg-felt-700 relative flex flex-col items-center gap-3 rounded-[2rem] border-4 px-4 py-6 shadow-inner sm:px-8">
+        <Deck key={`deck-${table.handNumber}`} shuffle={dealPlan !== null} />
         <PotDisplay pot={table.pot} />
-        <CommunityCards cards={table.community} />
+        <CommunityCards key={`board-${table.handNumber}`} cards={table.community} />
       </section>
 
-      <Seat seat={me} />
+      <Seat
+        seat={me}
+        handNumber={table.handNumber}
+        dealDelays={dealPlan?.delays[me.seat]}
+      />
 
       {handOver ? (
         <div className="flex w-full max-w-md flex-col items-center gap-3 rounded-2xl bg-black/40 p-4 text-center">

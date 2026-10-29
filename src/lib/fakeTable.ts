@@ -23,6 +23,8 @@ export interface SeatState {
 // Everything the table screen needs to draw one moment of the game.
 export interface TableState {
   phase: Phase
+  /** Which hand this is. Lets the screen tell a new hand from the same one updating. */
+  handNumber?: number
   /** Chips collected from finished betting rounds. Current bets sit in front of seats. */
   pot: number
   /** 0 cards preflop, 3 on the flop, 4 on the turn, 5 on the river. */
