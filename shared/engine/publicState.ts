@@ -5,7 +5,7 @@
 // reach a browser, a player could read the deck or their opponent's cards from the network
 // tab. So the server never publishes a HandState. It publishes this instead.
 
-import type { HandState } from './hand.js'
+import type { HandResult, HandState } from './hand.js'
 import type { Card, Phase, Seat } from './types.js'
 
 export interface PublicHandState {
@@ -19,6 +19,8 @@ export interface PublicHandState {
   community: Card[]
   /** Both players' hole cards, but only once they are meant to be shown. Otherwise null. */
   shown: [Card[], Card[]] | null
+  /** How the hand ended, once it is over. Null while it is still being played. */
+  result: HandResult | null
 }
 
 /**
@@ -49,5 +51,7 @@ export function toPublicState(hand: HandState, reveal: boolean): PublicHandState
     pot: hand.pot,
     community: [...hand.community],
     shown: reveal ? [[...hand.holeCards[0]], [...hand.holeCards[1]]] : null,
+    // Firestore refuses `undefined`, so a live hand has an explicit null here.
+    result: hand.result ?? null,
   }
 }

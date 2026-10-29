@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { HandState } from './hand.js'
+import type { HandResult, HandState } from './hand.js'
 import { toPublicState } from './publicState.js'
 
 function hand(overrides: Partial<HandState> = {}): HandState {
@@ -13,7 +13,10 @@ function hand(overrides: Partial<HandState> = {}): HandState {
     pot: 450,
     actionsThisRound: 1,
     community: ['2c', '7d', '9h', 'Js'],
-    holeCards: [['As', 'Ad'], ['Kh', 'Qc']],
+    holeCards: [
+      ['As', 'Ad'],
+      ['Kh', 'Qc'],
+    ],
     deck: ['3d', '4d', '5d', '6d'],
     ...overrides,
   }
@@ -60,11 +63,17 @@ describe('toPublicState: keeping secrets', () => {
 describe('toPublicState: showdown', () => {
   it('shows both players hole cards when reveal is true', () => {
     const view = toPublicState(hand({ phase: 'showdown' }), true)
-    expect(view.shown).toEqual([['As', 'Ad'], ['Kh', 'Qc']])
+    expect(view.shown).toEqual([
+      ['As', 'Ad'],
+      ['Kh', 'Qc'],
+    ])
   })
 
   it('still never includes the deck, even when revealing', () => {
-    const view = toPublicState(hand({ phase: 'showdown' }), true) as unknown as Record<string, unknown>
+    const view = toPublicState(hand({ phase: 'showdown' }), true) as unknown as Record<
+      string,
+      unknown
+    >
     expect(view).not.toHaveProperty('deck')
     expect(JSON.stringify(view)).not.toContain('"3d"')
   })
@@ -76,5 +85,18 @@ describe('toPublicState: purity', () => {
     const snapshot = JSON.parse(JSON.stringify(before))
     toPublicState(before, true)
     expect(before).toEqual(snapshot)
+  })
+})
+
+describe('toPublicState: the result', () => {
+  it('is null while the hand is still being played', () => {
+    expect(toPublicState(hand(), false).result).toBeNull()
+  })
+
+  it('carries the result once the hand is over, even when nobody reveals cards', () => {
+    const result: HandResult = { reason: 'fold', winners: [1], payouts: [0, 30], handName: null }
+    const view = toPublicState(hand({ phase: 'complete', result }), false)
+    expect(view.result).toEqual(result)
+    expect(view.shown).toBeNull()
   })
 })

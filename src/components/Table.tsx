@@ -5,6 +5,7 @@ import { CommunityCards } from '@/components/CommunityCards'
 import { PotDisplay } from '@/components/PotDisplay'
 import { Seat } from '@/components/Seat'
 import { getBettingOptions } from '@/lib/betting'
+import { describeResult } from '@/lib/resultText'
 import type { TableState } from '@/lib/fakeTable'
 
 interface TableProps {
@@ -34,6 +35,12 @@ export function Table({
   const me = table.seats[table.mySeat]
   const opponent = table.seats[table.mySeat === 0 ? 1 : 0]
   const handOver = table.phase === 'complete'
+  const resultText = table.result
+    ? describeResult(table.result, table.mySeat, [
+        table.seats[0].name,
+        table.seats[1].name,
+      ])
+    : null
 
   return (
     <main className="mx-auto flex min-h-svh max-w-2xl flex-col items-center gap-5 px-4 py-6">
@@ -57,13 +64,18 @@ export function Table({
 
       {handOver ? (
         <div className="flex w-full max-w-md flex-col items-center gap-3 rounded-2xl bg-black/40 p-4 text-center">
+          {resultText && (
+            <p role="status" className="text-lg font-bold">
+              {resultText}
+            </p>
+          )}
           {gameOver ? (
             <p className="text-lg font-bold">
               {me.stack > 0 ? 'You won the game!' : `${opponent.name} won the game.`}
             </p>
           ) : (
             <>
-              <p className="text-lg font-bold">Hand over</p>
+              {!resultText && <p className="text-lg font-bold">Hand over</p>}
               <button
                 type="button"
                 onClick={onNextHand}

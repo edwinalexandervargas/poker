@@ -35,58 +35,86 @@ import { settleBetting } from './street.js'
  * Not in this exercise: noticing that a betting round is over, or dealing the flop.
  * That is the next exercise. For now a call just passes the turn.
  */
-export function applyAction(hand: HandState, action: Action, bigBlind: number): HandState {
-
-const legal = getLegalActions(hand, bigBlind)
-if (legal === null || hand.toAct === null) {
-  throw new Error('Nobody to act')
-}
-const me = hand.toAct
-const opp = otherSeat(me)
-
-const stacks: [number, number] = [hand.stacks[0], hand.stacks[1]]
-const bets: [number, number] = [hand.bets[0], hand.bets[1]]
-
-switch (action.type) {
-  case 'check': {
-    if (!legal.canCheck) {
-      throw new Error('Cannot check: there is a bet to call')
-    }
-    return settleBetting({ ...hand, toAct: opp, actionsThisRound: hand.actionsThisRound + 1 })
+export function applyAction(
+  hand: HandState,
+  action: Action,
+  bigBlind: number,
+): HandState {
+  const legal = getLegalActions(hand, bigBlind)
+  if (legal === null || hand.toAct === null) {
+    throw new Error('Nobody to act')
   }
+  const me = hand.toAct
+  const opp = otherSeat(me)
 
-  case 'call' : {
-    if (legal.callAmount === 0) {
-      throw new Error('Nothing to call')
-    }
-    stacks[me] -= legal.callAmount
-    bets[me] += legal.callAmount
-    return settleBetting({ ...hand, stacks, bets, toAct: opp, actionsThisRound: hand.actionsThisRound + 1 })
-  }
+  const stacks: [number, number] = [hand.stacks[0], hand.stacks[1]]
+  const bets: [number, number] = [hand.bets[0], hand.bets[1]]
 
-  case 'raise' : {
-    if (
-      !legal.canRaise ||
-      action.amount < legal.minRaiseTo ||
-      action.amount > legal.maxRaiseTo
-    ) {
-      throw new Error(`Raise must be between ${legal.minRaiseTo} and ${legal.maxRaiseTo}`)
+  switch (action.type) {
+    case 'check': {
+      if (!legal.canCheck) {
+        throw new Error('Cannot check: there is a bet to call')
+      }
+      return settleBetting({
+        ...hand,
+        toAct: opp,
+        actionsThisRound: hand.actionsThisRound + 1,
+      })
     }
-    stacks[me] -= action.amount - bets[me]
-    bets[me] = action.amount
-    return settleBetting({ ...hand, stacks, bets, toAct: opp, actionsThisRound: hand.actionsThisRound + 1 })
-  }
 
-  case 'fold' : {
-    stacks[opp] += hand.pot + bets[0] + bets[1]
-    return {
-      ...hand,
-      phase: 'complete',
-      toAct: null,
-      stacks,
-      bets: [0, 0],
-      pot: 0,
+    case 'call': {
+      if (legal.callAmount === 0) {
+        throw new Error('Nothing to call')
+      }
+      stacks[me] -= legal.callAmount
+      bets[me] += legal.callAmount
+      return settleBetting({
+        ...hand,
+        stacks,
+        bets,
+        toAct: opp,
+        actionsThisRound: hand.actionsThisRound + 1,
+      })
+    }
+
+    case 'raise': {
+      if (
+        !legal.canRaise ||
+        action.amount < legal.minRaiseTo ||
+        action.amount > legal.maxRaiseTo
+      ) {
+        throw new Error(
+          `Raise must be between ${legal.minRaiseTo} and ${legal.maxRaiseTo}`,
+        )
+      }
+      stacks[me] -= action.amount - bets[me]
+      bets[me] = action.amount
+      return settleBetting({
+        ...hand,
+        stacks,
+        bets,
+        toAct: opp,
+        actionsThisRound: hand.actionsThisRound + 1,
+      })
+    }
+
+    case 'fold': {
+      const won = hand.pot + bets[0] + bets[1]
+      stacks[opp] += won
+      return {
+        ...hand,
+        phase: 'complete',
+        toAct: null,
+        stacks,
+        bets: [0, 0],
+        pot: 0,
+        result: {
+          reason: 'fold',
+          winners: [opp],
+          payouts: opp === 0 ? [won, 0] : [0, won],
+          handName: null,
+        },
+      }
     }
   }
-}
 }

@@ -57,5 +57,6 @@ export function tableFromHand({
     mySeat,
     bigBlind,
     seats: [seatState(0), seatState(1)],
+    result: hand.result,
   }
 }

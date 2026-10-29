@@ -3,6 +3,17 @@ import { firstToAct, getBlindSeats, otherSeat } from './seats.js'
 import { settleBetting } from './street.js'
 import type { Card, Phase, Seat } from './types.js'
 
+/** How a finished hand ended. Filled in when the hand completes, absent while it is live. */
+export interface HandResult {
+  reason: 'fold' | 'showdown'
+  /** The seat(s) that won the pot: two seats means a split. */
+  winners: Seat[]
+  /** Chips each seat was awarded from the pot, e.g. [121, 120] for an odd split. */
+  payouts: [number, number]
+  /** The winning hand, like "Pair, A's". Null when the hand ended by a fold. */
+  handName: string | null
+}
+
 // Anything per-player is a pair indexed by seat: stacks[0] is seat 0's chips.
 export interface HandState {
   handNumber: number
@@ -17,6 +28,8 @@ export interface HandState {
   /** Chips from finished betting rounds. */
   pot: number
   actionsThisRound: number
+  /** Set once the hand is complete. */
+  result?: HandResult
   community: Card[]
   /** Each player's two private cards. Only ever sent to that player. */
   holeCards: [Card[], Card[]]
@@ -55,37 +68,37 @@ export interface StartHandInput {
 export function startHand(input: StartHandInput): HandState {
   const { handNumber, button, stacks, smallBlind, bigBlind, deck } = input
   if (deck.length < 9) {
-  throw new RangeError(`Need at least 9 cards to start a hand, got ${deck.length}`)
-}
-const blinds = getBlindSeats(button)
-const bets: [number, number] = [0, 0]                 
-const left: [number, number] = [stacks[0], stacks[1]] 
+    throw new RangeError(`Need at least 9 cards to start a hand, got ${deck.length}`)
+  }
+  const blinds = getBlindSeats(button)
+  const bets: [number, number] = [0, 0]
+  const left: [number, number] = [stacks[0], stacks[1]]
 
-const smallPosted = Math.min(smallBlind, left[blinds.smallBlind])
-bets[blinds.smallBlind] = smallPosted
-left[blinds.smallBlind] = left[blinds.smallBlind] - smallPosted
+  const smallPosted = Math.min(smallBlind, left[blinds.smallBlind])
+  bets[blinds.smallBlind] = smallPosted
+  left[blinds.smallBlind] = left[blinds.smallBlind] - smallPosted
 
-const bigPosted = Math.min(bigBlind, left[blinds.bigBlind])
-bets[blinds.bigBlind] = bigPosted 
-left[blinds.bigBlind] = left[blinds.bigBlind] - bigPosted
+  const bigPosted = Math.min(bigBlind, left[blinds.bigBlind])
+  bets[blinds.bigBlind] = bigPosted
+  left[blinds.bigBlind] = left[blinds.bigBlind] - bigPosted
 
-const { drawn, rest } = draw(deck, 4)
-const holeCards: [Card[], Card[]] = [[], []]
-const order = [ otherSeat(button), button, otherSeat(button), button]
-order.forEach((seat, i) => {
-  holeCards[seat].push(drawn[i]!)
-})
-return settleBetting({
-handNumber,
-phase: 'preflop',
-button,
-toAct: firstToAct(button, 'preflop'),
-stacks: left,
-bets,
-actionsThisRound: 0,
-pot: 0,
-community: [],
-holeCards,
-deck: rest,
-})
+  const { drawn, rest } = draw(deck, 4)
+  const holeCards: [Card[], Card[]] = [[], []]
+  const order = [otherSeat(button), button, otherSeat(button), button]
+  order.forEach((seat, i) => {
+    holeCards[seat].push(drawn[i]!)
+  })
+  return settleBetting({
+    handNumber,
+    phase: 'preflop',
+    button,
+    toAct: firstToAct(button, 'preflop'),
+    stacks: left,
+    bets,
+    actionsThisRound: 0,
+    pot: 0,
+    community: [],
+    holeCards,
+    deck: rest,
+  })
 }

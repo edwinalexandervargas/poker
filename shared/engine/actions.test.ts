@@ -14,6 +14,7 @@ function hand(overrides: Partial<HandState> = {}): HandState {
     stacks: [990, 980],
     bets: [10, 20],
     pot: 0,
+    actionsThisRound: 0,
     community: [],
     holeCards: [[], []],
     deck: [],

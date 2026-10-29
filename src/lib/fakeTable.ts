@@ -1,4 +1,4 @@
-import type { Card, Phase, Seat } from '@shared/engine'
+import type { Card, HandResult, Phase, Seat } from '@shared/engine'
 
 // What one player's seat looks like to the person viewing the table.
 export interface SeatState {
@@ -32,6 +32,8 @@ export interface TableState {
   /** The minimum opening bet, and the smallest raise increment. */
   bigBlind: number
   seats: [SeatState, SeatState]
+  /** How the hand ended. Missing (or null) while the hand is still being played. */
+  result?: HandResult | null
 }
 
 // A fake hand on the flop, blinds 10/20, both players started with 1000.

@@ -18,6 +18,7 @@ const hand: PublicHandState = {
   pot: 260,
   community: ['As', 'Kd', '7h'],
   shown: null,
+  result: null,
 }
 
 const myCards: MyCards = { handNumber: 3, cards: ['Qs', 'Jd'] }

@@ -60,18 +60,34 @@ export function getWinners(
  */
 export function resolveShowdown(hand: HandState): HandState {
   if (hand.phase !== 'showdown') {
-  throw new Error(`No showdown in phase ${hand.phase}`)
-}
-const winners = getWinners(hand.holeCards, hand.community)
-const stacks: [number, number] = [hand.stacks[0], hand.stacks[1]]
+    throw new Error(`No showdown in phase ${hand.phase}`)
+  }
+  const winners = getWinners(hand.holeCards, hand.community)
+  const stacks: [number, number] = [hand.stacks[0], hand.stacks[1]]
 
-if (winners.length === 1) {
-  stacks[winners[0]!] += hand.pot
-} else {
-  const half = Math.floor(hand.pot / 2)
-   stacks[0] += half
-  stacks[1] += half
-  stacks[otherSeat(hand.button)] += hand.pot - half * 2
-}
-  return { ...hand, phase: 'complete', toAct: null, stacks, pot: 0 }
+  // How many chips each seat is awarded. Stored per seat (not as one number) because
+  // an odd pot split in a tie gives the two players different amounts, e.g. [121, 120].
+  const payouts: [number, number] = [0, 0]
+  if (winners.length === 1) {
+    payouts[winners[0]!] = hand.pot
+  } else {
+    const half = Math.floor(hand.pot / 2)
+    payouts[0] = half
+    payouts[1] = half
+    payouts[otherSeat(hand.button)] += hand.pot - half * 2
+  }
+  stacks[0] += payouts[0]
+  stacks[1] += payouts[1]
+
+  // On a tie both hands are equal, so describing the first winner's hand is enough.
+  const best = Hand.solve([...hand.holeCards[winners[0]!], ...hand.community])
+
+  return {
+    ...hand,
+    phase: 'complete',
+    toAct: null,
+    stacks,
+    pot: 0,
+    result: { reason: 'showdown', winners, payouts, handName: best.descr },
+  }
 }
