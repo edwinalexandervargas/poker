@@ -21,7 +21,7 @@ export function OpponentSeat({ seat, handNumber = 0, dealDelays }: OpponentSeatP
 
   return (
     <div
-      className={`relative flex w-20 flex-col items-center gap-1 transition-opacity sm:w-28 ${
+      className={`landscape-phone:w-20 relative flex w-20 flex-col items-center gap-1 transition-opacity sm:w-28 ${
         inHand || !dealtIn ? 'opacity-100' : 'opacity-40'
       }`}
       aria-label={`${name}'s seat`}

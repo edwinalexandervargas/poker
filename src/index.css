@@ -1,5 +1,10 @@
 @import 'tailwindcss';
 
+/* A phone turned sideways: wide but very short, so the table and the controls sit side by side. */
+@custom-variant landscape-phone (@media (orientation: landscape) and (max-height: 520px));
+/* A short phone held upright (iPhone SE and similar): tighten things so a turn still fits. */
+@custom-variant short (@media (orientation: portrait) and (max-height: 700px));
+
 @theme {
   --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
 

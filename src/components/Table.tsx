@@ -91,7 +91,7 @@ export function Table({
   const awayActing = acting && acting.seat !== table.mySeat && acting.away
 
   return (
-    <main className="mx-auto flex min-h-svh max-w-3xl flex-col items-center gap-3 px-4 py-4">
+    <main className="landscape-phone:max-w-5xl mx-auto flex min-h-svh max-w-3xl flex-col items-center gap-2 px-3 pt-[max(0.5rem,env(safe-area-inset-top))] pb-3 sm:gap-3 sm:px-4 sm:py-4">
       <header className="flex w-full items-center justify-between text-sm text-white/60">
         <Link to="/" className="underline underline-offset-4">
           Leave
@@ -129,149 +129,162 @@ export function Table({
         </Modal>
       )}
 
-      {/* The table: everyone else around the oval, board and pot in the middle. */}
-      <div className="relative mt-2 aspect-[4/5] w-full max-w-2xl sm:aspect-[16/11]">
-        <section className="felt absolute inset-x-[4%] inset-y-[14%] flex flex-col items-center justify-center gap-2 rounded-[45%] sm:inset-x-[8%]">
-          <Deck key={`deck-${table.handNumber}`} shuffle={dealPlan !== null} />
-          <PotDisplay pot={table.pot} />
-          <CommunityCards key={`board-${table.handNumber}`} cards={table.community} />
-        </section>
+      {/* Phones held upright: everything in one column. Phones sideways: the table on the left,
+          your seat and the controls on the right. */}
+      <div className="landscape-phone:grid landscape-phone:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] landscape-phone:items-start landscape-phone:gap-4 flex w-full flex-col items-center gap-2 sm:gap-3">
+        {/* The table: everyone else around the oval, board and pot in the middle. A squarer
+          shape on phones, so your cards and the controls still fit on the screen. */}
+        <div className="landscape-phone:mx-auto landscape-phone:mt-6 landscape-phone:aspect-[16/11] landscape-phone:h-[calc(100svh-4rem)] landscape-phone:w-auto landscape-phone:max-w-full short:mt-3 short:aspect-[6/5] relative mt-5 aspect-square w-full max-w-2xl sm:mt-2 sm:aspect-[16/11]">
+          <section className="felt absolute inset-x-[4%] inset-y-[14%] flex flex-col items-center justify-center gap-2 rounded-[45%] sm:inset-x-[8%]">
+            <Deck key={`deck-${table.handNumber}`} shuffle={dealPlan !== null} />
+            <PotDisplay pot={table.pot} />
+            <CommunityCards key={`board-${table.handNumber}`} cards={table.community} />
+          </section>
 
-        {/* Bets on the felt, between each seat and the pot. Keyed by street, so when a
+          {/* Bets on the felt, between each seat and the pot. Keyed by street, so when a
             betting round ends they all sweep into the pot together. */}
-        <AnimatePresence>
-          {table.seats
-            .filter((seat) => seat.bet > 0)
-            .map((seat) => {
-              const from = seat.seat === table.mySeat ? MY_SPOT : spots.get(seat.seat)!
-              return (
-                <BetChips
-                  key={`${table.handNumber}-${table.phase}-${seat.seat}`}
-                  amount={seat.bet}
-                  from={from}
-                  to={betSpot(from)}
+          <AnimatePresence>
+            {table.seats
+              .filter((seat) => seat.bet > 0)
+              .map((seat) => {
+                const from = seat.seat === table.mySeat ? MY_SPOT : spots.get(seat.seat)!
+                return (
+                  <BetChips
+                    key={`${table.handNumber}-${table.phase}-${seat.seat}`}
+                    amount={seat.bet}
+                    from={from}
+                    to={betSpot(from)}
+                  />
+                )
+              })}
+          </AnimatePresence>
+
+          {others.map((seat) => {
+            const spot = spots.get(seat.seat)!
+            return (
+              <div
+                key={seat.seat}
+                className="absolute -translate-x-1/2 -translate-y-1/2"
+                style={{ left: `${spot.left}%`, top: `${spot.top}%` }}
+              >
+                <OpponentSeat
+                  seat={seat}
+                  handNumber={table.handNumber}
+                  dealDelays={dealPlan?.delays[seat.seat]}
                 />
-              )
-            })}
-        </AnimatePresence>
-
-        {others.map((seat) => {
-          const spot = spots.get(seat.seat)!
-          return (
-            <div
-              key={seat.seat}
-              className="absolute -translate-x-1/2 -translate-y-1/2"
-              style={{ left: `${spot.left}%`, top: `${spot.top}%` }}
-            >
-              <OpponentSeat
-                seat={seat}
-                handNumber={table.handNumber}
-                dealDelays={dealPlan?.delays[seat.seat]}
-              />
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Me: pulled up into the space under the oval. */}
-      <div className="relative -mt-14 sm:-mt-16">
-        <Seat
-          seat={me}
-          handNumber={table.handNumber}
-          dealDelays={dealPlan?.delays[me.seat]}
-        />
-      </div>
-
-      {awayActing && (
-        <p
-          role="status"
-          className="glass-dark rounded-full px-3 py-1 text-sm text-white/70"
-        >
-          {acting.name} seems to be away. The clock keeps running.
-        </p>
-      )}
-
-      {canRebuy && (
-        <div className="glass flex w-full max-w-md flex-col items-center gap-2 rounded-3xl p-4 text-center">
-          <p className="font-semibold">You’re out of chips.</p>
-          <button
-            type="button"
-            onClick={onRebuy}
-            disabled={pending}
-            className="btn btn-gold"
-          >
-            {pending ? 'Buying in…' : `Rebuy for ${rebuyAmount.toLocaleString()}`}
-          </button>
-          <p className="text-sm text-white/60">You’ll be dealt in from the next hand.</p>
+              </div>
+            )
+          })}
         </div>
-      )}
 
-      {handOver ? (
-        <div className="glass flex w-full max-w-md flex-col items-center gap-3 rounded-3xl p-4 text-center">
-          {resultText && (
-            <p role="status" className="text-lg font-bold">
-              {resultText}
+        <div className="landscape-phone:pt-1 flex w-full flex-col items-center gap-2 sm:gap-3">
+          {/* Me: pulled up into the space under the oval (not when sideways, where it has its own column). */}
+          <div className="landscape-phone:mt-0 relative -mt-8 sm:-mt-16">
+            <Seat
+              seat={me}
+              handNumber={table.handNumber}
+              dealDelays={dealPlan?.delays[me.seat]}
+            />
+          </div>
+
+          {awayActing && (
+            <p
+              role="status"
+              className="glass-dark rounded-full px-3 py-1 text-sm text-white/70"
+            >
+              {acting.name} seems to be away. The clock keeps running.
             </p>
           )}
-          {gameOver ? (
-            <>
-              <p className="text-lg font-bold">
-                {me.stack > 0
-                  ? 'You won the game!'
-                  : `${table.seats.find((s) => s.stack > 0)?.name ?? 'Someone'} won the game.`}
-              </p>
-              <div className="w-full text-left">
-                <Scoreboard rows={standings} mySeat={table.mySeat} />
-              </div>
-            </>
-          ) : (
-            <>
-              {!resultText && <p className="text-lg font-bold">Hand over</p>}
+
+          {canRebuy && (
+            <div className="glass flex w-full max-w-md flex-col items-center gap-2 rounded-3xl p-4 text-center">
+              <p className="font-semibold">You’re out of chips.</p>
               <button
                 type="button"
-                onClick={onNextHand}
+                onClick={onRebuy}
                 disabled={pending}
                 className="btn btn-gold"
               >
-                {pending ? 'Dealing…' : 'Next hand'}
+                {pending ? 'Buying in…' : `Rebuy for ${rebuyAmount.toLocaleString()}`}
               </button>
-            </>
+              <p className="text-sm text-white/60">
+                You’ll be dealt in from the next hand.
+              </p>
+            </div>
           )}
-        </div>
-      ) : (
-        <>
-          {turn && acting && (
-            <TurnTimer
-              key={turn.deadline}
-              turn={turn}
-              label={acting.seat === table.mySeat ? 'Your turn' : `${acting.name}’s turn`}
-            />
-          )}
-          {me.inHand ? (
-            <ActionBar
-              options={getBettingOptions(table)}
-              disabled={!me.isToAct || pending}
-              onAction={onAction}
-              bigBlind={table.bigBlind}
-            />
+
+          {handOver ? (
+            <div className="glass flex w-full max-w-md flex-col items-center gap-3 rounded-3xl p-4 text-center">
+              {resultText && (
+                <p role="status" className="text-lg font-bold">
+                  {resultText}
+                </p>
+              )}
+              {gameOver ? (
+                <>
+                  <p className="text-lg font-bold">
+                    {me.stack > 0
+                      ? 'You won the game!'
+                      : `${table.seats.find((s) => s.stack > 0)?.name ?? 'Someone'} won the game.`}
+                  </p>
+                  <div className="w-full text-left">
+                    <Scoreboard rows={standings} mySeat={table.mySeat} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  {!resultText && <p className="text-lg font-bold">Hand over</p>}
+                  <button
+                    type="button"
+                    onClick={onNextHand}
+                    disabled={pending}
+                    className="btn btn-gold"
+                  >
+                    {pending ? 'Dealing…' : 'Next hand'}
+                  </button>
+                </>
+              )}
+            </div>
           ) : (
-            <p className="text-white/60">
-              {me.dealtIn
-                ? 'You folded. Waiting for the hand to finish…'
-                : 'You’re dealt in from the next hand.'}
+            // The controls stick to the bottom of the screen, above the phone's home bar, so you
+            // never have to scroll to act.
+            <div className="landscape-phone:static sticky bottom-0 z-30 flex w-full max-w-md flex-col gap-1.5 pb-[env(safe-area-inset-bottom)]">
+              {turn && acting && (
+                <TurnTimer
+                  key={turn.deadline}
+                  turn={turn}
+                  label={
+                    acting.seat === table.mySeat ? 'Your turn' : `${acting.name}’s turn`
+                  }
+                />
+              )}
+              {me.inHand ? (
+                <ActionBar
+                  options={getBettingOptions(table)}
+                  disabled={!me.isToAct || pending}
+                  onAction={onAction}
+                  bigBlind={table.bigBlind}
+                />
+              ) : (
+                <p className="text-center text-white/60">
+                  {me.dealtIn
+                    ? 'You folded. Waiting for the hand to finish…'
+                    : 'You’re dealt in from the next hand.'}
+                </p>
+              )}
+            </div>
+          )}
+
+          {onReact && <ReactionPicker onReact={onReact} />}
+          <ActionLog lines={log} />
+
+          {error && (
+            <p role="alert" className="text-red-300">
+              {error}
             </p>
           )}
-        </>
-      )}
-
-      {onReact && <ReactionPicker onReact={onReact} />}
-      <ActionLog lines={log} />
-
-      {error && (
-        <p role="alert" className="text-red-300">
-          {error}
-        </p>
-      )}
+        </div>
+      </div>
     </main>
   )
 }

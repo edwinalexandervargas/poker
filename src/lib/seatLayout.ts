@@ -18,13 +18,13 @@ export interface Spot {
 // Seven spots, clockwise from bottom-left to bottom-right. Each has a hand-placed spot for
 // that player's bet: on the felt in front of them, clear of the board cards in the middle.
 const SPOTS: Spot[] = [
-  { left: 12, top: 74, bet: { left: 27, top: 77 } },
+  { left: 12, top: 78, bet: { left: 27, top: 76 } },
   { left: 10, top: 42, bet: { left: 26, top: 40 } },
   { left: 25, top: 13, bet: { left: 32, top: 29 } },
   { left: 50, top: 11, bet: { left: 50, top: 27 } },
   { left: 75, top: 13, bet: { left: 68, top: 29 } },
   { left: 90, top: 42, bet: { left: 74, top: 40 } },
-  { left: 88, top: 74, bet: { left: 73, top: 77 } },
+  { left: 88, top: 78, bet: { left: 73, top: 76 } },
 ]
 
 // Which of the seven spots to use for each number of other players.

@@ -18,14 +18,14 @@ export function Seat({ seat, handNumber = 0, dealDelays }: SeatProps) {
 
   return (
     <div
-      className={`relative flex flex-col items-center gap-3 transition-opacity ${
+      className={`landscape-phone:flex-row relative flex flex-row items-center gap-3 transition-opacity sm:flex-col ${
         inHand ? 'opacity-100' : 'opacity-40'
       }`}
       aria-label={`${name}'s seat`}
     >
       <ReactionBubble reaction={reaction} />
       {/* Hole cards: face up when we know them, face down when we don't. */}
-      <div className="flex min-h-24 gap-2 sm:min-h-28">
+      <div className="landscape-phone:min-h-[4.5rem] flex min-h-24 gap-1.5 sm:min-h-28 sm:gap-2">
         {inHand &&
           [0, 1].map((i) => {
             // The same two slots all hand long: a card arrives face down, and flips over
@@ -52,7 +52,7 @@ export function Seat({ seat, handNumber = 0, dealDelays }: SeatProps) {
       {/* Name plate, with the chips they have left beside it. Glows while it is this player's turn. */}
       <div className="flex items-end gap-3">
         <div
-          className={`glass relative min-w-40 rounded-3xl px-5 py-2.5 text-center ${
+          className={`glass landscape-phone:min-w-28 landscape-phone:py-2 relative min-w-28 rounded-3xl px-4 py-2.5 text-center sm:min-w-40 sm:px-5 ${
             isToAct ? 'animate-turn-glow ring-chip-gold ring-2' : ''
           }`}
         >
@@ -67,7 +67,7 @@ export function Seat({ seat, handNumber = 0, dealDelays }: SeatProps) {
           <p className="font-semibold">{name}</p>
           <p className="text-sm text-white/70">{stack.toLocaleString()}</p>
         </div>
-        <div className="min-h-8">
+        <div className="landscape-phone:hidden hidden min-h-8 sm:block">
           <ChipStack amount={stack} size="sm" />
         </div>
       </div>

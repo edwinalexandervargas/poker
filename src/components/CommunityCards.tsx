@@ -26,7 +26,7 @@ export function CommunityCards({ cards }: CommunityCardsProps) {
           return (
             <div
               key={`empty-${i}`}
-              className="h-16 w-11 rounded-lg border-2 border-dashed border-white/20 sm:h-24 sm:w-16"
+              className="landscape-phone:h-14 landscape-phone:w-10 h-16 w-11 rounded-lg border-2 border-dashed border-white/20 sm:h-24 sm:w-16"
             />
           )
         }

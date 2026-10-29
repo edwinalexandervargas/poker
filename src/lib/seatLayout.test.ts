@@ -16,9 +16,9 @@ describe('layoutSeats', () => {
 
   it('the player after me in seat order is on my left (bottom-left)', () => {
     const spots = layoutSeats([0, 1, 2, 3, 4, 5, 6, 7], 3, 8)
-    expect(spots.get(4)).toMatchObject({ left: 12, top: 74 })
+    expect(spots.get(4)).toMatchObject({ left: 12, top: 78 })
     // and the player before me is on my right
-    expect(spots.get(2)).toMatchObject({ left: 88, top: 74 })
+    expect(spots.get(2)).toMatchObject({ left: 88, top: 78 })
   })
 
   it('gives every player a different spot', () => {
