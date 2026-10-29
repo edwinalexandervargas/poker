@@ -20,9 +20,9 @@ export interface Spot {
 const SPOTS: Spot[] = [
   { left: 12, top: 78, bet: { left: 27, top: 76 } },
   { left: 10, top: 42, bet: { left: 26, top: 40 } },
-  { left: 25, top: 13, bet: { left: 32, top: 29 } },
+  { left: 25, top: 13, bet: { left: 32, top: 37 } },
   { left: 50, top: 11, bet: { left: 50, top: 27 } },
-  { left: 75, top: 13, bet: { left: 68, top: 29 } },
+  { left: 75, top: 13, bet: { left: 68, top: 37 } },
   { left: 90, top: 42, bet: { left: 74, top: 40 } },
   { left: 88, top: 78, bet: { left: 73, top: 76 } },
 ]
