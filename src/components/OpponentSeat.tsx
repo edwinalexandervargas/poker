@@ -1,6 +1,5 @@
 import { Card } from '@/components/Card'
 import { FlyIn } from '@/components/FlyIn'
-import { ReactionBubble } from '@/components/ReactionBubble'
 import type { SeatState } from '@/lib/fakeTable'
 
 interface OpponentSeatProps {
@@ -16,8 +15,7 @@ interface OpponentSeatProps {
  * seven of them fit around the felt on a phone.
  */
 export function OpponentSeat({ seat, handNumber = 0, dealDelays }: OpponentSeatProps) {
-  const { name, stack, isDealer, isToAct, inHand, dealtIn, away, holeCards, reaction } =
-    seat
+  const { name, stack, isDealer, isToAct, inHand, dealtIn, away, holeCards } = seat
 
   return (
     <div
@@ -26,7 +24,6 @@ export function OpponentSeat({ seat, handNumber = 0, dealDelays }: OpponentSeatP
       }`}
       aria-label={`${name}'s seat`}
     >
-      <ReactionBubble reaction={reaction} />
       {/* Two small cards: face down, or face up once shown at showdown. */}
       <div className="flex h-12 gap-0.5 sm:h-14">
         {inHand &&

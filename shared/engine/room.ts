@@ -47,8 +47,6 @@ export interface PlayerDoc {
   rebuys?: number
   /** When they last sent a chat message (server clock, ms), for the cooldown. */
   lastChatAt?: number
-  /** Their latest emoji reaction and when it was sent (server clock, ms). */
-  reaction?: { emoji: string; at: number }
 }
 
 /** A random room code such as "K7MQ2". */

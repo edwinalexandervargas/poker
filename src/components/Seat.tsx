@@ -1,7 +1,6 @@
 import { Card } from '@/components/Card'
 import { ChipStack } from '@/components/ChipStack'
 import { FlyIn } from '@/components/FlyIn'
-import { ReactionBubble } from '@/components/ReactionBubble'
 import type { SeatState } from '@/lib/fakeTable'
 
 interface SeatProps {
@@ -14,7 +13,7 @@ interface SeatProps {
 
 /** Your spot at the table: cards and name plate. Your bet sits on the felt (see BetChips). */
 export function Seat({ seat, handNumber = 0, dealDelays }: SeatProps) {
-  const { name, stack, isDealer, isToAct, inHand, holeCards, reaction } = seat
+  const { name, stack, isDealer, isToAct, inHand, holeCards } = seat
 
   return (
     <div
@@ -23,7 +22,6 @@ export function Seat({ seat, handNumber = 0, dealDelays }: SeatProps) {
       }`}
       aria-label={`${name}'s seat`}
     >
-      <ReactionBubble reaction={reaction} />
       {/* Hole cards: face up when we know them, face down when we don't. */}
       <div className="landscape-phone:min-h-16 flex min-h-24 gap-1.5 sm:min-h-28 sm:gap-2">
         {inHand &&

@@ -15,7 +15,6 @@ import { HandStrength } from '@/components/HandStrength'
 import { Modal } from '@/components/Modal'
 import { OpponentSeat } from '@/components/OpponentSeat'
 import { PotDisplay } from '@/components/PotDisplay'
-import { ReactionPicker } from '@/components/ReactionPicker'
 import { Scoreboard } from '@/components/Scoreboard'
 import { Seat } from '@/components/Seat'
 import { TurnTimer } from '@/components/TurnTimer'
@@ -52,8 +51,6 @@ interface TableProps {
   log?: LogLine[]
   /** Who's up and who's down tonight. */
   standings?: Standing[]
-  /** Send an emoji reaction. */
-  onReact?: (emoji: string) => void
   /** The table chat, oldest first, and how to send a message. */
   chat?: ChatLine[]
   onChat?: (text: string) => Promise<void>
@@ -74,7 +71,6 @@ export function Table({
   onRebuy,
   log = [],
   standings = [],
-  onReact,
   chat = [],
   onChat,
 }: TableProps) {
@@ -344,8 +340,6 @@ export function Table({
               )}
             </div>
           )}
-
-          {onReact && <ReactionPicker onReact={onReact} />}
 
           {error && (
             <p role="alert" className="text-red-300">

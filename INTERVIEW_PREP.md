@@ -62,7 +62,7 @@ Cover the answer, say it out loud, then compare. Each answer is short on purpose
 
 39. **How does the action log work?** After each move, the server compares the hand before and after and writes lines like "Alex raises to 80" to an `events` collection, and every screen follows the newest 40. The wording is a pure, tested engine function, and only the server writes, so the log can't be faked or get out of sync. [47]
 
-40. **How do you stop people spamming reactions?** The server only accepts six fixed emojis, never free text, and refuses a second one within 1.5 seconds. Both rules are pure functions with tests, and the server is where they're enforced. [50]
+40. **Why did you remove a feature you had built (emoji reactions)?** Chat already covered it, with the same server-side cooldown idea, and the reaction row cost space on phones. Deleting code is a normal part of keeping a product focused, and the decision log records why. [50, 60]
 41. **Why no service worker for your PWA?** The game only works online, so offline caching would only add the risk of serving an old version. The manifest and icons are enough to install it to the home screen. [51]
 42. **How does the scoreboard handle rebuys?** Each rebuy counts as another buy-in, so a player who rebought twice is measured against 3,000, not 1,000. A test checks that with no rebuys everyone's results add up to zero. [49]
 
@@ -71,6 +71,8 @@ Cover the answer, say it out loud, then compare. Each answer is short on purpose
 44. **Why can't you raise to 63?** The smallest chip is a 5, so every amount at the table stays a multiple of 5 and can be drawn with real chips. The engine refuses other raises (except all-in), splits pots in 5s, and the slider steps in 5s. It's one constant, `CHIP_UNIT`, used everywhere. [54]
 
 45. **How do you ship updates to an installed web app?** Each build stamps an id into the code and writes it to `version.json`. The app re-checks that file when it comes back on screen and every 5 minutes. If it changed, the lobby reloads and a table shows a Refresh pill. I also send `no-cache` for the page and cache the hashed asset files forever. No service worker needed. [56, 57]
+
+46. **How does the nut meter work, and how is it different from the win bar?** The win bar is a Monte Carlo estimate against how many players are still in. The nut meter is exact: the server lists every two-card hand an opponent could have from the unseen cards (about 1,000), counts how many beat mine, and fills the bar by the share I beat. Nothing beats me, so it's the nuts and the bar is full. It's deterministic, so tests check exact counts like 1,081 combos on the flop. [59]
 
 ## Honest limitations (say these before they ask)
 

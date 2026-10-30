@@ -16,8 +16,6 @@ export interface SeatState {
   dealtIn?: boolean
   /** This player's screen has stopped checking in. */
   away?: boolean
-  /** Their latest emoji reaction. */
-  reaction?: { emoji: string; at: number }
   /**
    * Only the viewing player's own hole cards are ever present. Everyone else's are
    * missing on purpose: the server never sends them, so the UI can only draw

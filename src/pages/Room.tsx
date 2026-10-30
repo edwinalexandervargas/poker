@@ -12,7 +12,6 @@ import {
   dealNextHand,
   errorMessage,
   playAction,
-  react,
   rebuy,
   sendChat,
   startGame,
@@ -177,8 +176,6 @@ function Game({ code, room, players, me }: GameProps) {
         chat={chat}
         onChat={(text) => sendChat(code, text)}
         standings={standings(players, room.config.startingStack)}
-        // Reactions are fire-and-forget: a refusal (too fast) isn't worth an error message.
-        onReact={(emoji) => void react(code, emoji).catch(() => {})}
       />
     </>
   )

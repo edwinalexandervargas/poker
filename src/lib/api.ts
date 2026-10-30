@@ -39,10 +39,6 @@ const sendChatFn = httpsCallable<{ code: string; text: string }, { at: number }>
   functions,
   'sendChat',
 )
-const reactFn = httpsCallable<{ code: string; emoji: string }, { at: number }>(
-  functions,
-  'react',
-)
 
 /** Makes a table. `showStrength` gives every player a rough chance-of-winning bar. */
 export async function createRoom(name: string, showStrength = false): Promise<string> {
@@ -78,12 +74,6 @@ export async function sendChat(code: string, text: string): Promise<void> {
   } catch (error) {
     throw new Error(errorMessage(error))
   }
-}
-
-/** Send an emoji reaction to the table. */
-export async function react(code: string, emoji: string): Promise<void> {
-  await ensureSignedIn()
-  await reactFn({ code, emoji })
 }
 
 /** A busted player buys back in for the starting stack, dealt in from the next hand. */

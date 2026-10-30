@@ -155,7 +155,6 @@ export {
   dealNextHand,
   heartbeat,
   playAction,
-  react,
   rebuy,
   sendChat,
   startGame,

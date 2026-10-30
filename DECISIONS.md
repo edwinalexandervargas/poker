@@ -405,3 +405,15 @@ Each entry: what I did, why, what else I considered, and what it costs.
 - **What:** Every card face shows a large rank and suit in the top-left corner and one large suit in the bottom-right, on every screen and orientation. Only the size changes with the screen. The printed-deck layout (pips, court panels) and its helper `pips.ts` were removed.
 - **Why:** The printed layout looked great on big cards but turned into a jumble on small ones (sideways phones, the board on small screens). One readable style keeps the game consistent wherever you play it, and it's how poker apps draw cards: what matters at a table is reading a card in an instant.
 - **Trade-off:** Less "real deck" charm on large screens, in exchange for consistency and readability.
+
+## 59. Nut meter: an exact count of the hands that beat you
+
+- **What:** From the flop on, a second (gold) bar shows how close your hand is to the nuts, the best possible hand on this board. The server lists every two-card hand an opponent could hold from the unseen cards (1,081 on the flop, 990 on the river), solves each one against yours, and counts how many beat you. The bar fills by the share you beat (ties count half). It's completely full only when nothing beats you, and that includes when the board itself is the best hand. It's computed with the win estimate, only when the board changes, and only at tables with "Show hand strength" on.
+- **Why:** The win bar answers "will I win against these players?" The nut meter answers a different question: "how close am I to unbeatable?" Because the board has so few possible hands, an exact count is cheap (about 1,000 solves) and needs no randomness, so the tests can check exact numbers.
+- **Trade-off:** Every opponent hand is counted as equally likely, without guessing what players would actually hold. On short and sideways phones, the meter's label merges into the top line so the panel stays small.
+
+## 60. Emoji reactions removed
+
+- **What:** The emoji reactions from #50 are gone: the picker, the bubbles over seats, the `react` function and the engine's list and cooldown.
+- **Why:** Table chat (with its own server-side cleaning and cooldown) covers the same need, and the reaction row took up space at the bottom of the screen on phones.
+- **Trade-off:** No one-tap emoji. Chat can still carry them.
