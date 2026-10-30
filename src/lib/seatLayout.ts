@@ -21,11 +21,11 @@ export interface Spot {
 // that player's bet: on the felt in front of them, clear of the board cards in the middle.
 const SPOTS: Spot[] = [
   { left: 12, top: 78, bet: { left: 27, top: 76 }, betSideways: { left: 25, top: 80 } },
-  { left: 10, top: 42, bet: { left: 26, top: 40 }, betSideways: { left: 24, top: 44 } },
+  { left: 10, top: 42, bet: { left: 21, top: 40 }, betSideways: { left: 20, top: 31 } },
   { left: 25, top: 13, bet: { left: 32, top: 37 }, betSideways: { left: 34, top: 34 } },
   { left: 50, top: 11, bet: { left: 63, top: 25 }, betSideways: { left: 50, top: 33 } },
   { left: 75, top: 13, bet: { left: 68, top: 37 }, betSideways: { left: 66, top: 34 } },
-  { left: 90, top: 42, bet: { left: 74, top: 40 }, betSideways: { left: 76, top: 44 } },
+  { left: 90, top: 42, bet: { left: 79, top: 40 }, betSideways: { left: 80, top: 31 } },
   { left: 88, top: 78, bet: { left: 73, top: 76 }, betSideways: { left: 75, top: 80 } },
 ]
 
@@ -63,12 +63,12 @@ export function layoutSeats(
 export const MY_SPOT: Spot = {
   left: 50,
   top: 96,
-  bet: { left: 50, top: 87 },
+  bet: { left: 50, top: 84 },
   betSideways: { left: 50, top: 81 },
 }
 
 /** The middle of the felt, where the pot sits. */
-export const POT_SPOT: Spot = { left: 50, top: 66 }
+export const POT_SPOT: Spot = { left: 50, top: 62 }
 
 /**
  * Where a seat's bet sits: its hand-placed spot (a separate one on a phone turned sideways),

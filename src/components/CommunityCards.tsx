@@ -19,17 +19,14 @@ export function CommunityCards({ cards }: CommunityCardsProps) {
   const [alreadyThere] = useState(cards.length)
 
   return (
-    <div
-      className="landscape-phone:gap-1 flex gap-1.5 sm:gap-2"
-      aria-label="Community cards"
-    >
+    <div className="flex gap-[min(0.5rem,1.2cqw)]" aria-label="Community cards">
       {Array.from({ length: SLOTS }, (_, i) => {
         const card = cards[i]
         if (!card) {
           return (
             <div
               key={`empty-${i}`}
-              className="landscape-phone:h-[3.1rem] landscape-phone:w-[2.2rem] h-16 w-11 rounded-lg border-2 border-dashed border-white/20 sm:h-24 sm:w-16"
+              className="landscape-phone:h-[min(3.1rem,14.6cqw)] landscape-phone:w-[min(2.2rem,10.4cqw)] h-[min(6rem,13cqw)] w-[min(4rem,8.7cqw)] rounded-lg border-2 border-dashed border-white/20"
             />
           )
         }

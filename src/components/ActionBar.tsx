@@ -106,7 +106,6 @@ export function ActionBar({
     : `${canCheck ? 'Bet' : 'Raise to'} ${raiseTo.toLocaleString()}`
 
   const quickBets = [
-    { label: 'Min', value: minRaiseTo },
     { label: '½ Pot', value: halfPotRaiseTo },
     { label: 'Pot', value: potRaiseTo },
     { label: 'All-in', value: maxRaiseTo },
@@ -114,12 +113,12 @@ export function ActionBar({
 
   return (
     <div
-      className="glass landscape-phone:gap-2 landscape-phone:p-3 tiny:gap-2 tiny:p-2.5 flex w-full max-w-md flex-col gap-3 rounded-3xl p-3 shadow-[0_-12px_40px_rgb(0_0_0/0.55)] sm:gap-4 sm:p-4"
+      className="glass landscape-phone:gap-2.5 landscape-phone:p-3 tiny:gap-2.5 tiny:p-3 flex w-full max-w-md flex-col gap-3 rounded-3xl p-3 shadow-[0_-12px_40px_rgb(0_0_0/0.55)] sm:gap-4 sm:p-4"
       aria-label="Your actions"
     >
       {/* Sizing: the amount, −/+ and the slider. */}
       <div
-        className={`tiny:gap-1.5 flex flex-col gap-2.5 sm:gap-3 ${sizingOff ? 'opacity-45' : ''}`}
+        className={`landscape-phone:gap-2.5 tiny:gap-2.5 flex flex-col gap-3 ${sizingOff ? 'opacity-45' : ''}`}
       >
         <div className="flex items-center justify-between gap-3">
           <button
@@ -162,12 +161,12 @@ export function ActionBar({
             setPendingBet(stepBet(Number(e.target.value), 0, minRaiseTo, maxRaiseTo))
           }
           ref={sliderRef}
-          className="slider tiny:my-0 my-1 w-full sm:my-1.5"
+          className="slider my-1.5 w-full"
           style={{ ['--fill' as string]: `${fill}%` }}
           aria-label="Bet amount"
         />
 
-        <div className="tiny:gap-1 landscape-phone:gap-1 grid grid-cols-4 gap-1.5">
+        <div className="grid grid-cols-3 gap-1.5">
           {quickBets.map(({ label, value }) => {
             const active = !sizingOff && raiseTo === value
             return (
