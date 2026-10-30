@@ -6,7 +6,7 @@
     @slot;
   }
   /* A computer or tablet screen wider than it is tall: same side-by-side layout. */
-  @media (orientation: landscape) and (min-width: 900px) and (max-height: 1200px) {
+  @media (min-width: 760px) and (min-aspect-ratio: 6/5) and (min-height: 521px) and (max-height: 1200px) {
     @slot;
   }
 }
@@ -18,10 +18,10 @@
   @media (orientation: portrait) and (max-height: 680px) {
     @slot;
   }
-  @media (orientation: landscape) and (min-height: 521px) and (max-height: 900px) and (max-width: 899px) {
+  @media (orientation: landscape) and (min-height: 521px) and (max-height: 900px) and (max-aspect-ratio: 6/5) {
     @slot;
   }
-  @media (orientation: portrait) and (min-width: 500px) and (max-height: 900px) {
+  @media (orientation: portrait) and (min-width: 500px) and (max-height: 1000px) {
     @slot;
   }
 }
@@ -273,9 +273,9 @@ body {
 
 /* Computers and tablets held sideways use the side-by-side layout, scaled up with the screen
    height so the table fills the space instead of looking like a phone in the corner. */
-@media (orientation: landscape) and (min-width: 900px) and (max-height: 1200px) {
+@media (min-width: 760px) and (min-aspect-ratio: 6/5) and (min-height: 521px) and (max-height: 1200px) {
   html {
-    font-size: clamp(16px, 2.3svh, 26px);
+    font-size: clamp(15px, 2.1svh, 24px);
   }
   main {
     max-width: 82rem !important;
@@ -283,6 +283,9 @@ body {
   }
   /* The table's links (Leave, code, Chat, Log...) sit in a bar along the top of the window,
      not floating next to the game in the centred block. */
+  .table-grid {
+    grid-template-columns: minmax(0, 2.1fr) minmax(14rem, 1fr) !important;
+  }
   .table-nav {
     position: fixed;
     inset: 0 0 auto;

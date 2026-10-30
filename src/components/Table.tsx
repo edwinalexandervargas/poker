@@ -188,7 +188,7 @@ export function Table({
 
       {/* Phones held upright: everything in one column. Phones sideways: the table on the left,
           your seat and the controls on the right. */}
-      <div className="landscape-phone:grid landscape-phone:grid-cols-[minmax(0,1.55fr)_minmax(15.5rem,1fr)] landscape-phone:items-start landscape-phone:gap-4 flex w-full flex-col items-center gap-2 sm:gap-3">
+      <div className="table-grid landscape-phone:grid landscape-phone:grid-cols-[minmax(0,1.55fr)_minmax(15.5rem,1fr)] landscape-phone:items-start landscape-phone:gap-4 flex w-full flex-col items-center gap-2 sm:gap-3">
         {/* The table: everyone else around the oval, board and pot in the middle. A squarer
           shape on phones, so your cards and the controls still fit on the screen. */}
         <div className="landscape-phone:mx-auto landscape-phone:mt-5 landscape-phone:aspect-[8/5] landscape-phone:w-[min(100%,calc((100svh-4.5rem)*1.6))] narrow-landscape:aspect-[4/3] narrow-landscape:w-[min(100%,calc((100svh-4.5rem)*1.333))] short:mt-3 short:aspect-[5/4] tiny:mt-2 tiny:!aspect-[16/10] tiny:!w-[min(100%,calc((100svh-25rem)*1.6))] sm:tiny:!w-[min(100%,calc((100svh-23rem)*1.6))] @container relative mt-5 aspect-square w-full max-w-2xl min-[500px]:w-[clamp(17rem,calc((100svh-32.5rem)*1.25),100%)] sm:mt-2 sm:aspect-[16/11] sm:w-[min(100%,calc((100svh-33rem)*16/11))]">

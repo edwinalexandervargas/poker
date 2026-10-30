@@ -5,19 +5,11 @@ const RED_SUITS: ReadonlySet<Suit> = new Set(['h', 'd'])
 
 export type FaceSize = 'md' | 'board' | 'sm'
 
-// Type sizes for each card size. The card itself changes size with the screen (see Card.tsx),
-// so these follow the same breakpoints: phone, sm (tablet/desktop), and a phone turned sideways.
+// Type is sized in container units of the card itself (cqw = 1% of the card's width), so the
+// rank and suits always keep the same proportions as the card, at any size.
 const TYPE = {
-  md: {
-    rank: 'text-[22px] sm:text-[26px] landscape-phone:text-[17px]',
-    suit: 'text-[13px] sm:text-[15px] landscape-phone:text-[12px]',
-    big: 'text-[38px] sm:text-[46px] landscape-phone:text-[26px]',
-  },
-  board: {
-    rank: 'text-[16px] sm:text-[22px] landscape-phone:text-[13px]',
-    suit: 'text-[10px] sm:text-[13px] landscape-phone:text-[9px]',
-    big: 'text-[26px] sm:text-[38px] landscape-phone:text-[18px]',
-  },
+  md: { rank: 'text-[35cqw]', suit: 'text-[20cqw]', big: 'text-[58cqw]' },
+  board: { rank: 'text-[35cqw]', suit: 'text-[22cqw]', big: 'text-[58cqw]' },
 } as const
 
 /**
@@ -36,13 +28,13 @@ export function CardFace({ card, size }: { card: CardCode; size: FaceSize }) {
   if (size === 'sm') {
     return (
       <div
-        className={`flex h-full flex-col items-center justify-center ${ink}`}
+        className={`@container flex h-full flex-col items-center justify-center ${ink}`}
         aria-label={`${label} of ${suitName(suit)}`}
       >
-        <span className="text-sm leading-none font-bold tracking-tight sm:text-base">
+        <span className="text-[40cqw] leading-none font-bold tracking-tight">
           {label}
         </span>
-        <span className="text-xs leading-none sm:text-sm">{symbol}</span>
+        <span className="text-[34cqw] leading-none">{symbol}</span>
       </div>
     )
   }
@@ -50,7 +42,7 @@ export function CardFace({ card, size }: { card: CardCode; size: FaceSize }) {
   const t = TYPE[size]
   return (
     <div
-      className={`relative h-full w-full ${ink}`}
+      className={`@container relative h-full w-full ${ink}`}
       aria-label={`${label} of ${suitName(suit)}`}
     >
       <span className="absolute top-[5%] left-[9%] flex flex-col items-center leading-none">
