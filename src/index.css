@@ -285,6 +285,10 @@ body {
      not floating next to the game in the centred block. */
   .table-grid {
     grid-template-columns: minmax(0, 2.1fr) minmax(14rem, 1fr) !important;
+    /* The table and the controls sit centred in the window, below the top link bar. */
+    align-content: center;
+    align-items: center !important;
+    padding-top: 2.5rem;
   }
   .table-nav {
     position: fixed;
