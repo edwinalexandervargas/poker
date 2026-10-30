@@ -72,7 +72,7 @@ Cover the answer, say it out loud, then compare. Each answer is short on purpose
 
 45. **How do you ship updates to an installed web app?** Each build stamps an id into the code and writes it to `version.json`. The app re-checks that file when it comes back on screen and every 5 minutes. If it changed, the lobby reloads and a table shows a Refresh pill. I also send `no-cache` for the page and cache the hashed asset files forever. No service worker needed. [56, 57]
 
-46. **How does the nut meter work, and how is it different from the win bar?** The win bar is a Monte Carlo estimate against how many players are still in. The nut meter is exact: the server lists every two-card hand an opponent could have from the unseen cards (about 1,000), counts how many beat mine, and fills the bar by the share I beat. Nothing beats me, so it's the nuts and the bar is full. It's deterministic, so tests check exact counts like 1,081 combos on the flop. [59]
+46. **How does the nut meter work, and how is it different from the win bar?** The win bar is a Monte Carlo estimate against how many players are still in. The nut meter is exact: the server lists every two-card hand an opponent could have from the unseen cards (about 1,000), counts how many beat mine, and fills the bar by the share I beat. Nothing beats me, so it's the nuts and the bar is full. It's deterministic, so tests check exact counts like 1,081 combos on the flop. I changed the fill from "share of combos beaten" to "your step on the ladder of distinct hands", because most combos are junk and top pair looked nearly full. [59, 63]
 
 ## Honest limitations (say these before they ask)
 

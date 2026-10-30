@@ -32,21 +32,7 @@ export function HandStrength({ name, equity, nut = null }: HandStrengthProps) {
       <div className="flex items-baseline justify-between gap-3 text-sm">
         <span className="font-semibold">{name}</span>
         {percent !== null && (
-          <span className="text-xs text-white/60">
-            ≈ {percent}% to win
-            {/* On short or sideways screens the nut meter's own label line is dropped to
-                save height, so its summary joins this line instead. */}
-            {nut && (
-              <span className="short:inline landscape-phone:inline hidden">
-                {' · '}
-                {nut.better === 0 ? (
-                  <span className="font-bold text-[#e3be62]">the nuts</span>
-                ) : (
-                  `${nut.better.toLocaleString()} beat you`
-                )}
-              </span>
-            )}
-          </span>
+          <span className="text-xs text-white/60">≈ {percent}% to win</span>
         )}
       </div>
       {equity !== null && (
@@ -70,21 +56,17 @@ export function HandStrength({ name, equity, nut = null }: HandStrengthProps) {
 }
 
 /**
- * How close you are to the best possible hand on this board. Full when nothing an opponent
- * could hold beats you (the nuts), including when the board itself is the best hand.
+ * How close you are to the best possible hand on this board: your step on the ladder of
+ * different hands the board allows. Full when nothing an opponent could hold beats you (the
+ * nuts). The server re-computes it as each card comes, so it moves with the board.
  */
 function NutMeter({ nut }: { nut: NutStrength }) {
-  const isNuts = nut.better === 0
+  const isNuts = nut.ahead === 0
   const fill = isNuts ? 100 : Math.max(3, nut.score * 100)
   return (
     <div className="short:mt-1 landscape-phone:mt-1 mt-2">
-      <div className="short:hidden landscape-phone:hidden flex items-baseline justify-between gap-3 text-xs">
+      <div className="short:hidden landscape-phone:hidden text-xs">
         <span className="text-white/60">Nut meter</span>
-        <span className={isNuts ? 'font-bold text-[#e3be62]' : 'text-white/60'}>
-          {isNuts
-            ? 'You have the nuts'
-            : `${nut.better.toLocaleString()} ${nut.better === 1 ? 'hand beats' : 'hands beat'} you`}
-        </span>
       </div>
       <div
         className="short:mt-0 landscape-phone:mt-0 mt-1 h-1.5 overflow-hidden rounded-full bg-white/10"

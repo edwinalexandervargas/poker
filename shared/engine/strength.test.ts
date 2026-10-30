@@ -131,9 +131,23 @@ describe('nutStrength', () => {
     )
   })
 
-  it('when the board itself is the best hand, everyone ties: halfway', () => {
+  it('when the board itself is the best hand, you have the nuts too', () => {
     const r = nut(['2c', '3d'], ['As', 'Ks', 'Qs', 'Js', 'Ts'])!
     expect(r.better).toBe(0)
-    expect(r.score).toBe(0.5)
+    expect(r.ahead).toBe(0)
+    expect(r.score).toBe(1)
+  })
+
+  it('top pair is not near the nuts when sets and two pair are possible', () => {
+    const r = nut(['Ac', 'Kd'], ['Ah', '9c', '4d'])!
+    expect(r.ahead).toBeGreaterThan(5)
+    expect(r.score).toBeLessThan(0.95)
+  })
+
+  it('the bar moves as the board changes', () => {
+    const flop = nut(['Ah', 'Kh'], ['Qh', '7h', '2c'])!
+    const turn = nut(['Ah', 'Kh'], ['Qh', '7h', '2c', '9h'])!
+    expect(turn.ahead).toBe(0)
+    expect(turn.score).toBeGreaterThan(flop.score)
   })
 })
