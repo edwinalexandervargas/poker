@@ -25,7 +25,7 @@ export function Seat({ seat, handNumber = 0, dealDelays }: SeatProps) {
     >
       <ReactionBubble reaction={reaction} />
       {/* Hole cards: face up when we know them, face down when we don't. */}
-      <div className="landscape-phone:min-h-[4.5rem] flex min-h-24 gap-1.5 sm:min-h-28 sm:gap-2">
+      <div className="landscape-phone:min-h-16 flex min-h-24 gap-1.5 sm:min-h-28 sm:gap-2">
         {inHand &&
           [0, 1].map((i) => {
             // The same two slots all hand long: a card arrives face down, and flips over

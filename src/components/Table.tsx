@@ -238,7 +238,7 @@ export function Table({
           })}
         </div>
 
-        <div className="landscape-phone:pt-1 flex w-full flex-col items-center gap-2 sm:gap-3">
+        <div className="landscape-phone:pt-0 landscape-phone:gap-1.5 flex w-full flex-col items-center gap-2 sm:gap-3">
           {/* Me: pulled up into the space under the oval (not when sideways, where it has its own column). */}
           <div className="landscape-phone:mt-0 relative -mt-8 sm:-mt-16">
             <Seat
@@ -250,7 +250,11 @@ export function Table({
 
           {/* What I have (and my rough chance of winning, if the table shows it). */}
           {table.myHand && me.inHand && !handOver && (
-            <HandStrength name={table.myHand.name} equity={table.myHand.equity} />
+            <HandStrength
+              name={table.myHand.name}
+              equity={table.myHand.equity}
+              nut={table.myHand.nut}
+            />
           )}
 
           {awayActing && (

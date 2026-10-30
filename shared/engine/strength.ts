@@ -98,3 +98,42 @@ export function equityIterations(
 ): number {
   return Math.max(60, Math.min(1500, Math.floor(budget / (players * (opponents + 1)))))
 }
+
+export interface NutStrength {
+  /** 0 to 1: the share of hands an opponent could hold that yours beats (ties count half). */
+  score: number
+  /** How many possible opponent hands beat yours right now. 0 means you have the nuts. */
+  better: number
+  /** How many two-card hands an opponent could hold, given the cards you can see. */
+  total: number
+}
+
+/**
+ * How close your hand is to the best possible hand ("the nuts") on this board, right now.
+ * Exact, not a simulation: it tries every two cards an opponent could hold (1,081 on the flop,
+ * fewer later) and counts how many beat yours. Like the equity estimate it only uses cards you
+ * can see. Null before the flop, when there's no board to have the nuts on.
+ */
+export function nutStrength(
+  hole: readonly Card[],
+  community: readonly Card[],
+): NutStrength | null {
+  if (hole.length !== 2 || community.length < 3) return null
+  const known = new Set<string>([...hole, ...community])
+  const unseen = createDeck().filter((card) => !known.has(card))
+  const mine = Hand.solve([...hole, ...community])
+
+  let better = 0
+  let tied = 0
+  let total = 0
+  for (let i = 0; i < unseen.length; i++) {
+    for (let j = i + 1; j < unseen.length; j++) {
+      const theirs = Hand.solve([unseen[i]!, unseen[j]!, ...community])
+      const winners = Hand.winners([mine, theirs])
+      total++
+      if (winners.length === 2) tied++
+      else if (winners[0] === theirs) better++
+    }
+  }
+  return { score: (total - better - tied / 2) / total, better, total }
+}

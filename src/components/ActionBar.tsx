@@ -165,7 +165,7 @@ export function ActionBar({
           aria-label="Bet amount"
         />
 
-        <div className="grid grid-cols-4 gap-1.5">
+        <div className="narrow-landscape:hidden grid grid-cols-4 gap-1.5">
           {quickBets.map(({ label, value }) => {
             const active = !sizingOff && raiseTo === value
             return (

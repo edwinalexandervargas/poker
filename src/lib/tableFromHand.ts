@@ -1,4 +1,4 @@
-import type { Card, PublicHandState, Seat } from '@shared/engine'
+import type { Card, NutStrength, PublicHandState, Seat } from '@shared/engine'
 import type { SeatState, TableState } from '@/lib/fakeTable'
 import type { SeatedPlayer } from '@/lib/useRoom'
 
@@ -10,6 +10,8 @@ export interface MyCards {
   handName?: string | null
   /** My rough chance of winning, 0 to 1, when the table shows hand strength. */
   equity?: number | null
+  /** How close my hand is to the nuts right now (from the flop on, if the table shows it). */
+  nut?: NutStrength | null
 }
 
 interface TableFromHandInput {
@@ -76,7 +78,11 @@ export function tableFromHand({
     // What I have, only for the current hand (an older document is from the last hand).
     myHand:
       myCards && myCards.handNumber === hand.handNumber && myCards.handName
-        ? { name: myCards.handName, equity: myCards.equity ?? null }
+        ? {
+            name: myCards.handName,
+            equity: myCards.equity ?? null,
+            nut: myCards.nut ?? null,
+          }
         : null,
   }
 }

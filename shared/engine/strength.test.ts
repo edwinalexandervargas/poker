@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { RandomInt } from './deck.js'
-import { equityIterations, estimateEquity, handLabel } from './strength.js'
+import { equityIterations, estimateEquity, handLabel, nutStrength } from './strength.js'
 
 /** A repeatable random source (mulberry32), so the estimates are the same every run. */
 function seeded(seed: number): RandomInt {
@@ -88,5 +88,52 @@ describe('equityIterations', () => {
   it('stays within sensible bounds', () => {
     expect(equityIterations(2, 1)).toBeLessThanOrEqual(1500)
     expect(equityIterations(8, 7)).toBeGreaterThanOrEqual(60)
+  })
+})
+
+describe('nutStrength', () => {
+  const nut = (hole: string[], community: string[]) =>
+    nutStrength(hole as never, community as never)
+
+  it('no board yet: nothing to measure', () => {
+    expect(nut(['As', 'Ad'], [])).toBeNull()
+  })
+
+  it('counts every hand an opponent could hold: 1,081 on the flop', () => {
+    expect(nut(['As', 'Ad'], ['Kh', '7c', '2d'])!.total).toBe(1081)
+    expect(nut(['As', 'Ad'], ['Kh', '7c', '2d', '9s', '4h'])!.total).toBe(990)
+  })
+
+  it('a royal flush is the nuts: nothing beats it', () => {
+    const r = nut(['As', 'Ks'], ['Qs', 'Js', 'Ts', '2c', '3d'])!
+    expect(r.better).toBe(0)
+    expect(r.score).toBe(1)
+  })
+
+  it('top set on a dry board is near the nuts', () => {
+    const r = nut(['Ah', 'Ad'], ['As', '7c', '2d'])!
+    expect(r.score).toBeGreaterThan(0.99)
+  })
+
+  it('a low pair on a scary board is far from it', () => {
+    const r = nut(['2c', '3d'], ['Ah', 'Kh', 'Qh', 'Jd', '2s'])!
+    expect(r.score).toBeLessThan(0.5)
+    expect(r.better).toBeGreaterThan(400)
+  })
+
+  it('a better hand always scores higher on the same board', () => {
+    const board = ['Kh', '9c', '4d', '7s', '2h']
+    expect(nut(['Ks', 'Kd'], board)!.score).toBeGreaterThan(
+      nut(['Kc', '9d'], board)!.score,
+    )
+    expect(nut(['Kc', '9d'], board)!.score).toBeGreaterThan(
+      nut(['Ac', '3d'], board)!.score,
+    )
+  })
+
+  it('when the board itself is the best hand, everyone ties: halfway', () => {
+    const r = nut(['2c', '3d'], ['As', 'Ks', 'Qs', 'Js', 'Ts'])!
+    expect(r.better).toBe(0)
+    expect(r.score).toBe(0.5)
   })
 })

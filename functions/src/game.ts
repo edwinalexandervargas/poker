@@ -25,7 +25,9 @@ import {
   equityIterations,
   estimateEquity,
   handLabel,
+  nutStrength,
   secureRandomInt,
+  type NutStrength,
   canChatAgain,
   cleanChatText,
   type ChatMessage,
@@ -78,7 +80,10 @@ interface StoredStrength {
   handNumber: number
   boardSize: number
   stillIn: number
-  bySeat: Record<string, { handName: string; equity: number | null }>
+  bySeat: Record<
+    string,
+    { handName: string; equity: number | null; nut: NutStrength | null }
+  >
 }
 
 interface GameInput {
@@ -198,6 +203,7 @@ function saveHand(
       cards,
       handName: mine?.handName ?? null,
       equity: mine?.equity ?? null,
+      nut: mine?.nut ?? null,
     })
     // When a hand ends, remember each player's chips on their own document. Only for
     // players who were dealt in: a newcomer's starting chips must not be overwritten.
@@ -244,6 +250,8 @@ function strengthFor(table: Table, state: HandState): StoredStrength {
             randomInt: secureRandomInt,
           })
         : null,
+      // Exact: every hand an opponent could hold on this board. Null before the flop.
+      nut: showStrength ? nutStrength(hole, state.community) : null,
     }
   }
   return {

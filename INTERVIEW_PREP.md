@@ -72,10 +72,6 @@ Cover the answer, say it out loud, then compare. Each answer is short on purpose
 
 45. **How do you ship updates to an installed web app?** Each build stamps an id into the code and writes it to `version.json`. The app re-checks that file when it comes back on screen and every 5 minutes. If it changed, the lobby reloads and a table shows a Refresh pill. I also send `no-cache` for the page and cache the hashed asset files forever. No service worker needed. [56, 57]
 
-46. **How did you build chat securely?** Clients can't write to the database, so messages go through a `sendChat` function. It cleans the text (length limit, invisible characters removed), uses the sender's real name and seat from the server rather than anything the browser claims, and rate-limits each player to one message a second. React escapes text when it renders, so a message can't inject HTML either. [59]
-
-47. **How does the hand-strength bar work without cheating?** The server runs a quick simulation: it deals random cards to the opponents and finishes the board at random, a few hundred to 1,500 times, and counts how often you win. It deliberately ignores the real deck, which it knows, because using it would leak the coming cards. The result goes to the player's private document only, and it's recalculated only when a card comes or someone folds. [60]
-
 ## Honest limitations (say these before they ask)
 
 - It's deployed, but without App Check, so anyone with the web settings could call the functions (they still enforce every rule). [39]
