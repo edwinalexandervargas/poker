@@ -114,26 +114,28 @@ export function ActionBar({
 
   return (
     <div
-      className="glass landscape-phone:gap-2 landscape-phone:p-3 flex w-full max-w-md flex-col gap-3 rounded-3xl p-3 shadow-[0_-12px_40px_rgb(0_0_0/0.55)] sm:gap-4 sm:p-4"
+      className="glass landscape-phone:gap-2 landscape-phone:p-3 tiny:gap-2 tiny:p-2.5 flex w-full max-w-md flex-col gap-3 rounded-3xl p-3 shadow-[0_-12px_40px_rgb(0_0_0/0.55)] sm:gap-4 sm:p-4"
       aria-label="Your actions"
     >
       {/* Sizing: the amount, −/+ and the slider. */}
-      <div className={`flex flex-col gap-2.5 sm:gap-3 ${sizingOff ? 'opacity-45' : ''}`}>
+      <div
+        className={`tiny:gap-1.5 flex flex-col gap-2.5 sm:gap-3 ${sizingOff ? 'opacity-45' : ''}`}
+      >
         <div className="flex items-center justify-between gap-3">
           <button
             type="button"
             disabled={sizingOff || raiseTo <= minRaiseTo}
             aria-label={`Lower the bet by ${CHIP_UNIT}`}
-            className="btn btn-ghost flex size-10 shrink-0 items-center justify-center !p-0 text-2xl leading-none sm:size-11"
+            className="btn btn-ghost tiny:size-8 tiny:text-xl flex size-10 shrink-0 items-center justify-center !p-0 text-2xl leading-none sm:size-11"
             {...minus}
           >
             −
           </button>
           <div className="text-center" aria-live="polite">
-            <p className="text-[1.8rem] leading-none font-bold tracking-[-0.04em] sm:text-[2.1rem]">
+            <p className="tiny:text-2xl text-[1.8rem] leading-none font-bold tracking-[-0.04em] sm:text-[2.1rem]">
               {raiseTo.toLocaleString()}
             </p>
-            <p className="short:hidden landscape-phone:hidden mt-1 text-xs text-white/50">
+            <p className="short:hidden landscape-phone:hidden tiny:hidden mt-1 text-xs text-white/50">
               {canCheck ? 'Bet' : 'Raise to'} ·{' '}
               {(raiseTo / bigBlind).toFixed(raiseTo % bigBlind ? 1 : 0)} BB
             </p>
@@ -142,7 +144,7 @@ export function ActionBar({
             type="button"
             disabled={sizingOff || raiseTo >= maxRaiseTo}
             aria-label={`Raise the bet by ${CHIP_UNIT}`}
-            className="btn btn-ghost flex size-10 shrink-0 items-center justify-center !p-0 text-2xl leading-none sm:size-11"
+            className="btn btn-ghost tiny:size-8 tiny:text-xl flex size-10 shrink-0 items-center justify-center !p-0 text-2xl leading-none sm:size-11"
             {...plus}
           >
             +
@@ -160,12 +162,12 @@ export function ActionBar({
             setPendingBet(stepBet(Number(e.target.value), 0, minRaiseTo, maxRaiseTo))
           }
           ref={sliderRef}
-          className="slider my-1 w-full sm:my-1.5"
+          className="slider tiny:my-0 my-1 w-full sm:my-1.5"
           style={{ ['--fill' as string]: `${fill}%` }}
           aria-label="Bet amount"
         />
 
-        <div className="narrow-landscape:hidden grid grid-cols-4 gap-1.5">
+        <div className="narrow-landscape:hidden tiny:hidden grid grid-cols-4 gap-1.5">
           {quickBets.map(({ label, value }) => {
             const active = !sizingOff && raiseTo === value
             return (
@@ -194,7 +196,7 @@ export function ActionBar({
           type="button"
           disabled={disabled}
           onClick={() => onAction({ type: 'fold' })}
-          className="btn btn-fold landscape-phone:text-sm !px-2 whitespace-nowrap"
+          className="btn btn-fold landscape-phone:text-sm tiny:!py-2 tiny:text-sm !px-2 whitespace-nowrap"
         >
           Fold
         </button>
@@ -202,7 +204,7 @@ export function ActionBar({
           type="button"
           disabled={disabled}
           onClick={() => onAction(canCheck ? { type: 'check' } : { type: 'call' })}
-          className="btn btn-call landscape-phone:text-sm !px-2 whitespace-nowrap"
+          className="btn btn-call landscape-phone:text-sm tiny:!py-2 tiny:text-sm !px-2 whitespace-nowrap"
         >
           {canCheck ? 'Check' : `Call ${toCall.toLocaleString()}`}
         </button>
@@ -210,7 +212,7 @@ export function ActionBar({
           type="button"
           disabled={disabled || !canRaise}
           onClick={() => onAction({ type: 'raise', amount: raiseTo })}
-          className="btn btn-gold landscape-phone:text-sm !px-2 whitespace-nowrap"
+          className="btn btn-gold landscape-phone:text-sm tiny:!py-2 tiny:text-sm !px-2 whitespace-nowrap"
         >
           {raiseLabel}
         </button>

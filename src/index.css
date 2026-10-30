@@ -12,6 +12,16 @@
 }
 /* A narrow phone turned sideways (iPhone SE and similar): too little width for a wide oval. */
 @custom-variant narrow-landscape (@media (orientation: landscape) and (max-height: 520px) and (max-width: 740px));
+/* A short window that isn't a sideways phone: a small desktop browser window, or a phone with
+   its toolbars showing. Cards and controls shrink so the game still fits. */
+@custom-variant tiny {
+  @media (orientation: portrait) and (max-height: 680px) {
+    @slot;
+  }
+  @media (orientation: landscape) and (min-height: 521px) and (max-height: 760px) and (max-width: 699px) {
+    @slot;
+  }
+}
 /* A short phone held upright (iPhone SE and similar): tighten things so a turn still fits. */
 @custom-variant short (@media (orientation: portrait) and (max-height: 760px));
 

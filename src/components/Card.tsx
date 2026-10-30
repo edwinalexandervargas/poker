@@ -20,10 +20,10 @@ interface CardProps {
 // The small seat cards are too small for a corner index, so they show rank and suit stacked.
 const SIZE_CLASSES = {
   md: {
-    box: 'h-24 w-16 sm:h-28 sm:w-20 landscape-phone:h-16 landscape-phone:w-[2.65rem]',
-    rank: 'text-xl sm:text-2xl',
-    pip: 'text-xs sm:text-sm',
-    centre: 'text-4xl sm:text-5xl',
+    box: 'h-24 w-16 sm:h-28 sm:w-20 tiny:h-16 tiny:w-11 landscape-phone:h-16 landscape-phone:w-[2.65rem]',
+    rank: 'text-xl sm:text-2xl tiny:text-base',
+    pip: 'text-xs sm:text-sm tiny:text-[0.6rem]',
+    centre: 'text-4xl sm:text-5xl tiny:text-2xl',
     corner: 'top-1.5 left-2',
     inset: 'inset-2',
   },

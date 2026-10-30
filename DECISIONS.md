@@ -447,3 +447,9 @@ Each entry: what I did, why, what else I considered, and what it costs.
 - **What:** Before the flop the bar now comes from the Chen formula, a classic starting-hand score (high card, pairs doubled, suited and connected bonuses, gap penalties), scaled so 7-2 offsuit is empty and A-A is full and green. From the flop on it switches to the exact ladder (#63). "Show hand strength" is now on by default when creating a table. On computers, the side-by-side layout starts at 700px wide for any window wider than it is tall, and taller windows size the table by the window height so the controls never cover your seat.
 - **Why:** An empty panel until the flop looked broken, and an off-by-default setting looked like a missing feature. A browser window on a PC can be any shape, not just phone or full screen.
 - **Trade-off:** The Chen score is a rule of thumb, not an exact ranking of the 169 starting hands. It's close enough for a bar and needs no lookup table.
+
+## 66. A `tiny` layout for short windows
+
+- **What:** A new Tailwind variant, `tiny`, covers short windows that aren't sideways phones: upright and under 680px tall, or a small square-ish desktop window. It shrinks your cards to board size, makes the table wider than tall, drops the quick-bet buttons and the "Bet · 2 BB" line, and tightens the bet controls. The table's width is capped by the window height.
+- **Why:** A desktop browser window can be dragged to any size, and phones lose height to toolbars. Before this, the bet controls slid over your cards and the hand-strength panel.
+- **Trade-off:** The quick-bet buttons disappear at these sizes; the slider and +/− still set any amount.
