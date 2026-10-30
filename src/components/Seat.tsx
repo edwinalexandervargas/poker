@@ -1,5 +1,4 @@
 import { Card } from '@/components/Card'
-import { ChipStack } from '@/components/ChipStack'
 import { FlyIn } from '@/components/FlyIn'
 import type { SeatState } from '@/lib/fakeTable'
 
@@ -64,9 +63,6 @@ export function Seat({ seat, handNumber = 0, dealDelays }: SeatProps) {
           )}
           <p className="font-semibold">{name}</p>
           <p className="text-sm text-white/70">{stack.toLocaleString()}</p>
-        </div>
-        <div className="landscape-phone:hidden tiny:!hidden hidden min-h-8 sm:block">
-          <ChipStack amount={stack} size="sm" />
         </div>
       </div>
     </div>

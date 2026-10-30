@@ -28,7 +28,7 @@ const SIZE_CLASSES = {
     inset: 'inset-2',
   },
   board: {
-    box: 'h-16 w-11 sm:h-[min(6rem,15.6cqw)] sm:w-[min(4rem,10.4cqw)] landscape-phone:h-[3.1rem] landscape-phone:w-[2.2rem]',
+    box: 'h-[min(6rem,13.5cqw)] w-[min(4rem,9cqw)] landscape-phone:h-[min(3.1rem,14.6cqw)] landscape-phone:w-[min(2.2rem,10.4cqw)]',
     rank: 'text-base sm:text-[min(1.25rem,3.3cqw)]',
     pip: 'text-[0.6rem] sm:text-[min(0.75rem,2cqw)]',
     centre: 'text-2xl sm:text-[min(2.25rem,6cqw)]',

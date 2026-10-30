@@ -63,12 +63,12 @@ export function layoutSeats(
 export const MY_SPOT: Spot = {
   left: 50,
   top: 96,
-  bet: { left: 50, top: 78 },
+  bet: { left: 50, top: 87 },
   betSideways: { left: 50, top: 81 },
 }
 
 /** The middle of the felt, where the pot sits. */
-export const POT_SPOT: Spot = { left: 50, top: 60 }
+export const POT_SPOT: Spot = { left: 50, top: 66 }
 
 /**
  * Where a seat's bet sits: its hand-placed spot (a separate one on a phone turned sideways),

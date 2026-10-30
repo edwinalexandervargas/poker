@@ -1,5 +1,4 @@
 import { motion, useReducedMotion } from 'motion/react'
-import { ChipStack } from '@/components/ChipStack'
 import { POT_SPOT, type Spot } from '@/lib/seatLayout'
 
 interface BetChipsProps {
@@ -13,7 +12,7 @@ interface BetChipsProps {
 const pct = (n: number) => `${n}%`
 
 /**
- * One player's bet on the felt. It slides out from their seat when placed, and when the
+ * One player's bet on the felt, shown as its amount. It slides out from their seat when placed, and when the
  * betting round ends (the bet disappears) it sweeps into the pot. Wrap a list of these in
  * <AnimatePresence> so the sweep can play.
  */
@@ -35,8 +34,7 @@ export function BetChips({ amount, from, to }: BetChipsProps) {
       }
       transition={{ duration: 0.35, ease: 'easeOut' }}
     >
-      <ChipStack amount={amount} size="sm" />
-      <span className="glass-dark rounded-full px-1.5 text-[0.7rem] leading-4 font-bold">
+      <span className="glass-dark rounded-full px-[clamp(0.3rem,1.2cqw,0.5rem)] py-[clamp(0rem,0.3cqw,0.125rem)] text-[clamp(0.6rem,1.9cqw,0.8rem)] leading-tight font-bold">
         {amount.toLocaleString()}
       </span>
     </motion.div>

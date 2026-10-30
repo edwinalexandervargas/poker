@@ -465,3 +465,9 @@ Each entry: what I did, why, what else I considered, and what it costs.
 - **What:** The centre of the felt shows only the community cards, with the pot's chips and total in one row underneath. The deck is no longer drawn: it stays in place, invisible, as the point dealt cards fly out of. Bets sweep toward the pot's new spot under the board.
 - **Why:** The board is what everyone looks at; a deck and a pot stacked above it pushed it down and cluttered the middle, especially on small tables.
 - **Trade-off:** No visible deck or shuffle; the deal still animates from the centre.
+
+## 69. No chip graphics; everything on the table scales with it
+
+- **What:** The chip stacks are gone (beside your seat, in bets, and in the pot); bets and the pot show their amounts. The Min / ½ Pot / Pot / All-in buttons show at every size, smaller on short and sideways screens. Board cards are sized in table units at every size, other players' seats shrink a step at a time on smaller tables (container queries), and the board sits lower on the felt so bets around it stay clear.
+- **Why:** At small sizes the chips crowded the felt and covered cards, and fixed-size seats and board cards collided once the table shrank to fit the window. The quick-bet buttons are how most people bet, so hiding them at some sizes made those layouts harder to play.
+- **Trade-off:** Less casino feel without chip stacks. The chip-breakdown code (`ChipStack`, `lib/chips`) was deleted with them; it's in git history (DECISIONS #44) if it comes back.

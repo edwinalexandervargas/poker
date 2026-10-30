@@ -193,8 +193,8 @@ export function Table({
           shape on phones, so your cards and the controls still fit on the screen. */}
         {/* Spacers either side of the table: it sits centred in the room above your seat, and your seat and the bet controls sit at the bottom of the window. */}
         <div aria-hidden className="landscape-phone:hidden flex-1" />
-        <div className="landscape-phone:mx-auto landscape-phone:mt-5 landscape-phone:aspect-[8/5] landscape-phone:w-[min(100%,calc((100svh-4.5rem)*1.6))] narrow-landscape:aspect-[4/3] narrow-landscape:w-[min(100%,calc((100svh-4.5rem)*1.333))] short:mt-3 short:aspect-[5/4] tiny:mt-2 tiny:!aspect-[16/10] tiny:!w-[min(100%,calc((100svh-25rem)*1.6))] sm:tiny:!w-[min(100%,calc((100svh-24rem)*1.6))] @container relative mt-5 aspect-square w-full max-w-2xl min-[500px]:w-[clamp(17rem,calc((100svh-32.5rem)*1.25),100%)] sm:mt-2 sm:aspect-[16/11] sm:w-[min(100%,calc((100svh-33rem)*16/11))]">
-          <section className="felt landscape-phone:inset-x-[11%] landscape-phone:inset-y-[18%] narrow-landscape:inset-x-[12%] narrow-landscape:inset-y-[20%] landscape-phone:rounded-[50%] landscape-phone:gap-3 landscape-phone:pt-[7%] absolute inset-x-[4%] inset-y-[14%] flex flex-col items-center justify-center gap-2 rounded-[45%] sm:inset-x-[8%]">
+        <div className="landscape-phone:mx-auto landscape-phone:mt-5 landscape-phone:aspect-[8/5] landscape-phone:w-[min(100%,calc((100svh-4.5rem)*1.6))] narrow-landscape:aspect-[4/3] narrow-landscape:w-[min(100%,calc((100svh-4.5rem)*1.333))] short:mt-3 short:aspect-[5/4] tiny:mt-2 tiny:!aspect-[16/10] tiny:!w-[min(100%,calc((100svh-26rem)*1.6))] sm:tiny:!w-[min(100%,calc((100svh-26rem)*1.6))] @container relative mt-5 aspect-square w-full max-w-2xl min-[500px]:w-[clamp(17rem,calc((100svh-32.5rem)*1.25),100%)] sm:mt-2 sm:aspect-[16/11] sm:w-[min(100%,calc((100svh-33rem)*16/11))]">
+          <section className="felt landscape-phone:inset-x-[11%] landscape-phone:inset-y-[18%] narrow-landscape:inset-x-[12%] narrow-landscape:inset-y-[20%] landscape-phone:rounded-[50%] landscape-phone:gap-3 landscape-phone:pt-[7%] absolute inset-x-[4%] inset-y-[14%] flex flex-col items-center justify-center gap-2 rounded-[45%] pt-[18%] sm:inset-x-[8%]">
             {/* The deck is only where dealt cards fly from: kept in place but not shown, so
               the middle of the table holds just the board and the pot. */}
             <div
@@ -230,7 +230,9 @@ export function Table({
             return (
               <div
                 key={seat.seat}
-                className="absolute -translate-x-1/2 -translate-y-1/2"
+                // Seats shrink a step at a time as the table gets smaller, so they keep clear
+                // of the board.
+                className="absolute -translate-x-1/2 -translate-y-1/2 @max-[560px]:scale-[0.88] @max-[460px]:scale-[0.78] @max-[360px]:scale-[0.68]"
                 style={{ left: `${spot.left}%`, top: `${spot.top}%` }}
               >
                 <OpponentSeat

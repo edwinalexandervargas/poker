@@ -167,7 +167,7 @@ export function ActionBar({
           aria-label="Bet amount"
         />
 
-        <div className="narrow-landscape:hidden tiny:hidden grid grid-cols-4 gap-1.5">
+        <div className="tiny:gap-1 landscape-phone:gap-1 grid grid-cols-4 gap-1.5">
           {quickBets.map(({ label, value }) => {
             const active = !sizingOff && raiseTo === value
             return (
@@ -177,7 +177,7 @@ export function ActionBar({
                 disabled={sizingOff}
                 onClick={() => setPendingBet(value)}
                 aria-pressed={active}
-                className={`rounded-full border py-1.5 text-xs font-semibold transition ${
+                className={`tiny:py-1 landscape-phone:py-1 tiny:text-[0.7rem] landscape-phone:text-[0.7rem] rounded-full border py-1.5 text-xs font-semibold whitespace-nowrap transition ${
                   active
                     ? 'border-gold bg-gold/15 text-gold'
                     : 'border-white/10 bg-white/5 text-white/80 hover:bg-white/10'
@@ -196,7 +196,7 @@ export function ActionBar({
           type="button"
           disabled={disabled}
           onClick={() => onAction({ type: 'fold' })}
-          className="btn btn-fold landscape-phone:text-sm tiny:!py-2 tiny:text-sm !px-2 whitespace-nowrap"
+          className="btn btn-fold landscape-phone:text-sm tiny:!py-2 tiny:text-sm narrow-landscape:!py-1.5 !px-2 whitespace-nowrap"
         >
           Fold
         </button>
@@ -204,7 +204,7 @@ export function ActionBar({
           type="button"
           disabled={disabled}
           onClick={() => onAction(canCheck ? { type: 'check' } : { type: 'call' })}
-          className="btn btn-call landscape-phone:text-sm tiny:!py-2 tiny:text-sm !px-2 whitespace-nowrap"
+          className="btn btn-call landscape-phone:text-sm tiny:!py-2 tiny:text-sm narrow-landscape:!py-1.5 !px-2 whitespace-nowrap"
         >
           {canCheck ? 'Check' : `Call ${toCall.toLocaleString()}`}
         </button>
@@ -212,7 +212,7 @@ export function ActionBar({
           type="button"
           disabled={disabled || !canRaise}
           onClick={() => onAction({ type: 'raise', amount: raiseTo })}
-          className="btn btn-gold landscape-phone:text-sm tiny:!py-2 tiny:text-sm !px-2 whitespace-nowrap"
+          className="btn btn-gold landscape-phone:text-sm tiny:!py-2 tiny:text-sm narrow-landscape:!py-1.5 !px-2 whitespace-nowrap"
         >
           {raiseLabel}
         </button>
