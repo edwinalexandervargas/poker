@@ -423,3 +423,9 @@ Each entry: what I did, why, what else I considered, and what it costs.
 - **What:** Screens wider than they are tall (at least 900px wide, up to 1200px tall) now use the same two-column layout as a sideways phone: table on the left, your cards, hand strength and controls on the right. The whole layout scales with the screen height (the root font size grows, so every rem grows with it) and sits centered on the page.
 - **Why:** The upright phone layout stacks everything in one column. On a laptop that column was taller than the screen, so the controls covered your own cards. Reusing the sideways layout meant no new layout to maintain, just one more media query on the same variant (`landscape-phone` became a block variant with two `@media` rules) and the matching `SIDEWAYS_PHONE` query used by code.
 - **Trade-off:** Scaling by root font size is a blunt tool: it scales everything evenly instead of letting the table grow more than the controls.
+
+## 62. The result banner names the kicker when it decided the hand
+
+- **What:** When the winner and the closest loser have the same kind of hand and the difference is in the kickers, the banner adds it: "a wins 40 with Pair, A's (J kicker)". `describeWin` in showdown.ts compares the winning five cards with the best losing hand of the same kind and finds the first card that differs.
+- **Why:** With a pair of aces on the board, both players have "Pair, A's", so the plain name made it look like the wrong person won. Saying which card decided it explains the result in the same terms players use.
+- **Trade-off:** Only for hands decided by a kicker (high card, pair, two pair, trips, quads). A pair beating a lower pair, or a different kind of hand, keeps the plain name. Hand names are also tidied by `handTitle`: pokersolver says "Flush, Qd High", players say "Flush, Q high", so the suit letter is dropped everywhere a name is shown (the banner and the hand-strength panel).

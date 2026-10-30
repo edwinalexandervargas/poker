@@ -8,6 +8,7 @@
 import pokersolver from 'pokersolver'
 import { createDeck, type RandomInt } from './deck.js'
 import type { Card } from './types.js'
+import { handTitle } from './showdown.js'
 
 const { Hand } = pokersolver
 
@@ -41,7 +42,7 @@ export function handLabel(hole: readonly Card[], community: readonly Card[]): st
     const suited = a![1] === b![1] ? 'suited' : 'offsuit'
     return `${RANK_NAME[ra]![0]}-${RANK_NAME[rb]![0]} ${suited}`
   }
-  return Hand.solve([...hole, ...community]).descr
+  return handTitle(Hand.solve([...hole, ...community]).descr)
 }
 
 export interface EquityInput {

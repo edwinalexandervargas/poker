@@ -1,7 +1,8 @@
 import { headsUp, type HeadsUpFixture } from './testHand.js'
 import { describe, expect, it } from 'vitest'
 import type { HandState } from './hand.js'
-import { getWinners, resolveShowdown } from './showdown.js'
+import pokersolverForTest from 'pokersolver'
+import { describeWin, getWinners, handTitle, resolveShowdown } from './showdown.js'
 import type { Card } from './types.js'
 
 // A board with nothing special on it: no pair, no straight, no flush.
@@ -175,5 +176,61 @@ describe('resolveShowdown', () => {
     const snapshot = JSON.parse(JSON.stringify(before))
     resolveShowdown(before)
     expect(before).toEqual(snapshot)
+  })
+})
+
+describe('describeWin', () => {
+  const { Hand } = pokersolverForTest
+  const board = ['Ah', 'Qd', 'Ks', 'Ac', '4h']
+  const solve = (hole: string[]) => Hand.solve([...hole, ...board])
+
+  it('names the kicker when it decides a pair against a pair', () => {
+    expect(describeWin(solve(['2d', 'Jc']), [solve(['8s', '7h'])])).toBe(
+      "Pair, A's (J kicker)",
+    )
+  })
+
+  it('says 10 rather than T', () => {
+    expect(describeWin(solve(['Th', '2c']), [solve(['8s', '7h'])])).toBe(
+      "Pair, A's (10 kicker)",
+    )
+  })
+
+  it('leaves the name alone when the hands are different kinds', () => {
+    expect(describeWin(solve(['Kd', '2c']), [solve(['8s', '7h'])])).toBe(
+      "Two Pair, A's & K's",
+    )
+  })
+
+  it('leaves the name alone when the made hand itself is better', () => {
+    const b = ['2h', '5d', '9s', 'Jc', '3h']
+    const win = Hand.solve(['Ad', 'Ac', ...b])
+    const lose = Hand.solve(['Kd', 'Kc', ...b])
+    expect(describeWin(win, [lose])).toBe("Pair, A's")
+  })
+
+  it('leaves the name alone with nobody to compare against', () => {
+    expect(describeWin(solve(['2d', 'Jc']), [])).toBe("Pair, A's")
+  })
+})
+
+describe('handTitle', () => {
+  it.each([
+    ['Flush, Qd High', 'Flush, Q high'],
+    ['Straight Flush, Kd High', 'Straight Flush, K high'],
+    ['Straight, 10 High', 'Straight, 10 high'],
+    ['A High', 'A high'],
+    ["Pair, A's", "Pair, A's"],
+    ['Royal Flush', 'Royal Flush'],
+  ])('%s → %s', (descr, title) => {
+    expect(handTitle(descr)).toBe(title)
+  })
+
+  it('tidies the banner for a flush win', () => {
+    const { Hand } = pokersolverForTest
+    const board = ['Qd', '2d', '9h', '3d', '8d']
+    const win = Hand.solve(['5s', 'Jd', ...board])
+    const lose = Hand.solve(['5c', '8h', ...board])
+    expect(describeWin(win, [lose])).toBe('Flush, Q high')
   })
 })
