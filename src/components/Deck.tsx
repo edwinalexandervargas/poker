@@ -8,7 +8,7 @@ interface DeckProps {
 }
 
 /**
- * The deck in the corner of the felt. Dealt cards fly out of it (see FlyIn, which finds it
+ * The deck, just left of the pot. Dealt cards fly out of it (see FlyIn, which finds it
  * through `data-deck`). Mount it with `key={handNumber}` so every new hand shuffles again.
  */
 export function Deck({ shuffle }: DeckProps) {
@@ -19,10 +19,10 @@ export function Deck({ shuffle }: DeckProps) {
     <div
       data-deck
       aria-hidden
-      // On a phone turned sideways the small table has no free spot, so the deck sits left of
-      // the pot while dealing and fades out afterwards (it stays in place, invisible, so dealt cards
-      // can still be measured flying out of it).
-      className={`landscape-phone:top-[38%] landscape-phone:left-[27%] landscape-phone:h-11 landscape-phone:w-8 absolute top-[24%] left-[39%] h-10 w-7 transition-opacity duration-700 sm:top-[14%] sm:left-[40%] sm:h-14 sm:w-10 ${
+      // It sits in the same row as the pot, so it can't cover it at any table shape. On a phone
+      // turned sideways it fades out after the deal (it stays in place, invisible, so dealt
+      // cards can still be measured flying out of it).
+      className={`landscape-phone:h-11 landscape-phone:w-8 tiny:h-9 tiny:w-6 relative h-10 w-7 shrink-0 transition-opacity duration-700 sm:h-12 sm:w-9 ${
         shuffle ? '' : 'landscape-phone:opacity-0'
       }`}
     >

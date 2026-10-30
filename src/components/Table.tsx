@@ -193,8 +193,10 @@ export function Table({
           shape on phones, so your cards and the controls still fit on the screen. */}
         <div className="landscape-phone:mx-auto landscape-phone:mt-5 landscape-phone:aspect-[8/5] landscape-phone:w-[min(100%,calc((100svh-4.5rem)*1.6))] narrow-landscape:aspect-[4/3] narrow-landscape:w-[min(100%,calc((100svh-4.5rem)*1.333))] short:mt-3 short:aspect-[5/4] tiny:mt-2 tiny:!aspect-[16/10] tiny:!w-[min(100%,calc((100svh-21rem)*1.6))] relative mt-5 aspect-square w-full max-w-2xl min-[500px]:w-[clamp(17rem,calc((100svh-32.5rem)*1.25),100%)] sm:mt-2 sm:aspect-[16/11] sm:w-[min(100%,calc((100svh-33rem)*16/11))]">
           <section className="felt landscape-phone:inset-x-[11%] landscape-phone:inset-y-[18%] narrow-landscape:inset-x-[12%] narrow-landscape:inset-y-[20%] landscape-phone:rounded-[50%] landscape-phone:gap-3 landscape-phone:pt-[7%] absolute inset-x-[4%] inset-y-[14%] flex flex-col items-center justify-center gap-2 rounded-[45%] sm:inset-x-[8%]">
-            <Deck key={`deck-${table.handNumber}`} shuffle={dealPlan !== null} />
-            <PotDisplay pot={table.pot} />
+            <div className="flex items-center gap-3">
+              <Deck key={`deck-${table.handNumber}`} shuffle={dealPlan !== null} />
+              <PotDisplay pot={table.pot} />
+            </div>
             <CommunityCards key={`board-${table.handNumber}`} cards={table.community} />
           </section>
 
