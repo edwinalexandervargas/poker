@@ -35,6 +35,10 @@ const heartbeatFn = httpsCallable<{ code: string; leaving: boolean }, { now: num
   'heartbeat',
 )
 const rebuyFn = httpsCallable<{ code: string }, { stack: number }>(functions, 'rebuy')
+const sendChatFn = httpsCallable<{ code: string; text: string }, { at: number }>(
+  functions,
+  'sendChat',
+)
 const reactFn = httpsCallable<{ code: string; emoji: string }, { at: number }>(
   functions,
   'react',
@@ -65,6 +69,16 @@ export async function playAction(code: string, action: Action): Promise<void> {
 }
 
 /** After a hand ends, deal the next one (or end the game if someone is out of chips). */
+/** Send a chat message to the table. Throws with a message safe to show if it's refused. */
+export async function sendChat(code: string, text: string): Promise<void> {
+  await ensureSignedIn()
+  try {
+    await sendChatFn({ code, text })
+  } catch (error) {
+    throw new Error(errorMessage(error))
+  }
+}
+
 /** Send an emoji reaction to the table. */
 export async function react(code: string, emoji: string): Promise<void> {
   await ensureSignedIn()

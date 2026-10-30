@@ -14,10 +14,12 @@ import {
   playAction,
   react,
   rebuy,
+  sendChat,
   startGame,
 } from '@/lib/api'
 import { isAway, isGone } from '@/lib/presence'
 import { tableFromHand } from '@/lib/tableFromHand'
+import { useChat } from '@/lib/useChat'
 import { useEvents } from '@/lib/useEvents'
 import { useHand } from '@/lib/useHand'
 import { useNow, usePresence } from '@/lib/usePresence'
@@ -120,6 +122,7 @@ interface GameProps {
 function Game({ code, room, players, me }: GameProps) {
   const handView = useHand(code, me.uid)
   const log = useEvents(code)
+  const chat = useChat(code)
   const { pending, error, run } = useServerCall()
   // Every player's screen watches the clock; whichever gets there first asks the server to act.
   const { online, clockOffset } = usePresence(code)
@@ -171,6 +174,8 @@ function Game({ code, room, players, me }: GameProps) {
         rebuyAmount={room.config.startingStack}
         onRebuy={() => run(() => rebuy(code))}
         log={log}
+        chat={chat}
+        onChat={(text) => sendChat(code, text)}
         standings={standings(players, room.config.startingStack)}
         // Reactions are fire-and-forget: a refusal (too fast) isn't worth an error message.
         onReact={(emoji) => void react(code, emoji).catch(() => {})}

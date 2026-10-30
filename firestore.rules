@@ -32,6 +32,12 @@ service cloud.firestore {
         allow write: if false;
       }
 
+      // Chat. Messages are written by the sendChat function, never directly by a client.
+      match /chat/{messageId} {
+        allow read: if signedIn();
+        allow write: if false;
+      }
+
       // Hole cards: only the owning player may read them.
       match /private/{uid} {
         allow read: if signedIn() && request.auth.uid == uid;

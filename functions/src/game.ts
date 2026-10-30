@@ -11,6 +11,7 @@
 //   rooms/{code}/hand/current     the censored copy every player may see
 //   rooms/{code}/private/{uid}    that one player's two hole cards. Only they can read it.
 //   rooms/{code}/events/{id}      the action log ("Alex raises to 80"). Every player can read it.
+//   rooms/{code}/chat/{id}        chat messages. Every player can read them; only this server writes.
 
 import './options.js'
 import {
@@ -21,6 +22,9 @@ import {
 } from 'firebase-admin/firestore'
 import { HttpsError, onCall } from 'firebase-functions/v2/https'
 import {
+  canChatAgain,
+  cleanChatText,
+  type ChatMessage,
   isGone,
   canReactAgain,
   canRebuy,
@@ -449,6 +453,32 @@ export const react = onCall<GameInput & { emoji?: unknown }>(async (request) => 
     tx.update(table.roomRef.collection('players').doc(uid), {
       reaction: { emoji, at: now },
     })
+    return { at: now }
+  })
+})
+
+/**
+ * A seated player sends a chat message. The server tidies the text (cleanChatText), stamps it
+ * with the sender's real seat and name (so nobody can post as someone else), and allows one
+ * message per CHAT_COOLDOWN_MS per player.
+ */
+export const sendChat = onCall<GameInput & { text?: unknown }>(async (request) => {
+  const uid = requireUid(request.auth?.uid)
+  const code = requireCode(request.data?.code)
+  const text = cleanChatText(request.data?.text)
+  if (!text)
+    throw new HttpsError('invalid-argument', 'Type a message (up to 200 characters).')
+
+  return getFirestore().runTransaction(async (tx) => {
+    const table = await readTable(tx, code)
+    const me = requireSeated(table, uid)
+    const now = Date.now()
+    if (!canChatAgain(me.lastChatAt, now)) {
+      throw new HttpsError('resource-exhausted', 'Slow down a little.')
+    }
+    const message: ChatMessage = { seat: me.seat, name: me.name, text, at: now }
+    tx.set(table.roomRef.collection('chat').doc(), message)
+    tx.update(table.roomRef.collection('players').doc(uid), { lastChatAt: now })
     return { at: now }
   })
 })

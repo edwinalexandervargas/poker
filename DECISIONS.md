@@ -405,3 +405,9 @@ Each entry: what I did, why, what else I considered, and what it costs.
 - **What:** Every card face shows a large rank and suit in the top-left corner and one large suit in the bottom-right, on every screen and orientation. Only the size changes with the screen. The printed-deck layout (pips, court panels) and its helper `pips.ts` were removed.
 - **Why:** The printed layout looked great on big cards but turned into a jumble on small ones (sideways phones, the board on small screens). One readable style keeps the game consistent wherever you play it, and it's how poker apps draw cards: what matters at a table is reading a card in an instant.
 - **Trade-off:** Less "real deck" charm on large screens, in exchange for consistency and readability.
+
+## 59. Table chat goes through the server too
+
+- **What:** A Chat button in the top bar, with an unread count, opens the table chat. Messages are sent with the `sendChat` function, which tidies the text (`cleanChatText`: trims, collapses spaces, removes invisible control and direction characters, 1 to 200 characters), stamps it with the sender's real seat and name, and allows one message per second per player. Messages live in `rooms/{code}/chat`, which players can read but never write directly. Screens follow the newest 50.
+- **Why:** The same rule as everything else: clients never write. That rules out posting as someone else, spamming, and smuggling invisible characters that garble the layout. The text rules and the cooldown are pure engine functions with tests, and the unread count is a tested pure function too.
+- **Trade-off:** One function call and one write per message. Fine for a few friends. There's no moderation (blocking or deleting messages), which a public game would need.

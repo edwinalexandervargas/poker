@@ -151,5 +151,6 @@ export {
   playAction,
   react,
   rebuy,
+  sendChat,
   startGame,
 } from './game.js'

@@ -9,6 +9,7 @@ import { ActionLog } from '@/components/ActionLog'
 import { BetChips } from '@/components/BetChips'
 import { CommunityCards } from '@/components/CommunityCards'
 import { Deck } from '@/components/Deck'
+import { ChatPanel } from '@/components/ChatPanel'
 import { HandHistory } from '@/components/HandHistory'
 import { Modal } from '@/components/Modal'
 import { OpponentSeat } from '@/components/OpponentSeat'
@@ -25,6 +26,8 @@ import { SIDEWAYS_PHONE, useMediaQuery } from '@/lib/useMediaQuery'
 import { seatAt, type TableState } from '@/lib/fakeTable'
 import type { TurnClock } from '@/lib/turnClock'
 import type { LogLine } from '@/lib/useEvents'
+import type { ChatLine } from '@/lib/useChat'
+import { countUnread } from '@/lib/unread'
 
 interface TableProps {
   table: TableState
@@ -50,6 +53,9 @@ interface TableProps {
   standings?: Standing[]
   /** Send an emoji reaction. */
   onReact?: (emoji: string) => void
+  /** The table chat, oldest first, and how to send a message. */
+  chat?: ChatLine[]
+  onChat?: (text: string) => Promise<void>
 }
 
 /** The whole table screen. It draws whatever TableState it is given. */
@@ -68,10 +74,25 @@ export function Table({
   log = [],
   standings = [],
   onReact,
+  chat = [],
+  onChat,
 }: TableProps) {
   // Bets are placed in code, so the sideways layout needs to be known here too.
   const sideways = useMediaQuery(SIDEWAYS_PHONE)
-  const [panel, setPanel] = useState<'log' | 'scores' | 'history' | null>(null)
+  const [panel, setPanel] = useState<'chat' | 'log' | 'scores' | 'history' | null>(null)
+  // Chat read up to this time: opening the chat marks everything as read.
+  const [chatReadAt, setChatReadAt] = useState(0)
+  const latestChat = chat.at(-1)?.at ?? 0
+  const chatOpen = panel === 'chat'
+  const unread = chatOpen ? 0 : countUnread(chat, table.mySeat, chatReadAt)
+  const openChat = () => {
+    setChatReadAt(latestChat)
+    setPanel('chat')
+  }
+  const closePanel = () => {
+    if (chatOpen) setChatReadAt(latestChat)
+    setPanel(null)
+  }
   const me = seatAt(table, table.mySeat)!
   const others = table.seats.filter((s) => s.seat !== table.mySeat)
   const handOver = table.phase === 'complete'
@@ -105,6 +126,21 @@ export function Table({
           {code}
         </span>
         <span className="flex gap-3">
+          {onChat && (
+            <button
+              type="button"
+              onClick={openChat}
+              className="relative mr-1.5 underline underline-offset-4"
+              aria-label={unread > 0 ? `Chat, ${unread} unread` : 'Chat'}
+            >
+              Chat
+              {unread > 0 && (
+                <span className="absolute -top-2 -right-3 flex min-w-4 items-center justify-center rounded-full bg-[#d9444b] px-1 text-[0.65rem] leading-4 font-bold text-white no-underline">
+                  {unread > 9 ? '9+' : unread}
+                </span>
+              )}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setPanel('log')}
@@ -129,6 +165,11 @@ export function Table({
         </span>
       </header>
 
+      {panel === 'chat' && onChat && (
+        <Modal title="Table chat" onClose={closePanel}>
+          <ChatPanel messages={chat} mySeat={table.mySeat} onSend={onChat} />
+        </Modal>
+      )}
       {panel === 'log' && (
         <Modal title="Action log" onClose={() => setPanel(null)}>
           <ActionLog lines={log} />
