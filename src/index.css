@@ -268,4 +268,13 @@ body {
     max-width: 82rem !important;
     justify-content: center;
   }
+  /* The table's links (Leave, code, Chat, Log...) sit in a bar along the top of the window,
+     not floating next to the game in the centred block. */
+  .table-nav {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 40;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(to bottom, rgb(7 13 10 / 0.9), transparent);
+  }
 }
