@@ -13,6 +13,8 @@ export interface RoomConfig {
   startingStack: number
   smallBlind: number
   bigBlind: number
+  /** Show each player a bar with their rough chance of winning. Chosen by the host. */
+  showStrength?: boolean
 }
 
 export const DEFAULT_ROOM_CONFIG: RoomConfig = {

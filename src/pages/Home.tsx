@@ -23,6 +23,8 @@ export default function Home() {
   const [flopUp, setFlopUp] = useState(false)
   const [pingResult, setPingResult] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  // Host setting for the new table: show everyone a rough chance-of-winning bar.
+  const [showStrength, setShowStrength] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const hasName = playerName.trim().length > 0
@@ -32,7 +34,7 @@ export default function Home() {
     setBusy(true)
     setError(null)
     try {
-      navigate(`/room/${await createRoom(playerName)}`)
+      navigate(`/room/${await createRoom(playerName, showStrength)}`)
     } catch (e) {
       setError(errorMessage(e))
       setBusy(false)
@@ -100,6 +102,20 @@ export default function Home() {
           maxLength={20}
           className="field"
         />
+        <label className="flex cursor-pointer items-center justify-between gap-3 px-2 text-sm text-white/70">
+          <span>
+            Show hand strength
+            <span className="block text-xs text-white/45">
+              A bar with each player’s rough chance of winning
+            </span>
+          </span>
+          <input
+            type="checkbox"
+            checked={showStrength}
+            onChange={(e) => setShowStrength(e.target.checked)}
+            className="toggle"
+          />
+        </label>
         <button
           type="button"
           disabled={!hasName || busy}

@@ -23,6 +23,8 @@ const db = getFirestore()
 
 interface RoomInput {
   name?: unknown
+  /** createRoom only: show each player their rough chance of winning. */
+  showStrength?: unknown
   code?: unknown
 }
 
@@ -64,7 +66,11 @@ export const createRoom = onCall<RoomInput>(async (request) => {
       code,
       status: 'waiting',
       hostUid: uid,
-      config: DEFAULT_ROOM_CONFIG,
+      // Only a real `true` turns it on; anything else a browser sends means off.
+      config: {
+        ...DEFAULT_ROOM_CONFIG,
+        showStrength: request.data?.showStrength === true,
+      },
     }
     const host: PlayerDoc = {
       name,

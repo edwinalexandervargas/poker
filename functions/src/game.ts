@@ -22,6 +22,10 @@ import {
 } from 'firebase-admin/firestore'
 import { HttpsError, onCall } from 'firebase-functions/v2/https'
 import {
+  equityIterations,
+  estimateEquity,
+  handLabel,
+  secureRandomInt,
   canChatAgain,
   cleanChatText,
   type ChatMessage,
@@ -62,6 +66,19 @@ interface Table {
   roomRef: DocumentReference
   room: RoomDoc
   players: SeatedPlayer[]
+  /** The hand-strength numbers saved with the last move (see strengthFor), once read. */
+  previousStrength?: StoredStrength
+}
+
+/**
+ * Each player's hand name and estimated chance of winning, kept with the secret hand so it is
+ * only recalculated when something that matters changes (a new card, someone folding).
+ */
+interface StoredStrength {
+  handNumber: number
+  boardSize: number
+  stillIn: number
+  bySeat: Record<string, { handName: string; equity: number | null }>
 }
 
 interface GameInput {
@@ -105,6 +122,7 @@ function requireSeated(table: Table, uid: string): SeatedPlayer {
 async function readHand(tx: Transaction, table: Table): Promise<HandState> {
   const snap = await tx.get(table.roomRef.collection('secret').doc('hand'))
   if (!snap.exists) throw new HttpsError('failed-precondition', 'No hand is in progress.')
+  table.previousStrength = snap.get('strength') as StoredStrength | undefined
   return unpackHand(snap.get('state') as StoredHand)
 }
 
@@ -156,7 +174,8 @@ function saveHand(
     })
   })
 
-  tx.set(roomRef.collection('secret').doc('hand'), { state: packHand(state) })
+  const strength = strengthFor(table, state)
+  tx.set(roomRef.collection('secret').doc('hand'), { state: packHand(state), strength })
 
   // The clock is the server's, so every screen counts down to the same moment. A finished
   // hand has nobody on the clock.
@@ -171,9 +190,14 @@ function saveHand(
   for (const player of players) {
     // Someone who sat down mid-hand has no cards in this hand: an empty list.
     const cards = state.holeCards[player.seat] ?? []
+    // Only this player can read this document: their cards, what they make, and (if the
+    // table shows it) their rough chance of winning.
+    const mine = strength.bySeat[`seat${player.seat}`]
     tx.set(roomRef.collection('private').doc(player.uid), {
       handNumber: state.handNumber,
       cards,
+      handName: mine?.handName ?? null,
+      equity: mine?.equity ?? null,
     })
     // When a hand ends, remember each player's chips on their own document. Only for
     // players who were dealt in: a newcomer's starting chips must not be overwritten.
@@ -182,6 +206,51 @@ function saveHand(
         stack: state.stacks[player.seat],
       })
     }
+  }
+}
+
+/**
+ * Works out each player's hand name and, if the host turned it on, their rough chance of
+ * winning. The estimate is a simulation, so it is only redone when the board or the number of
+ * players still in changes, not on every bet. It never sees the real deck (see strength.ts).
+ */
+function strengthFor(table: Table, state: HandState): StoredStrength {
+  const stillInSeats = state.holeCards.flatMap((cards, seat) =>
+    cards.length > 0 && !state.folded[seat] ? [seat] : [],
+  )
+  const previous = table.previousStrength
+  const unchanged =
+    previous?.handNumber === state.handNumber &&
+    previous.boardSize === state.community.length &&
+    previous.stillIn === stillInSeats.length
+  if (unchanged && previous) return previous
+
+  const live = state.phase !== 'complete' && state.phase !== 'showdown'
+  const showStrength = table.room.config.showStrength === true && live
+  const opponents = stillInSeats.length - 1
+  const iterations = equityIterations(stillInSeats.length, opponents)
+
+  const bySeat: StoredStrength['bySeat'] = {}
+  for (const seat of stillInSeats) {
+    const hole = state.holeCards[seat]!
+    bySeat[`seat${seat}`] = {
+      handName: handLabel(hole, state.community),
+      equity: showStrength
+        ? estimateEquity({
+            hole,
+            community: state.community,
+            opponents,
+            iterations,
+            randomInt: secureRandomInt,
+          })
+        : null,
+    }
+  }
+  return {
+    handNumber: state.handNumber,
+    boardSize: state.community.length,
+    stillIn: stillInSeats.length,
+    bySeat,
   }
 }
 

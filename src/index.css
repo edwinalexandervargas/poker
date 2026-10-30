@@ -5,7 +5,7 @@
 /* A narrow phone turned sideways (iPhone SE and similar): too little width for a wide oval. */
 @custom-variant narrow-landscape (@media (orientation: landscape) and (max-height: 520px) and (max-width: 740px));
 /* A short phone held upright (iPhone SE and similar): tighten things so a turn still fits. */
-@custom-variant short (@media (orientation: portrait) and (max-height: 700px));
+@custom-variant short (@media (orientation: portrait) and (max-height: 760px));
 
 @theme {
   --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
@@ -166,6 +166,38 @@ body {
       inset 0 0 60px rgb(0 0 0 / 0.5),
       0 30px 80px rgb(0 0 0 / 0.6),
       0 0 120px rgb(26 143 92 / 0.18);
+  }
+
+  /* An on/off switch, drawn from a plain checkbox (so it keeps working with the keyboard). */
+  .toggle {
+    appearance: none;
+    position: relative;
+    flex-shrink: 0;
+    width: 2.75rem;
+    height: 1.6rem;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 0.12);
+    border: 1px solid rgb(255 255 255 / 0.12);
+    cursor: pointer;
+    transition: background 150ms ease;
+  }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: calc(1.6rem - 6px);
+    height: calc(1.6rem - 6px);
+    border-radius: 9999px;
+    background: #f2efe6;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
+    transition: transform 150ms ease;
+  }
+  .toggle:checked {
+    background: linear-gradient(180deg, #f0d27f, #d4a945);
+  }
+  .toggle:checked::after {
+    transform: translateX(1.15rem);
   }
 
   /* The raise slider. */

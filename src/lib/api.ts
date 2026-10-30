@@ -5,10 +5,10 @@ import { functions } from '@/lib/firebase'
 
 // The only way the browser changes game data: ask a Cloud Function.
 
-const createRoomFn = httpsCallable<{ name: string }, { code: string }>(
-  functions,
-  'createRoom',
-)
+const createRoomFn = httpsCallable<
+  { name: string; showStrength: boolean },
+  { code: string }
+>(functions, 'createRoom')
 const joinRoomFn = httpsCallable<{ code: string; name: string }, { code: string }>(
   functions,
   'joinRoom',
@@ -44,9 +44,10 @@ const reactFn = httpsCallable<{ code: string; emoji: string }, { at: number }>(
   'react',
 )
 
-export async function createRoom(name: string): Promise<string> {
+/** Makes a table. `showStrength` gives every player a rough chance-of-winning bar. */
+export async function createRoom(name: string, showStrength = false): Promise<string> {
   await ensureSignedIn()
-  const { data } = await createRoomFn({ name })
+  const { data } = await createRoomFn({ name, showStrength })
   return data.code
 }
 

@@ -6,6 +6,10 @@ import type { SeatedPlayer } from '@/lib/useRoom'
 export interface MyCards {
   handNumber: number
   cards: Card[]
+  /** What my cards make, like "Pair of Aces" (worked out by the server). */
+  handName?: string | null
+  /** My rough chance of winning, 0 to 1, when the table shows hand strength. */
+  equity?: number | null
 }
 
 interface TableFromHandInput {
@@ -69,5 +73,10 @@ export function tableFromHand({
     bigBlind,
     seats: players.toSorted((a, b) => a.seat - b.seat).map(seatState),
     result: hand.result,
+    // What I have, only for the current hand (an older document is from the last hand).
+    myHand:
+      myCards && myCards.handNumber === hand.handNumber && myCards.handName
+        ? { name: myCards.handName, equity: myCards.equity ?? null }
+        : null,
   }
 }
