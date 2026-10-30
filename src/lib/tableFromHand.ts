@@ -9,7 +9,6 @@ export interface MyCards {
   /** What my cards make, like "Pair of Aces" (worked out by the server). */
   handName?: string | null
   /** My rough chance of winning, 0 to 1, when the table shows hand strength. */
-  equity?: number | null
   /** How close my hand is to the nuts right now (from the flop on, if the table shows it). */
   nut?: NutStrength | null
 }
@@ -79,7 +78,6 @@ export function tableFromHand({
       myCards && myCards.handNumber === hand.handNumber && myCards.handName
         ? {
             name: myCards.handName,
-            equity: myCards.equity ?? null,
             nut: myCards.nut ?? null,
           }
         : null,

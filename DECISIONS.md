@@ -435,3 +435,9 @@ Each entry: what I did, why, what else I considered, and what it costs.
 - **What:** The meter used to fill by the share of opponent two-card combos you beat (#59). Now it sorts every hand the board allows into a ladder of different strengths (combos that would tie are one step) and fills by your step: 1 − (steps ahead of you ÷ steps below the top). The panel shows only your hand name and the bar (no count of better hands: the bar says it). It's still exact and still re-run as each card comes.
 - **Why:** Most combos are junk, so beating a share of them made top pair look almost full while sets and two pairs were still out there. The ladder answers the question the bar is for: how close am I to the nuts? It also moves the way players expect: a flush draw sits near half on the flop and jumps to full when the flush comes.
 - **Trade-off:** Every different hand counts as one step, whether one combo makes it or fifty, so it says nothing about how likely those better hands are. That's what the win bar is for.
+
+## 64. One bar: the nut meter, red to green, no percentages
+
+- **What:** The win-chance bar and its "≈ X% to win" are gone. The panel shows what you have ("Pair, A's") and one bar, the nut meter. Its colour slides from red (far from the nuts) to green (the nuts), and it's full and green with a glow when you have the nuts. The server no longer runs the Monte Carlo estimate.
+- **Why:** Two bars and a percentage was more than a player needs mid-hand. One bar answering "how close am I to the best hand?" is quicker to read, and the colour says it before you read anything. Dropping the simulation also saves server time on every new card.
+- **Trade-off:** No sense of how many opponents are in or how likely they are to have something. The engine keeps `estimateEquity` (tested) in case it comes back.

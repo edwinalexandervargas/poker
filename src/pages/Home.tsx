@@ -23,7 +23,7 @@ export default function Home() {
   const [flopUp, setFlopUp] = useState(false)
   const [pingResult, setPingResult] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  // Host setting for the new table: show everyone a rough chance-of-winning bar.
+  // Host setting for the new table: show everyone the nut meter.
   const [showStrength, setShowStrength] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -106,7 +106,7 @@ export default function Home() {
           <span>
             Show hand strength
             <span className="block text-xs text-white/45">
-              A bar with each player’s rough chance of winning
+              A bar showing how close each player is to the nuts
             </span>
           </span>
           <input

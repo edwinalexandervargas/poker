@@ -246,11 +246,7 @@ export function Table({
 
           {/* What I have (and my rough chance of winning, if the table shows it). */}
           {table.myHand && me.inHand && !handOver && (
-            <HandStrength
-              name={table.myHand.name}
-              equity={table.myHand.equity}
-              nut={table.myHand.nut}
-            />
+            <HandStrength name={table.myHand.name} nut={table.myHand.nut} />
           )}
 
           {awayActing && (

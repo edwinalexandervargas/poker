@@ -40,7 +40,7 @@ export interface TableState {
   /** Every occupied seat, in seat order. Up to 8. */
   seats: SeatState[]
   /** What my cards make, and my rough chance of winning if the table shows it. */
-  myHand?: { name: string; equity: number | null; nut?: NutStrength | null } | null
+  myHand?: { name: string; nut?: NutStrength | null } | null
   /** How the hand ended. Missing (or null) while the hand is still being played. */
   result?: HandResult | null
 }

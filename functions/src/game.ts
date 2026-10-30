@@ -22,11 +22,8 @@ import {
 } from 'firebase-admin/firestore'
 import { HttpsError, onCall } from 'firebase-functions/v2/https'
 import {
-  equityIterations,
-  estimateEquity,
   handLabel,
   nutStrength,
-  secureRandomInt,
   type NutStrength,
   canChatAgain,
   cleanChatText,
@@ -78,10 +75,7 @@ interface StoredStrength {
   handNumber: number
   boardSize: number
   stillIn: number
-  bySeat: Record<
-    string,
-    { handName: string; equity: number | null; nut: NutStrength | null }
-  >
+  bySeat: Record<string, { handName: string; nut: NutStrength | null }>
 }
 
 interface GameInput {
@@ -200,7 +194,6 @@ function saveHand(
       handNumber: state.handNumber,
       cards,
       handName: mine?.handName ?? null,
-      equity: mine?.equity ?? null,
       nut: mine?.nut ?? null,
     })
     // When a hand ends, remember each player's chips on their own document. Only for
@@ -231,23 +224,12 @@ function strengthFor(table: Table, state: HandState): StoredStrength {
 
   const live = state.phase !== 'complete' && state.phase !== 'showdown'
   const showStrength = table.room.config.showStrength === true && live
-  const opponents = stillInSeats.length - 1
-  const iterations = equityIterations(stillInSeats.length, opponents)
 
   const bySeat: StoredStrength['bySeat'] = {}
   for (const seat of stillInSeats) {
     const hole = state.holeCards[seat]!
     bySeat[`seat${seat}`] = {
       handName: handLabel(hole, state.community),
-      equity: showStrength
-        ? estimateEquity({
-            hole,
-            community: state.community,
-            opponents,
-            iterations,
-            randomInt: secureRandomInt,
-          })
-        : null,
       // Exact: every hand an opponent could hold on this board. Null before the flop.
       nut: showStrength ? nutStrength(hole, state.community) : null,
     }
