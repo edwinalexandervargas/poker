@@ -68,7 +68,7 @@ export const MY_SPOT: Spot = {
 }
 
 /** The middle of the felt, where the pot sits. */
-export const POT_SPOT: Spot = { left: 50, top: 46 }
+export const POT_SPOT: Spot = { left: 50, top: 60 }
 
 /**
  * Where a seat's bet sits: its hand-placed spot (a separate one on a phone turned sideways),

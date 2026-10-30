@@ -7,14 +7,17 @@ interface PotDisplayProps {
 
 export function PotDisplay({ pot }: PotDisplayProps) {
   return (
-    <div className="flex flex-col items-center gap-1">
-      {/* Reserve the height so the board doesn't jump when the pot first appears. */}
-      <div className="landscape-phone:hidden flex h-8 items-end sm:h-12">
-        <ChipStack amount={pot} size="sm" />
-      </div>
-      <div className="glass-dark flex items-baseline gap-2 rounded-full px-4 py-1.5">
-        <span className="text-xs font-medium text-white/60">Pot</span>
-        <span className="text-lg font-bold tracking-tight">{pot.toLocaleString()}</span>
+    // Under the board: the pot's chips, then its total. Sized in units of the table's width
+    // (cqw), so it grows and shrinks with the table.
+    <div className="flex items-center gap-[clamp(0.25rem,1.2cqw,0.6rem)]">
+      {pot > 0 && <ChipStack amount={pot} size="sm" />}
+      <div className="glass-dark flex items-baseline gap-[clamp(0.25rem,1.2cqw,0.5rem)] rounded-full px-[clamp(0.5rem,2.2cqw,1rem)] py-[clamp(0.1rem,0.7cqw,0.375rem)]">
+        <span className="text-[clamp(0.55rem,1.8cqw,0.75rem)] font-medium text-white/60">
+          Pot
+        </span>
+        <span className="text-[clamp(0.8rem,3cqw,1.125rem)] font-bold tracking-tight">
+          {pot.toLocaleString()}
+        </span>
       </div>
     </div>
   )

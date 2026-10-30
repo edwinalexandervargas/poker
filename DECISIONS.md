@@ -459,3 +459,9 @@ Each entry: what I did, why, what else I considered, and what it costs.
 - **What:** The rank and suits on every card are sized in container units of the card itself (`cqw`), so they keep the card's proportions at any size and can never spill over its edges. On desktop the layout is chosen by shape, not width steps: a window at least 760px wide and 1.2× wider than tall gets the side-by-side layout, with the table taking about two thirds of the width; anything squarer or taller gets the stacked layout with compact controls. Sideways phones keep their own layout.
 - **Why:** Fixed pixel type on resizable cards looked broken on small cards. Width-only breakpoints gave the wrong layout for in-between windows (a wide-ish but tall window, or a small but wide one), so the table was tiny and the controls were huge.
 - **Trade-off:** One more layer of rules to know about: the card's own container for its type, the table's container for board cards, and the window for the layout. In the stacked layout two flexible spacers keep the table centred in the space above your seat and pin your seat, hand panel and bet controls to the bottom of the window, so nothing needs scrolling.
+
+## 68. The middle of the table: just the board, with the pot under it
+
+- **What:** The centre of the felt shows only the community cards, with the pot's chips and total in one row underneath. The deck is no longer drawn: it stays in place, invisible, as the point dealt cards fly out of. Bets sweep toward the pot's new spot under the board.
+- **Why:** The board is what everyone looks at; a deck and a pot stacked above it pushed it down and cluttered the middle, especially on small tables.
+- **Trade-off:** No visible deck or shuffle; the deal still animates from the centre.
