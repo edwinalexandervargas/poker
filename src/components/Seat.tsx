@@ -17,13 +17,13 @@ export function Seat({ seat, handNumber = 0, dealDelays }: SeatProps) {
 
   return (
     <div
-      className={`landscape-phone:flex-row relative flex flex-row items-center gap-3 transition-opacity sm:flex-col ${
+      className={`landscape-phone:flex-row tiny:!flex-row relative flex flex-row items-center gap-3 transition-opacity sm:flex-col ${
         inHand ? 'opacity-100' : 'opacity-40'
       }`}
       aria-label={`${name}'s seat`}
     >
       {/* Hole cards: face up when we know them, face down when we don't. */}
-      <div className="landscape-phone:min-h-16 flex min-h-24 gap-1.5 sm:min-h-28 sm:gap-2">
+      <div className="landscape-phone:min-h-16 tiny:!min-h-0 flex min-h-24 gap-1.5 sm:min-h-28 sm:gap-2">
         {inHand &&
           [0, 1].map((i) => {
             // The same two slots all hand long: a card arrives face down, and flips over
@@ -65,7 +65,7 @@ export function Seat({ seat, handNumber = 0, dealDelays }: SeatProps) {
           <p className="font-semibold">{name}</p>
           <p className="text-sm text-white/70">{stack.toLocaleString()}</p>
         </div>
-        <div className="landscape-phone:hidden hidden min-h-8 sm:block">
+        <div className="landscape-phone:hidden tiny:!hidden hidden min-h-8 sm:block">
           <ChipStack amount={stack} size="sm" />
         </div>
       </div>

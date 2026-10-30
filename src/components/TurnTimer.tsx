@@ -26,7 +26,7 @@ export function TurnTimer({ turn, label }: TurnTimerProps) {
       aria-label={`${label}, ${Math.ceil(left / 1000)} seconds left`}
       className="w-full max-w-md"
     >
-      <div className="short:hidden landscape-phone:hidden mb-1 flex justify-between text-sm text-white/70">
+      <div className="short:hidden landscape-phone:hidden tiny:hidden mb-1 flex justify-between text-sm text-white/70">
         <span>{label}</span>
         <span className={low ? 'text-red-300' : undefined}>
           {Math.ceil(left / 1000)}s
