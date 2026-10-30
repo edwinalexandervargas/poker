@@ -417,3 +417,9 @@ Each entry: what I did, why, what else I considered, and what it costs.
 - **What:** The emoji reactions from #50 are gone: the picker, the bubbles over seats, the `react` function and the engine's list and cooldown.
 - **Why:** Table chat (with its own server-side cleaning and cooldown) covers the same need, and the reaction row took up space at the bottom of the screen on phones.
 - **Trade-off:** No one-tap emoji. Chat can still carry them.
+
+## 61. Computers and sideways tablets get the side-by-side layout
+
+- **What:** Screens wider than they are tall (at least 900px wide, up to 1200px tall) now use the same two-column layout as a sideways phone: table on the left, your cards, hand strength and controls on the right. The whole layout scales with the screen height (the root font size grows, so every rem grows with it) and sits centered on the page.
+- **Why:** The upright phone layout stacks everything in one column. On a laptop that column was taller than the screen, so the controls covered your own cards. Reusing the sideways layout meant no new layout to maintain, just one more media query on the same variant (`landscape-phone` became a block variant with two `@media` rules) and the matching `SIDEWAYS_PHONE` query used by code.
+- **Trade-off:** Scaling by root font size is a blunt tool: it scales everything evenly instead of letting the table grow more than the controls.

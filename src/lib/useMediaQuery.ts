@@ -17,4 +17,5 @@ export function useMediaQuery(query: string): boolean {
 }
 
 /** The same rule as the `landscape-phone` variant in index.css. */
-export const SIDEWAYS_PHONE = '(orientation: landscape) and (max-height: 520px)'
+export const SIDEWAYS_PHONE =
+  '(orientation: landscape) and (max-height: 520px), (orientation: landscape) and (min-width: 900px) and (max-height: 1200px)'
