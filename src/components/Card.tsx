@@ -20,18 +20,18 @@ interface CardProps {
 // The small seat cards are too small for a corner index, so they show rank and suit stacked.
 const SIZE_CLASSES = {
   md: {
-    box: 'h-24 w-16 sm:h-28 sm:w-20 tiny:h-16 tiny:w-11 landscape-phone:h-16 landscape-phone:w-[2.65rem]',
-    rank: 'text-xl sm:text-2xl tiny:text-base',
-    pip: 'text-xs sm:text-sm tiny:text-[0.6rem]',
-    centre: 'text-4xl sm:text-5xl tiny:text-2xl',
+    box: 'h-24 w-16 sm:h-[min(7rem,13svh)] sm:w-[min(5rem,9.3svh)] tiny:h-[clamp(4rem,10svh,5.5rem)] tiny:w-[clamp(2.75rem,6.9svh,3.8rem)] landscape-phone:h-16 landscape-phone:w-[2.65rem]',
+    rank: 'text-xl sm:text-[min(1.5rem,2.8svh)] tiny:text-base',
+    pip: 'text-xs sm:text-[min(0.875rem,1.6svh)] tiny:text-[0.6rem]',
+    centre: 'text-4xl sm:text-[min(3rem,5.6svh)] tiny:text-2xl',
     corner: 'top-1.5 left-2',
     inset: 'inset-2',
   },
   board: {
-    box: 'h-16 w-11 sm:h-24 sm:w-16 landscape-phone:h-[3.1rem] landscape-phone:w-[2.2rem]',
-    rank: 'text-base sm:text-xl',
-    pip: 'text-[0.6rem] sm:text-xs',
-    centre: 'text-2xl sm:text-4xl',
+    box: 'h-16 w-11 sm:h-[min(6rem,15.6cqw)] sm:w-[min(4rem,10.4cqw)] landscape-phone:h-[3.1rem] landscape-phone:w-[2.2rem]',
+    rank: 'text-base sm:text-[min(1.25rem,3.3cqw)]',
+    pip: 'text-[0.6rem] sm:text-[min(0.75rem,2cqw)]',
+    centre: 'text-2xl sm:text-[min(2.25rem,6cqw)]',
     corner: 'top-1 left-1.5 sm:top-1.5 sm:left-2',
     inset: 'inset-1 sm:inset-2',
   },

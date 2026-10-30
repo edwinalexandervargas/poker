@@ -452,4 +452,4 @@ Each entry: what I did, why, what else I considered, and what it costs.
 
 - **What:** A new Tailwind variant, `tiny`, covers short windows that aren't sideways phones: upright and under 680px tall, or a small square-ish desktop window. It shrinks your cards to board size, makes the table wider than tall, drops the quick-bet buttons and the "Bet · 2 BB" line, and tightens the bet controls. The table's width is capped by the window height.
 - **Why:** A desktop browser window can be dragged to any size, and phones lose height to toolbars. Before this, the bet controls slid over your cards and the hand-strength panel.
-- **Trade-off:** The quick-bet buttons disappear at these sizes; the slider and +/− still set any amount.
+- **Trade-off:** The quick-bet buttons disappear at these sizes; the slider and +/− still set any amount. Cards no longer jump in size at the 640px breakpoint: board cards are sized in container units (`cqw`) of the table, so they shrink and grow with it, and your own cards follow the window height (`svh`). `tiny` also covers upright windows 500px+ wide and under 900px tall.
