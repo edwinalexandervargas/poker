@@ -24,7 +24,7 @@ export default function Home() {
   const [pingResult, setPingResult] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   // Host setting for the new table: show everyone the nut meter.
-  const [showStrength, setShowStrength] = useState(false)
+  const [showStrength, setShowStrength] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const hasName = playerName.trim().length > 0

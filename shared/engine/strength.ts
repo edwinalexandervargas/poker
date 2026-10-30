@@ -126,7 +126,8 @@ export function nutStrength(
   hole: readonly Card[],
   community: readonly Card[],
 ): NutStrength | null {
-  if (hole.length !== 2 || community.length < 3) return null
+  if (hole.length !== 2) return null
+  if (community.length < 3) return preflopStrength(hole[0]!, hole[1]!)
   const known = new Set<string>([...hole, ...community])
   const unseen = createDeck().filter((card) => !known.has(card))
   const mine = Hand.solve([...hole, ...community])
@@ -157,4 +158,34 @@ export function nutStrength(
     better,
     total,
   }
+}
+
+const RANKS = '23456789TJQKA'
+
+/**
+ * Before the flop there's no board, so the bar comes from the Chen formula, a classic score for
+ * starting hands: points for the high card, doubled for a pair, plus for suited, minus for gaps.
+ * It runs from about -1 (7-2 offsuit) to 20 (A-A), scaled to 0..1. Pocket aces are the preflop
+ * nuts.
+ */
+export function preflopStrength(a: Card, b: Card): NutStrength {
+  const [hi, lo] = [RANKS.indexOf(a[0]!), RANKS.indexOf(b[0]!)].sort((x, y) => y - x) as [
+    number,
+    number,
+  ]
+  const cardPoints = (rank: number) =>
+    [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 6, 7, 8, 10][rank]!
+  let points = cardPoints(hi)
+  if (hi === lo) {
+    points = Math.max(5, points * 2)
+  } else {
+    if (a[1] === b[1]) points += 2
+    const gap = hi - lo - 1
+    points -= [0, 1, 2, 4][gap] ?? 5
+    // Small connected cards can make straights both ways.
+    if (gap <= 1 && hi < RANKS.indexOf('Q')) points += 1
+  }
+  points = Math.round(points)
+  const score = Math.min(1, Math.max(0, (points + 1) / 21))
+  return { score, ahead: score === 1 ? 0 : 1, better: 0, total: 0 }
 }

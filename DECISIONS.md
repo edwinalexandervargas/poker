@@ -441,3 +441,9 @@ Each entry: what I did, why, what else I considered, and what it costs.
 - **What:** The win-chance bar and its "≈ X% to win" are gone. The panel shows what you have ("Pair, A's") and one bar, the nut meter. Its colour slides from red (far from the nuts) to green (the nuts), and it's full and green with a glow when you have the nuts. The server no longer runs the Monte Carlo estimate.
 - **Why:** Two bars and a percentage was more than a player needs mid-hand. One bar answering "how close am I to the best hand?" is quicker to read, and the colour says it before you read anything. Dropping the simulation also saves server time on every new card.
 - **Trade-off:** No sense of how many opponents are in or how likely they are to have something. The engine keeps `estimateEquity` (tested) in case it comes back.
+
+## 65. The nut bar from the first card, on by default, and PC windows of any shape
+
+- **What:** Before the flop the bar now comes from the Chen formula, a classic starting-hand score (high card, pairs doubled, suited and connected bonuses, gap penalties), scaled so 7-2 offsuit is empty and A-A is full and green. From the flop on it switches to the exact ladder (#63). "Show hand strength" is now on by default when creating a table. On computers, the side-by-side layout starts at 700px wide for any window wider than it is tall, and taller windows size the table by the window height so the controls never cover your seat.
+- **Why:** An empty panel until the flop looked broken, and an off-by-default setting looked like a missing feature. A browser window on a PC can be any shape, not just phone or full screen.
+- **Trade-off:** The Chen score is a rule of thumb, not an exact ranking of the 169 starting hands. It's close enough for a bar and needs no lookup table.

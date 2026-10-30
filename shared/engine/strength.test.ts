@@ -95,8 +95,25 @@ describe('nutStrength', () => {
   const nut = (hole: string[], community: string[]) =>
     nutStrength(hole as never, community as never)
 
-  it('no board yet: nothing to measure', () => {
-    expect(nut(['As', 'Ad'], [])).toBeNull()
+  it('before the flop, pocket aces are the nuts', () => {
+    const r = nut(['As', 'Ad'], [])!
+    expect(r.score).toBe(1)
+    expect(r.ahead).toBe(0)
+  })
+
+  it('before the flop, better starting hands score higher', () => {
+    const order = [
+      ['Kd', 'Kc'],
+      ['As', 'Ks'],
+      ['Jh', 'Th'],
+      ['9c', '9d'],
+      ['Kd', '8c'],
+      ['7d', '2c'],
+    ]
+    const scores = order.map((hole) => nut(hole, [])!.score)
+    for (let i = 1; i < scores.length; i++)
+      expect(scores[i]).toBeLessThanOrEqual(scores[i - 1]!)
+    expect(scores.at(-1)).toBe(0)
   })
 
   it('counts every hand an opponent could hold: 1,081 on the flop', () => {
