@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from 'motion/react'
+import { m, useReducedMotion } from 'motion/react'
 import { useEffect, useState } from 'react'
 import type { Card as CardCode } from '@shared/engine'
 import { CardFace } from '@/components/CardFace'
@@ -67,7 +67,7 @@ export function Card({
 
   return (
     <div className={`${sizes.box} [perspective:800px] ${className}`}>
-      <motion.div
+      <m.div
         className="relative h-full w-full [transform-style:preserve-3d]"
         initial={startFaceDown ? { rotateY: 0 } : false}
         animate={{ rotateY: faceUp ? 180 : 0 }}
@@ -78,17 +78,17 @@ export function Card({
         }
       >
         {/* Back (visible when rotateY = 0) */}
-        <div className="card-back absolute inset-0 rounded-lg shadow-lg [backface-visibility:hidden]">
+        <div className="card-back absolute inset-0 rounded-[0.5rem] [backface-visibility:hidden]">
           <div
-            className={`absolute ${sizes.inset} rounded-md border border-[#e3be62]/30`}
+            className={`absolute ${sizes.inset} rounded-[0.3rem] border border-[#f5b83d]/35`}
           />
         </div>
 
         {/* Face (pre-rotated so it shows when the card is flipped), printed like a real card. */}
-        <div className="absolute inset-0 [transform:rotateY(180deg)] overflow-hidden rounded-lg bg-gradient-to-b from-[#fffdf8] to-[#f1ede3] shadow-[0_6px_16px_rgb(0_0_0/0.45),inset_0_0_0_1px_rgb(0_0_0/0.1)] [backface-visibility:hidden]">
+        <div className="absolute inset-0 [transform:rotateY(180deg)] overflow-hidden rounded-[0.5rem] bg-gradient-to-b from-white to-[#eef1f5] shadow-[0_8px_18px_rgb(0_0_0/0.4),0_1px_2px_rgb(0_0_0/0.3),inset_0_0_0_1px_rgb(15_23_42/0.08)] [backface-visibility:hidden]">
           {card && <CardFace card={card} size={size} />}
         </div>
-      </motion.div>
+      </m.div>
     </div>
   )
 }

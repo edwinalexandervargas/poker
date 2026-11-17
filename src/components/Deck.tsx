@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from 'motion/react'
+import { m, useReducedMotion } from 'motion/react'
 
 const CARDS_IN_PILE = 6
 
@@ -29,7 +29,7 @@ export function Deck({ shuffle }: DeckProps) {
       {Array.from({ length: CARDS_IN_PILE }, (_, i) => {
         const side = i % 2 === 0 ? -1 : 1
         return (
-          <motion.div
+          <m.div
             key={i}
             className="card-back absolute inset-0 rounded-md shadow"
             style={{ top: -i * 1.5, left: -i * 0.5 }}
@@ -43,8 +43,8 @@ export function Deck({ shuffle }: DeckProps) {
             }
             transition={{ duration: 0.9, delay: i * 0.04, ease: 'easeInOut' }}
           >
-            <div className="absolute inset-0.5 rounded-sm border border-[#e3be62]/30" />
-          </motion.div>
+            <div className="absolute inset-0.5 rounded-sm border border-[#f5b83d]/35" />
+          </m.div>
         )
       })}
     </div>

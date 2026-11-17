@@ -1,0 +1,48 @@
+# Checks every push and pull request: the same lint, format, tests and builds you'd run before a
+# deploy. Nothing here deploys; deploys stay manual (see README).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same branch cancels the run still going for the old one.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            functions/package-lock.json
+
+      - name: Install
+        run: |
+          npm ci
+          npm --prefix functions ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Formatting
+        run: npm run format:check
+
+      - name: Unit tests (game engine and UI logic)
+        run: npm test
+
+      - name: Build the site
+        run: npm run build
+
+      - name: Build the Cloud Functions
+        run: npm --prefix functions run build

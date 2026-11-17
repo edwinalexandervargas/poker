@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { MAX_CHAT_LENGTH } from '@shared/engine/chat'
+import { Avatar } from '@/components/Avatar'
+import { SendIcon } from '@/components/Icons'
 import type { ChatLine } from '@/lib/useChat'
 
 interface ChatPanelProps {
@@ -45,31 +47,44 @@ export function ChatPanel({ messages, mySeat, onSend }: ChatPanelProps) {
   return (
     <div className="flex flex-col gap-3">
       {messages.length === 0 ? (
-        <p className="py-6 text-center text-white/50">No messages yet. Say hi!</p>
+        <p className="text-muted py-6 text-center">
+          No messages yet. Say hi to the table.
+        </p>
       ) : (
         <ol className="flex flex-col gap-2" aria-live="polite">
           {messages.map((m, i) => {
             const mine = m.seat === mySeat
+            // A run of messages from the same person shows their avatar and name once.
+            const sameAsBefore = messages[i - 1]?.seat === m.seat
             return (
               <li
                 key={m.id}
                 ref={i === messages.length - 1 ? endRef : undefined}
-                className={`flex max-w-[85%] flex-col ${mine ? 'items-end self-end' : 'items-start'}`}
+                className={`flex max-w-[85%] items-end gap-2 ${mine ? 'self-end' : ''} ${sameAsBefore ? '-mt-1' : ''}`}
               >
                 {!mine && (
-                  <span className="mb-0.5 px-1 text-xs text-white/50">{m.name}</span>
+                  <span className="w-7 shrink-0">
+                    {!sameAsBefore && (
+                      <Avatar name={m.name} seat={m.seat} className="size-7 text-xs" />
+                    )}
+                  </span>
                 )}
-                <span
-                  className={`rounded-2xl px-3 py-2 text-sm break-words ${
-                    mine
-                      ? 'rounded-br-md bg-gradient-to-b from-[#f0d27f] to-[#d4a945] text-[#1c1405]'
-                      : 'rounded-bl-md bg-white/10'
-                  }`}
-                >
-                  {m.text}
-                </span>
-                <span className="mt-0.5 px-1 text-[0.65rem] text-white/35">
-                  {timeOf(m.at)}
+                <span className={`flex flex-col ${mine ? 'items-end' : 'items-start'}`}>
+                  {!mine && !sameAsBefore && (
+                    <span className="text-muted mb-0.5 px-1 text-xs">{m.name}</span>
+                  )}
+                  <span
+                    className={`rounded-2xl px-3 py-2 text-sm break-words ${
+                      mine
+                        ? 'bg-brass rounded-br-md text-[#1d1404]'
+                        : 'bg-surface-2 rounded-bl-md'
+                    }`}
+                  >
+                    {m.text}
+                  </span>
+                  <span className="text-muted/80 mt-0.5 px-1 text-[0.65rem]">
+                    {timeOf(m.at)}
+                  </span>
                 </span>
               </li>
             )
@@ -86,18 +101,19 @@ export function ChatPanel({ messages, mySeat, onSend }: ChatPanelProps) {
           placeholder="Message the table"
           aria-label="Chat message"
           enterKeyHint="send"
-          className="field min-w-0 flex-1 !py-2.5"
+          className="field min-w-0 flex-1 !rounded-full !py-2.5"
         />
         <button
           type="submit"
           disabled={sending || draft.trim() === ''}
-          className="btn btn-gold !px-4 !py-2.5"
+          className="btn btn-gold !rounded-full !px-3.5 !py-2.5"
+          aria-label="Send"
         >
-          Send
+          <SendIcon />
         </button>
       </form>
       {error && (
-        <p role="alert" className="text-sm text-red-300">
+        <p role="alert" className="text-fold text-sm">
           {error}
         </p>
       )}

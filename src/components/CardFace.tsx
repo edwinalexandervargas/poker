@@ -8,8 +8,8 @@ export type FaceSize = 'md' | 'board' | 'sm'
 // Type is sized in container units of the card itself (cqw = 1% of the card's width), so the
 // rank and suits always keep the same proportions as the card, at any size.
 const TYPE = {
-  md: { rank: 'text-[35cqw]', suit: 'text-[20cqw]', big: 'text-[58cqw]' },
-  board: { rank: 'text-[35cqw]', suit: 'text-[22cqw]', big: 'text-[58cqw]' },
+  md: { rank: 'text-[38cqw]', suit: 'text-[22cqw]', big: 'text-[60cqw]' },
+  board: { rank: 'text-[38cqw]', suit: 'text-[24cqw]', big: 'text-[60cqw]' },
 } as const
 
 /**
@@ -22,7 +22,7 @@ export function CardFace({ card, size }: { card: CardCode; size: FaceSize }) {
   const suit = card[1] as Suit
   const symbol = SUIT_SYMBOL[suit]
   const label = rank === 'T' ? '10' : rank
-  const ink = RED_SUITS.has(suit) ? 'text-[#c8202b]' : 'text-[#16191b]'
+  const ink = RED_SUITS.has(suit) ? 'text-[#d7263d]' : 'text-[#141a26]'
 
   // The small cards at other players' seats: just the rank over the suit.
   if (size === 'sm') {
@@ -31,7 +31,7 @@ export function CardFace({ card, size }: { card: CardCode; size: FaceSize }) {
         className={`@container flex h-full flex-col items-center justify-center ${ink}`}
         aria-label={`${label} of ${suitName(suit)}`}
       >
-        <span className="text-[40cqw] leading-none font-bold tracking-tight">
+        <span className="text-[44cqw] leading-none font-extrabold tracking-[-0.04em]">
           {label}
         </span>
         <span className="text-[34cqw] leading-none">{symbol}</span>
@@ -46,7 +46,9 @@ export function CardFace({ card, size }: { card: CardCode; size: FaceSize }) {
       aria-label={`${label} of ${suitName(suit)}`}
     >
       <span className="absolute top-[5%] left-[9%] flex flex-col items-center leading-none">
-        <span className={`${t.rank} font-bold tracking-[-0.06em]`}>{label}</span>
+        <span className={`${t.rank} leading-[0.95] font-extrabold tracking-[-0.06em]`}>
+          {label}
+        </span>
         <span className={t.suit}>{symbol}</span>
       </span>
       <span

@@ -113,7 +113,7 @@ export function ActionBar({
 
   return (
     <div
-      className="glass landscape-phone:gap-2.5 landscape-phone:p-3 tiny:gap-2.5 tiny:p-3 flex w-full max-w-md flex-col gap-3 rounded-3xl p-3 shadow-[0_-12px_40px_rgb(0_0_0/0.55)] sm:gap-4 sm:p-4"
+      className="panel landscape-phone:gap-2.5 landscape-phone:p-3 tiny:gap-2.5 tiny:p-3 flex w-full max-w-md flex-col gap-3 rounded-[1.6rem] p-3 shadow-[0_-12px_40px_rgb(0_0_0/0.55)] sm:gap-4 sm:p-4"
       aria-label="Your actions"
     >
       {/* Sizing: the amount, −/+ and the slider. */}
@@ -125,25 +125,24 @@ export function ActionBar({
             type="button"
             disabled={sizingOff || raiseTo <= minRaiseTo}
             aria-label={`Lower the bet by ${CHIP_UNIT}`}
-            className="btn btn-ghost tiny:size-8 tiny:text-xl flex size-10 shrink-0 items-center justify-center !p-0 text-2xl leading-none sm:size-11"
+            className="btn btn-ghost tiny:size-8 tiny:text-xl flex size-10 shrink-0 items-center justify-center !rounded-full !p-0 text-2xl leading-none font-light sm:size-11"
             {...minus}
           >
             −
           </button>
           <div className="text-center" aria-live="polite">
-            <p className="tiny:text-2xl text-[1.8rem] leading-none font-bold tracking-[-0.04em] sm:text-[2.1rem]">
+            <p className="font-num tiny:text-2xl text-[1.8rem] leading-none sm:text-[2.1rem]">
               {raiseTo.toLocaleString()}
             </p>
-            <p className="short:hidden landscape-phone:hidden tiny:hidden mt-1 text-xs text-white/50">
-              {canCheck ? 'Bet' : 'Raise to'} ·{' '}
-              {(raiseTo / bigBlind).toFixed(raiseTo % bigBlind ? 1 : 0)} BB
+            <p className="short:hidden landscape-phone:hidden tiny:hidden text-muted mt-1 text-xs">
+              {(raiseTo / bigBlind).toFixed(raiseTo % bigBlind ? 1 : 0)} big blinds
             </p>
           </div>
           <button
             type="button"
             disabled={sizingOff || raiseTo >= maxRaiseTo}
             aria-label={`Raise the bet by ${CHIP_UNIT}`}
-            className="btn btn-ghost tiny:size-8 tiny:text-xl flex size-10 shrink-0 items-center justify-center !p-0 text-2xl leading-none sm:size-11"
+            className="btn btn-ghost tiny:size-8 tiny:text-xl flex size-10 shrink-0 items-center justify-center !rounded-full !p-0 text-2xl leading-none font-light sm:size-11"
             {...plus}
           >
             +
@@ -178,8 +177,8 @@ export function ActionBar({
                 aria-pressed={active}
                 className={`tiny:py-1 landscape-phone:py-1 tiny:text-[0.7rem] landscape-phone:text-[0.7rem] rounded-full border py-1.5 text-xs font-semibold whitespace-nowrap transition ${
                   active
-                    ? 'border-gold bg-gold/15 text-gold'
-                    : 'border-white/10 bg-white/5 text-white/80 hover:bg-white/10'
+                    ? 'border-brass/70 bg-brass/15 text-brass'
+                    : 'bg-surface-2 text-paper/80 border-white/[0.06] hover:bg-white/10'
                 } disabled:cursor-not-allowed`}
               >
                 {label}

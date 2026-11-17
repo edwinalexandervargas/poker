@@ -15,10 +15,10 @@ interface HandStrengthProps {
 export function HandStrength({ name, nut = null }: HandStrengthProps) {
   return (
     <div
-      className="glass-dark short:py-1 landscape-phone:py-1 w-full max-w-md rounded-2xl px-3 py-2"
+      className="panel short:py-1.5 landscape-phone:py-1.5 tiny:flex tiny:items-center tiny:gap-3 tiny:py-2 w-full max-w-md rounded-2xl px-3.5 py-2 !shadow-none"
       aria-live="polite"
     >
-      <p className="text-sm font-semibold">{name}</p>
+      <p className="tiny:shrink-0 text-sm font-semibold">{name}</p>
       {nut && <NutMeter nut={nut} />}
     </div>
   )
@@ -36,7 +36,7 @@ function NutMeter({ nut }: { nut: NutStrength }) {
   const hue = Math.round(score * 130)
   return (
     <div
-      className="short:mt-1 landscape-phone:mt-1 mt-1.5 h-2 overflow-hidden rounded-full bg-white/10"
+      className="short:mt-1 landscape-phone:mt-1 tiny:!mt-0 tiny:flex-1 mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10"
       role="meter"
       aria-label={isNuts ? 'Nut meter: you have the nuts' : 'Nut meter'}
       aria-valuemin={0}

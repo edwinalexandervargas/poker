@@ -1,5 +1,10 @@
 import { initializeApp } from 'firebase/app'
-import { connectAuthEmulator, getAuth } from 'firebase/auth'
+import {
+  browserLocalPersistence,
+  connectAuthEmulator,
+  indexedDBLocalPersistence,
+  initializeAuth,
+} from 'firebase/auth'
 import { connectFunctionsEmulator, getFunctions } from 'firebase/functions'
 
 // `npm run dev` talks to the local emulators. The "demo-" project id tells Firebase this is
@@ -27,7 +32,12 @@ export const app = initializeApp(
       },
 )
 
-export const auth = getAuth(app)
+// initializeAuth instead of getAuth: getAuth also bundles the pop-up and redirect sign-in code
+// (for Google, GitHub... sign-in), which this app never uses since everyone is anonymous.
+// Same storage as getAuth, so players who already have a seat keep their identity.
+export const auth = initializeAuth(app, {
+  persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+})
 export const functions = getFunctions(app)
 
 // Firestore lives in ./db.ts: it is the biggest part of the Firebase SDK and only the

@@ -1,7 +1,9 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MAX_SEATS } from '@shared/engine/types'
+import { Avatar } from '@/components/Avatar'
+import { BackIcon, CheckIcon, LinkIcon } from '@/components/Icons'
 import type { SeatedPlayer } from '@/lib/useRoom'
+import { useInvite } from '@/lib/useInvite'
 
 interface WaitingRoomProps {
   code: string
@@ -13,7 +15,7 @@ interface WaitingRoomProps {
   error: string | null
 }
 
-/** Shown to a seated player until the game starts. */
+/** Shown to a seated player until the game starts: the code, the invite, and the eight seats. */
 export function WaitingRoom({
   code,
   players,
@@ -22,79 +24,81 @@ export function WaitingRoom({
   starting,
   error,
 }: WaitingRoomProps) {
-  const [copied, setCopied] = useState(false)
+  const { share, copied } = useInvite(code)
   const full = players.length >= MAX_SEATS
   const canStart = players.length >= 2
-
-  async function share() {
-    const url = `${window.location.origin}/room/${code}`
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: 'Join my poker table', url })
-      } else {
-        await navigator.clipboard.writeText(url)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-      }
-    } catch {
-      // The person closed the share sheet, or the browser blocked copying. Nothing to do.
-    }
-  }
+  const bySeat = new Map(players.map((p) => [p.seat, p]))
 
   return (
-    <main className="mx-auto flex min-h-svh max-w-md flex-col items-center justify-center gap-6 px-4 text-center">
-      <p className="text-sm tracking-widest text-white/60 uppercase">Your table code</p>
-      <h1 className="text-6xl font-bold tracking-[0.3em]">{code}</h1>
-
-      {!full && (
-        <button type="button" onClick={share} className="btn btn-gold">
-          {copied ? 'Link copied!' : 'Share invite link'}
-        </button>
-      )}
-
-      <ul className="w-full space-y-2" aria-label="Players at the table">
-        {players
-          .toSorted((a, b) => a.seat - b.seat)
-          .map((player) => (
-            <li
-              key={player.uid}
-              className="glass rounded-full px-5 py-3 text-left font-medium"
-            >
-              {player.name}
-            </li>
-          ))}
-        {!full && (
-          <li className="rounded-lg border-2 border-dashed border-white/20 px-4 py-3 text-white/50">
-            {canStart
-              ? `${players.length} of ${MAX_SEATS} seats taken. More can join, even after you start.`
-              : 'Waiting for at least one more player…'}
-          </li>
-        )}
-      </ul>
-
-      {canStart &&
-        (isHost ? (
-          <button
-            type="button"
-            onClick={onStart}
-            disabled={starting}
-            className="btn btn-gold text-lg"
-          >
-            {starting ? 'Dealing…' : 'Start game'}
-          </button>
-        ) : (
-          <p className="text-white/70">Waiting for the host to start the game…</p>
-        ))}
-
-      {error && (
-        <p role="alert" className="text-red-300">
-          {error}
-        </p>
-      )}
-
-      <Link to="/" className="text-sm underline underline-offset-4">
+    <main className="mx-auto flex min-h-svh max-w-md flex-col justify-center gap-6 px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+      <Link to="/" className="icon-btn -ml-2 self-start text-sm">
+        <BackIcon />
         Leave
       </Link>
+
+      <div className="text-center">
+        <p className="text-muted text-sm">Table code</p>
+        <h1 className="mt-1 text-6xl font-bold tracking-[0.16em]">{code}</h1>
+        {!full && (
+          <button type="button" onClick={share} className="btn btn-ghost mt-4 text-sm">
+            {copied ? <CheckIcon /> : <LinkIcon />}
+            {copied ? 'Link copied' : 'Share invite link'}
+          </button>
+        )}
+      </div>
+
+      {/* All eight seats: who's sitting, and how many are still open. */}
+      <ul className="grid grid-cols-2 gap-2" aria-label="Seats at the table">
+        {Array.from({ length: MAX_SEATS }, (_, seat) => {
+          const player = bySeat.get(seat)
+          return player ? (
+            <li
+              key={seat}
+              className="panel flex items-center gap-2.5 rounded-2xl p-2 !shadow-none"
+            >
+              <Avatar name={player.name} seat={seat} className="size-8 text-sm" />
+              <span className="truncate text-sm font-semibold">{player.name}</span>
+            </li>
+          ) : (
+            <li
+              key={seat}
+              className="text-muted/70 flex items-center gap-2.5 rounded-2xl border border-dashed border-white/10 p-2 text-sm"
+            >
+              <span className="size-8 rounded-full border border-dashed border-white/10" />
+              Open seat
+            </li>
+          )
+        })}
+      </ul>
+
+      <div className="flex flex-col items-center gap-2 text-center">
+        {canStart ? (
+          isHost ? (
+            <button
+              type="button"
+              onClick={onStart}
+              disabled={starting}
+              className="btn btn-gold w-full text-lg"
+            >
+              {starting ? 'Dealing…' : `Start with ${players.length} players`}
+            </button>
+          ) : (
+            <p className="text-muted">Waiting for the host to start the game…</p>
+          )
+        ) : (
+          <p className="text-muted">Waiting for at least one more player…</p>
+        )}
+        {canStart && !full && (
+          <p className="text-muted text-xs">
+            More can join after you start, from the next hand.
+          </p>
+        )}
+        {error && (
+          <p role="alert" className="text-fold text-sm">
+            {error}
+          </p>
+        )}
+      </div>
     </main>
   )
 }

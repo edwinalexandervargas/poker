@@ -1,4 +1,5 @@
 import { signInAnonymously, type User } from 'firebase/auth'
+import { appCheckReady } from '@/lib/appCheck'
 import { auth } from '@/lib/firebase'
 
 let pending: Promise<User> | null = null
@@ -11,6 +12,7 @@ let pending: Promise<User> | null = null
 export function ensureSignedIn(): Promise<User> {
   pending ??= (async () => {
     // Wait for Firebase to finish restoring a saved sign-in before deciding we need a new one.
+    await appCheckReady
     await auth.authStateReady()
     if (auth.currentUser) return auth.currentUser
     const credential = await signInAnonymously(auth)

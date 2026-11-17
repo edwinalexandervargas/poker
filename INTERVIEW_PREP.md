@@ -74,6 +74,15 @@ Cover the answer, say it out loud, then compare. Each answer is short on purpose
 
 46. **How does the nut meter work, and how is it different from the win bar?** The win bar is a Monte Carlo estimate against how many players are still in. The nut meter is exact: the server lists every two-card hand an opponent could have from the unseen cards (about 1,000), counts how many beat mine, and fills the bar by the share I beat. Nothing beats me, so it's the nuts and the bar is full. It's deterministic, so tests check exact counts like 1,081 combos on the flop. I changed the fill from "share of combos beaten" to "your step on the ladder of distinct hands", because most combos are junk and top pair looked nearly full. [59, 63]
 
+## Redesign and polish
+
+47. **How did you modernise the UI without breaking the layouts you'd tuned?** Every colour, radius and button lives in a few tokens and component classes in `index.css`, so most of the redesign was changing those. For the layout, I measured the page height and table size at ten window sizes with Playwright, on the old build and the new one; where the new top bar was taller, I kept its layout height the same and let the buttons spill into the spacing. [70]
+48. **How does the turn ring count down without re-rendering every 250 ms?** The ring reads the clock once when it appears and hands the time left to a CSS animation as a custom property. React only re-renders it when the deadline changes, because the deadline is its key. [71]
+49. **What did you do to make the first load faster this time?** Measured first: I read the build's source maps to see what was in each chunk. Then I swapped `getAuth` for `initializeAuth` to drop pop-up sign-in code I never use, kept Motion out of the lobby, used `LazyMotion` at the table, and split libraries into their own chunks. The lobby went from 162 KB to 115 KB gzipped. [73]
+50. **Why put libraries in separate chunks?** Caching. My assets are cached forever by filename hash. If React lives in the same file as my code, every deploy changes that file and players download React again. In its own chunk its hash only changes when I upgrade React. [73]
+51. **How would you turn on App Check without breaking the live game?** In two steps. The site starts sending tokens first; the server keeps accepting everything while I watch the metrics. When nearly all requests are verified, I flip one environment variable so the functions enforce it. Requests wait for App Check before they're sent, so even the first call has a token. [74]
+52. **What does your CI run?** Lint, the format check, the unit and stress tests, the site build and the functions build, on every push and pull request. Deploys stay manual. [74]
+
 ## Honest limitations (say these before they ask)
 
 - It's deployed, but without App Check, so anyone with the web settings could call the functions (they still enforce every rule). [39]

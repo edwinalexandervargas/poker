@@ -18,7 +18,11 @@ export function ActionLog({ lines }: ActionLogProps) {
   }, [lines])
 
   if (lines.length === 0) {
-    return <p className="text-white/60">Nothing has happened at this table yet.</p>
+    return (
+      <p className="text-muted py-6 text-center">
+        Each bet, card and win is listed here.
+      </p>
+    )
   }
 
   return (
@@ -29,11 +33,15 @@ export function ActionLog({ lines }: ActionLogProps) {
           <li
             key={line.id}
             ref={i === lines.length - 1 ? endRef : undefined}
-            className={`${startsHand && i > 0 ? 'mt-2 border-t border-white/10 pt-2' : ''} ${
-              startsHand ? 'font-semibold text-white' : 'text-white/75'
+            className={`${startsHand && i > 0 ? 'mt-3' : ''} ${
+              startsHand ? 'mb-1' : 'text-paper/75 border-l border-white/10 pl-3'
             }`}
           >
-            {line.text}
+            {startsHand ? (
+              <span className="chip font-num !px-2.5 !py-0.5 text-xs">{line.text}</span>
+            ) : (
+              line.text
+            )}
           </li>
         )
       })}

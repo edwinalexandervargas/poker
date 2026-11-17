@@ -27,10 +27,10 @@ import { useRoom, type SeatedPlayer } from '@/lib/useRoom'
 
 function Message({ children }: { children: React.ReactNode }) {
   return (
-    <main className="mx-auto flex min-h-svh max-w-md flex-col items-center justify-center gap-4 px-4 text-center">
-      <p className="text-lg">{children}</p>
-      <Link to="/" className="underline underline-offset-4">
-        Back to lobby
+    <main className="mx-auto flex min-h-svh max-w-md flex-col items-center justify-center gap-4 px-5 text-center">
+      <p className="text-lg text-balance">{children}</p>
+      <Link to="/" className="btn btn-ghost text-sm">
+        Back to the lobby
       </Link>
     </main>
   )

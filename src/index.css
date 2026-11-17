@@ -29,34 +29,43 @@
 @custom-variant short (@media (orientation: portrait) and (max-height: 760px));
 
 @theme {
-  --font-sans: 'Inter', system-ui, 'Segoe UI', Roboto, sans-serif;
+  /* Geist for everything you read; Bricolage Grotesque (narrowed, heavy) for the numbers
+     that matter at a table: card ranks, the pot, bets and stacks, the bet you're sizing. */
+  --font-sans: 'Geist Variable', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Bricolage Grotesque Variable', 'Geist Variable', system-ui, sans-serif;
 
-  /* Dark & sleek. One loud thing: the glowing felt. Everything else stays quiet. */
-  --color-ink: #070d0a; /* the room */
-  --color-ink-raised: #0e1713; /* dialogs */
-  --color-felt-900: #0b4a30; /* felt edge */
-  --color-felt-800: #106341;
-  --color-felt-700: #1a8f5c; /* felt centre, under the light */
-  --color-rail: #120d09;
-  --color-gold: #e3be62;
-  --color-chip-gold: #e3be62;
-  --color-paper: #f2efe6; /* text */
-  --color-card-back: #13211a;
-  --color-fold: #d9444b;
-  --color-call: #2f7fd1;
+  /* A dim card room in cool slate. The felt is the only loud colour on the screen. */
+  --color-ink: #0c1117; /* the room */
+  --color-surface: #141b24; /* panels and sheets */
+  --color-surface-2: #1c2531; /* raised controls */
+  --color-line: #2a3442; /* hairlines */
+  --color-felt-700: #12806a; /* felt under the light */
+  --color-felt-800: #0d5e4f;
+  --color-felt-900: #083a33; /* felt at the rail */
+  --color-rail: #1a2029;
+  --color-paper: #e9eef5; /* text */
+  --color-muted: #8b97a8; /* secondary text */
+  --color-brass: #f5b83d; /* you, your turn, the main action */
+  --color-gold: #f5b83d;
+  --color-chip-gold: #f5b83d;
+  --color-call: #22b893;
+  --color-fold: #f0768a;
+  --color-up: #3ddc97;
+  --color-down: #f0768a;
+  --color-card-back: #17233a;
 
   --animate-turn-glow: turn-glow 1.6s ease-in-out infinite;
   @keyframes turn-glow {
     0%,
     100% {
       box-shadow:
-        0 0 0 1.5px rgb(227 190 98 / 0.95),
-        0 0 0 0 rgb(227 190 98 / 0.45);
+        0 0 0 2px rgb(245 184 61 / 0.95),
+        0 0 0 0 rgb(245 184 61 / 0.4);
     }
     50% {
       box-shadow:
-        0 0 0 1.5px rgb(227 190 98 / 0.95),
-        0 0 18px 6px rgb(227 190 98 / 0);
+        0 0 0 2px rgb(245 184 61 / 0.95),
+        0 0 16px 5px rgb(245 184 61 / 0);
     }
   }
 }
@@ -69,65 +78,133 @@ body,
 
 body {
   margin: 0;
-  /* A dim room with a light over the table. */
+  /* One soft light over the table, the rest of the room falls away. */
   background:
-    radial-gradient(ellipse 80% 55% at 50% 30%, rgb(26 143 92 / 0.16), transparent 70%),
+    radial-gradient(ellipse 70% 50% at 50% 32%, rgb(18 128 106 / 0.14), transparent 70%),
+    radial-gradient(ellipse 120% 80% at 50% 120%, rgb(23 35 58 / 0.6), transparent 60%),
     var(--color-ink);
   background-attachment: fixed;
   color: var(--color-paper);
   font-family: var(--font-sans);
-  font-feature-settings:
-    'tnum', 'cv11'; /* numbers line up and don't jitter as they change */
+  font-feature-settings: 'tnum'; /* numbers line up and don't jitter as they change */
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-gold);
+  outline: 2px solid var(--color-brass);
   outline-offset: 2px;
 }
 
+@utility font-num {
+  /* The numbers face: heavy and a little narrow, so big amounts stay compact. */
+  font-family: var(--font-display);
+  font-stretch: 88%;
+  font-weight: 700;
+  font-feature-settings: 'tnum';
+  letter-spacing: -0.02em;
+}
+
 @layer components {
-  /* Card backs: dark green-black with a fine gold lattice, to match the table. */
+  /* Card backs: deep navy with a fine brass diamond lattice and an inset frame. */
   .card-back {
     background:
-      repeating-linear-gradient(45deg, rgb(227 190 98 / 0.13) 0 1px, transparent 1px 7px),
+      radial-gradient(circle at 50% 50%, rgb(245 184 61 / 0.18) 0 18%, transparent 19%),
+      repeating-linear-gradient(45deg, rgb(245 184 61 / 0.16) 0 1px, transparent 1px 6px),
       repeating-linear-gradient(
         -45deg,
-        rgb(227 190 98 / 0.13) 0 1px,
-        transparent 1px 7px
+        rgb(245 184 61 / 0.16) 0 1px,
+        transparent 1px 6px
       ),
-      linear-gradient(160deg, #1b3326, #0c1611);
-    border: 1.5px solid rgb(227 190 98 / 0.75);
+      linear-gradient(160deg, #22325200, #0f1829), #17233a;
+    border: 1px solid rgb(255 255 255 / 0.14);
+    box-shadow:
+      0 4px 10px rgb(0 0 0 / 0.4),
+      inset 0 1px 0 rgb(255 255 255 / 0.08);
   }
 
-  /* Frosted glass: every panel, plate and pill. */
+  /* Panels off the felt: flat slate with a hairline, a little lift. */
+  .panel {
+    background: color-mix(in oklab, var(--color-surface) 92%, transparent);
+    border: 1px solid rgb(255 255 255 / 0.07);
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.04) inset,
+      0 16px 40px rgb(0 0 0 / 0.35);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  /* Kept for older markup: same as .panel. */
   .glass {
-    background: rgb(255 255 255 / 0.06);
-    border: 1px solid rgb(255 255 255 / 0.09);
-    backdrop-filter: blur(14px) saturate(140%);
-    -webkit-backdrop-filter: blur(14px) saturate(140%);
-    box-shadow: 0 8px 30px rgb(0 0 0 / 0.35);
+    background: color-mix(in oklab, var(--color-surface) 92%, transparent);
+    border: 1px solid rgb(255 255 255 / 0.07);
+    box-shadow: 0 16px 40px rgb(0 0 0 / 0.35);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
+  /* Small dark tags that sit on the felt: bets, the pot, seat plates. */
   .glass-dark {
-    background: rgb(5 10 8 / 0.62);
+    background: rgb(8 12 17 / 0.72);
     border: 1px solid rgb(255 255 255 / 0.08);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
-  /* Pill buttons. */
-  .btn {
+  /* A small rounded label: quick bets, statuses, filters. */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
     border-radius: 9999px;
-    padding: 0.8rem 1.5rem;
+    padding: 0.3rem 0.7rem;
     font-weight: 600;
+    background: var(--color-surface-2);
+    border: 1px solid rgb(255 255 255 / 0.06);
+    color: rgb(233 238 245 / 0.85);
+  }
+
+  /* A poker chip, drawn in CSS: a coloured disc with an edge of stripes and a centre inlay.
+     Sized by font-size, so it follows the text it sits next to. */
+  .chip-token {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 1em;
+    height: 1em;
+    border-radius: 9999px;
+    background:
+      radial-gradient(
+        circle,
+        var(--chip, #f5b83d) 0 34%,
+        rgb(255 255 255 / 0.9) 35% 40%,
+        transparent 41%
+      ),
+      repeating-conic-gradient(
+        rgb(255 255 255 / 0.92) 0 18deg,
+        var(--chip, #f5b83d) 18deg 45deg
+      );
+    box-shadow:
+      0 0 0 1px rgb(0 0 0 / 0.35),
+      0 1px 2px rgb(0 0 0 / 0.5);
+  }
+
+  /* Buttons. */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.9rem;
+    padding: 0.8rem 1.4rem;
+    font-weight: 650;
     letter-spacing: -0.01em;
     transition:
       transform 120ms ease,
       filter 120ms ease,
+      background-color 120ms ease,
       opacity 120ms ease;
   }
   .btn:active:not(:disabled) {
-    transform: scale(0.97);
+    transform: translateY(1px) scale(0.985);
   }
   .btn:hover:not(:disabled) {
     filter: brightness(1.08);
@@ -137,56 +214,104 @@ body {
     cursor: not-allowed;
   }
   .btn-gold {
-    background: linear-gradient(180deg, #f0d27f, #d4a945);
-    color: #1c1405;
+    background: var(--color-brass);
+    color: #1d1404;
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.45),
-      0 6px 20px rgb(227 190 98 / 0.22);
-  }
-  .btn-fold {
-    background: linear-gradient(180deg, #e2585e, #b9343b);
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2);
+      inset 0 1px 0 rgb(255 255 255 / 0.4),
+      inset 0 -2px 0 rgb(0 0 0 / 0.15),
+      0 8px 24px rgb(245 184 61 / 0.2);
   }
   .btn-call {
-    background: linear-gradient(180deg, #4a95e0, #2667b0);
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2);
+    background: var(--color-call);
+    color: #04140f;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.35),
+      inset 0 -2px 0 rgb(0 0 0 / 0.15);
+  }
+  /* Folding is always allowed but never the loud choice: a quiet button with red text. */
+  .btn-fold {
+    background: var(--color-surface-2);
+    color: var(--color-fold);
+    border: 1px solid rgb(240 118 138 / 0.25);
   }
   .btn-ghost {
+    background: var(--color-surface-2);
+    border: 1px solid rgb(255 255 255 / 0.07);
+  }
+  /* A round icon button for the top bar. */
+  .icon-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    height: 1.85rem;
+    min-width: 2.1rem;
+    padding: 0 0.55rem;
+    border-radius: 9999px;
+    color: rgb(233 238 245 / 0.75);
+    transition:
+      background-color 120ms ease,
+      color 120ms ease;
+  }
+  .icon-btn:hover {
     background: rgb(255 255 255 / 0.07);
-    border: 1px solid rgb(255 255 255 / 0.1);
+    color: var(--color-paper);
   }
 
   .field {
-    border-radius: 9999px;
-    padding: 0.8rem 1.25rem;
-    background: rgb(255 255 255 / 0.06);
-    border: 1px solid rgb(255 255 255 / 0.1);
+    border-radius: 0.9rem;
+    padding: 0.8rem 1rem;
+    background: rgb(8 12 17 / 0.6);
+    border: 1px solid var(--color-line);
     color: var(--color-paper);
+    transition:
+      border-color 120ms ease,
+      box-shadow 120ms ease;
   }
   .field::placeholder {
-    color: rgb(242 239 230 / 0.45);
+    color: rgb(139 151 168 / 0.85);
   }
   .field:focus {
     outline: none;
-    border-color: rgb(227 190 98 / 0.7);
-    box-shadow: 0 0 0 3px rgb(227 190 98 / 0.15);
+    border-color: rgb(245 184 61 / 0.7);
+    box-shadow: 0 0 0 3px rgb(245 184 61 / 0.15);
   }
 
-  /* The table: emerald under a spotlight, a dark rail with a thin gold line. */
+  /* The table: teal baize with a soft light, a graphite rail with a lit top edge, and a faint
+     betting line drawn inside it. */
   .felt {
-    background: radial-gradient(
-      ellipse 70% 60% at 50% 42%,
-      var(--color-felt-700),
-      var(--color-felt-800) 55%,
-      var(--color-felt-900) 100%
-    );
-    border: 10px solid var(--color-rail);
+    background:
+      radial-gradient(
+        ellipse 72% 62% at 50% 40%,
+        rgb(255 255 255 / 0.07),
+        transparent 70%
+      ),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      radial-gradient(
+        ellipse 75% 65% at 50% 42%,
+        var(--color-felt-700),
+        var(--color-felt-800) 58%,
+        var(--color-felt-900) 100%
+      );
+    border: 11px solid var(--color-rail);
     box-shadow:
-      0 0 0 1px rgb(227 190 98 / 0.55),
-      inset 0 0 0 1px rgb(227 190 98 / 0.25),
-      inset 0 0 60px rgb(0 0 0 / 0.5),
-      0 30px 80px rgb(0 0 0 / 0.6),
-      0 0 120px rgb(26 143 92 / 0.18);
+      0 -1px 0 1px rgb(255 255 255 / 0.1),
+      0 0 0 1px rgb(0 0 0 / 0.6),
+      inset 0 0 0 1px rgb(255 255 255 / 0.12),
+      inset 0 0 0 9px rgb(0 0 0 / 0.12),
+      inset 0 12px 40px rgb(0 0 0 / 0.45),
+      0 30px 80px rgb(0 0 0 / 0.55),
+      0 0 140px rgb(18 128 106 / 0.16);
+  }
+  /* The thin line inside the felt where bets are pushed to. */
+  .felt::before {
+    content: '';
+    position: absolute;
+    inset: 9%;
+    border-radius: inherit;
+    border: 1px solid rgb(255 255 255 / 0.07);
+    pointer-events: none;
   }
 
   /* An on/off switch, drawn from a plain checkbox (so it keeps working with the keyboard). */
@@ -197,8 +322,8 @@ body {
     width: 2.75rem;
     height: 1.6rem;
     border-radius: 9999px;
-    background: rgb(255 255 255 / 0.12);
-    border: 1px solid rgb(255 255 255 / 0.12);
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-line);
     cursor: pointer;
     transition: background 150ms ease;
   }
@@ -210,64 +335,93 @@ body {
     width: calc(1.6rem - 6px);
     height: calc(1.6rem - 6px);
     border-radius: 9999px;
-    background: #f2efe6;
+    background: #e9eef5;
     box-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
     transition: transform 150ms ease;
   }
   .toggle:checked {
-    background: linear-gradient(180deg, #f0d27f, #d4a945);
+    background: var(--color-brass);
+    border-color: transparent;
   }
   .toggle:checked::after {
     transform: translateX(1.15rem);
+    background: #1d1404;
   }
 
-  /* The raise slider. */
-  /* Gold fill up to the thumb (--fill is set by the component), dim track after it. */
+  /* The raise slider: brass fill up to the thumb (--fill is set by the component). */
   .slider {
     -webkit-appearance: none;
     appearance: none;
-    height: 8px;
+    height: 6px;
     border-radius: 9999px;
     background: linear-gradient(
       90deg,
-      #d4a945 0,
-      #f0d27f var(--fill, 0%),
+      var(--color-brass) var(--fill, 0%),
       rgb(255 255 255 / 0.1) var(--fill, 0%)
     );
     cursor: pointer;
   }
   .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     border-radius: 9999px;
-    background: radial-gradient(circle at 50% 35%, #fff6d8, #e3be62 60%, #b98a2c);
-    border: 3px solid #0e1713;
-    box-shadow:
-      0 0 0 1.5px rgb(227 190 98 / 0.8),
-      0 4px 12px rgb(0 0 0 / 0.55),
-      0 0 18px rgb(227 190 98 / 0.35);
+    background: #fff;
+    border: 5px solid var(--color-brass);
+    box-shadow: 0 2px 10px rgb(0 0 0 / 0.5);
     transition: transform 120ms ease;
   }
   .slider:active::-webkit-slider-thumb {
     transform: scale(1.12);
   }
   .slider::-moz-range-thumb {
-    width: 22px;
-    height: 22px;
+    width: 16px;
+    height: 16px;
     border-radius: 9999px;
-    background: radial-gradient(circle at 50% 35%, #fff6d8, #e3be62 60%, #b98a2c);
-    border: 3px solid #0e1713;
-    box-shadow: 0 0 0 1.5px rgb(227 190 98 / 0.8);
+    background: #fff;
+    border: 5px solid var(--color-brass);
+    box-shadow: 0 2px 10px rgb(0 0 0 / 0.5);
   }
   .slider:disabled {
     opacity: 0.4;
   }
+
+  /* The countdown ring around the avatar of whoever is on the clock. The SVG circle's dash is
+     drained by a CSS animation (no re-renders), from where the clock stood when it appeared. */
+  .turn-ring .ring-fill {
+    animation: ring-drain var(--ring-ms, 30000ms) linear forwards;
+  }
+  @keyframes ring-drain {
+    from {
+      stroke-dashoffset: var(--ring-from, 0);
+      stroke: var(--color-brass);
+    }
+    75% {
+      stroke: var(--color-brass);
+    }
+    to {
+      stroke-dashoffset: 100;
+      stroke: var(--color-fold);
+    }
+  }
+
+  /* Bottom sheet entrance for dialogs. */
+  .sheet-in {
+    animation: sheet-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  @keyframes sheet-in {
+    from {
+      transform: translateY(16px);
+      opacity: 0;
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .btn {
+  .btn,
+  .sheet-in {
     transition: none;
+    animation: none;
   }
 }
 
@@ -277,7 +431,7 @@ body {
   html {
     font-size: clamp(15px, 2.1svh, 24px);
   }
-  main {
+  main.table-main {
     max-width: 82rem !important;
     justify-content: center;
   }
@@ -291,10 +445,11 @@ body {
     padding-top: 2.5rem;
   }
   .table-nav {
+    height: auto !important;
     position: fixed;
     inset: 0 0 auto;
     z-index: 40;
     padding: 0.75rem 1.5rem;
-    background: linear-gradient(to bottom, rgb(7 13 10 / 0.9), transparent);
+    background: linear-gradient(to bottom, rgb(12 17 23 / 0.92), transparent);
   }
 }

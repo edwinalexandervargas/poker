@@ -1,12 +1,12 @@
 // What you have, and roughly how good it is. Pure game logic: no React, no Firebase.
 //
 // The server works these out for each player privately (only that player can read them).
-// The estimate NEVER looks at the real deck: the server knows the coming cards, and using them
-// would leak the future (a bar jumping to 100% before the river). Instead it imagines every
+// The nut meter NEVER looks at the real deck: the server knows the coming cards, and using them
+// would leak the future (a bar jumping to full before the river). Instead it treats every
 // unseen card as possible, which is exactly what a player has to do.
 
 import pokersolver from 'pokersolver'
-import { createDeck, type RandomInt } from './deck.js'
+import { createDeck } from './deck.js'
 import type { Card } from './types.js'
 import { handTitle } from './showdown.js'
 
@@ -45,61 +45,6 @@ export function handLabel(hole: readonly Card[], community: readonly Card[]): st
   return handTitle(Hand.solve([...hole, ...community]).descr)
 }
 
-export interface EquityInput {
-  hole: readonly Card[]
-  community: readonly Card[]
-  /** Players still in the hand besides you. */
-  opponents: number
-  /** How many random run-outs to try. More is steadier and slower. */
-  iterations: number
-  randomInt: RandomInt
-}
-
-/**
- * Your share of the pot on average, from 0 to 1, if everyone still in went to showdown:
- * deal the opponents random cards and finish the board at random, many times, and count
- * wins (a tie counts as your share of it). A rough guide, not a promise.
- */
-export function estimateEquity({
-  hole,
-  community,
-  opponents,
-  iterations,
-  randomInt,
-}: EquityInput): number {
-  if (opponents <= 0) return 1
-  const known = new Set<string>([...hole, ...community])
-  const unseen = createDeck().filter((card) => !known.has(card))
-  const needed = opponents * 2 + (5 - community.length)
-
-  let won = 0
-  for (let run = 0; run < iterations; run++) {
-    // Partial shuffle: only the cards this run needs.
-    const pool = [...unseen]
-    for (let i = 0; i < needed; i++) {
-      const j = i + randomInt(pool.length - i)
-      ;[pool[i], pool[j]] = [pool[j]!, pool[i]!]
-    }
-    const board = [...community, ...pool.slice(opponents * 2, needed)]
-    const mine = Hand.solve([...hole, ...board])
-    const theirs = Array.from({ length: opponents }, (_, k) =>
-      Hand.solve([pool[k * 2]!, pool[k * 2 + 1]!, ...board]),
-    )
-    const winners = Hand.winners([mine, ...theirs])
-    if (winners.includes(mine)) won += 1 / winners.length
-  }
-  return won / iterations
-}
-
-/** How many run-outs to try so the work stays about the same at any table size. */
-export function equityIterations(
-  players: number,
-  opponents: number,
-  budget = 6000,
-): number {
-  return Math.max(60, Math.min(1500, Math.floor(budget / (players * (opponents + 1)))))
-}
-
 export interface NutStrength {
   /**
    * 0 to 1: where your hand sits on the ladder of different hands this board makes possible.
@@ -119,8 +64,7 @@ export interface NutStrength {
  * Exact, not a simulation: it tries every two cards an opponent could hold (1,081 on the flop,
  * fewer later), sorts the hands they make into a ladder of different strengths (two combos that
  * would tie are one step), and finds your step. It's re-run as each card comes, so the bar moves
- * with the board. Like the equity estimate it only uses cards you
- * can see. Null before the flop, when there's no board to have the nuts on.
+ * with the board. It only uses cards you can see. Null before the flop, when there's no board to have the nuts on.
  */
 export function nutStrength(
   hole: readonly Card[],

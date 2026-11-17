@@ -471,3 +471,45 @@ Each entry: what I did, why, what else I considered, and what it costs.
 - **What:** The chip stacks are gone (beside your seat, in bets, and in the pot); bets and the pot show their amounts. The Min / ½ Pot / Pot / All-in buttons show at every size, smaller on short and sideways screens. Board cards are sized in table units at every size, other players' seats shrink a step at a time on smaller tables (container queries), and the board sits lower on the felt so bets around it stay clear.
 - **Why:** At small sizes the chips crowded the felt and covered cards, and fixed-size seats and board cards collided once the table shrank to fit the window. The quick-bet buttons are how most people bet, so hiding them at some sizes made those layouts harder to play.
 - **Trade-off:** Less casino feel without chip stacks. The chip-breakdown code (`ChipStack`, `lib/chips`) was deleted with them; it's in git history (DECISIONS #37) if it comes back. The board is centred on the felt, with the pot hung just under it (absolutely positioned, so it never pushes the board off centre); the empty board slots use the same table units as the cards. The bet controls use one spacing rhythm at every size.
+
+## 70. A modern redesign: slate room, teal felt, a face for every player
+
+- **What:** The room went from green-black to a cool slate, and the felt to a teal baize with a faint betting line and a graphite rail. Panels are flat slate with hairlines instead of frosted gold-edged glass. Type is Geist for reading and Bricolage Grotesque (heavy, slightly narrowed) for the numbers that matter: stacks, bets, the pot and the bet you're sizing. Every seat has its own colour, used for that player's initials avatar at the table, in the scoreboard and in chat. Opponents' cards fan out above a pill with avatar, name and chips. Actions are colour-coded the way modern poker apps do it: fold is a quiet button with red text, check/call is teal, raise is brass. Dialogs are bottom sheets on phones. The scoreboard ranks players with avatars and green/red result badges, and the winner's plate shows a "+880" badge at the end of a hand. The top bar uses icons (with labels on wide screens), and the table code is a button that shares the invite.
+- **Why:** The old look worked, but the gold-on-black glass read as dated next to current poker apps. Avatars and seat colours make an 8-player table readable at a glance, which matters more than decoration. All of it is still a small set of tokens and component classes in `index.css` (`panel`, `chip`, `chip-token`, `btn-*`, `icon-btn`, `felt`, `card-back`).
+- **Alternative I rejected:** A light theme, or a casino-red felt. A dark room keeps the felt and cards as the brightest things on the screen.
+- **Trade-off:** The top bar's buttons are taller than the old text links. To keep every layout's sizing (DECISIONS #55, #61, #66) unchanged, the bar is laid out at the old 1.25rem height and its buttons spill into the spacing around it; I checked page heights at ten window sizes against the old build.
+
+## 71. The turn clock is a ring around the avatar, animated by CSS
+
+- **What:** Whoever is on the clock gets a ring that drains around their avatar, brass turning red at the end. The bar above the controls stays too.
+- **Why:** You see whose turn it is and how long they have without looking away from the table. The ring reads the clock once when it appears (keyed by the deadline) and a CSS animation drains it from there, so the countdown costs no React re-renders.
+- **Trade-off:** If the server moves the deadline mid-turn, the ring restarts from the new one (the key changes), which is the behaviour we want anyway.
+
+## 72. One chip, not chip stacks
+
+- **What:** Bets and the pot show a single small poker chip drawn in CSS (a coloured disc with an edge of stripes) next to the amount. A bet's chip is in the bettor's seat colour.
+- **Why:** #69 removed chip stacks because they crowded the felt. One chip the size of the text brings back the casino feel and shows whose bet is whose, without taking any more room.
+
+## 73. A lighter lobby and better caching
+
+- **What:**
+  - `initializeAuth` instead of `getAuth`, which also bundles the pop-up and redirect sign-in code that an anonymous-only app never uses. Same storage, so existing players keep their seats.
+  - The lobby's cards are static (no Motion), so the animation library only loads with the table.
+  - `LazyMotion` with `domAnimation` and `m.div` at the table, instead of the full `motion` component.
+  - Libraries in chunks of their own (React, Firebase core, Firestore, Motion).
+  - Fonts bundled from `@fontsource-variable` instead of Google Fonts.
+- **Why:** The lobby went from 162 KB to 115 KB of JavaScript (gzipped), and Motion from 51 KB to 37 KB. Library chunks rarely change, and assets are cached forever (#56), so after a deploy a returning player only downloads the app code that changed. Bundled fonts skip a connection to another server before the first paint.
+- **Trade-off:** The fonts (about 110 KB for the Latin subsets) are now our bytes to serve instead of Google's, though cached forever after the first visit. `LazyMotion strict` means a stray `motion.div` throws, on purpose.
+
+## 74. CI on every push, and App Check ready to switch on
+
+- **What:** A GitHub Actions workflow runs lint, the format check, every test, the site build and the functions build on each push and pull request. App Check is wired up on both ends but off until configured: the browser loads the App Check SDK only when a reCAPTCHA Enterprise site key is set, and the functions enforce it only when `ENFORCE_APP_CHECK=true` is in `functions/.env`.
+- **Why:** CI catches a broken build before a deploy. App Check stops scripts and copies of the app from calling the functions directly. Every request already waits for sign-in, so it also waits for App Check to be ready and the first call carries a token. Making enforcement a separate switch means you can watch the metrics until real traffic is verified before turning it on, and a deploy can never lock everyone out by accident.
+- **Trade-off:** reCAPTCHA Enterprise adds a script and a token request when it's turned on.
+
+## 75. A design preview page with made-up tables
+
+- **What:** In `npm run dev`, `/preview` draws the table from fake states (six players on the flop, heads-up preflop, a full table, a showdown) plus the waiting room and the join screen, with no emulators. In the production build the route is `null`, so none of it ships.
+- **Why:** Checking a layout used to mean opening several browser windows and playing to the right moment. Now one URL shows any situation at any window size, and the README screenshots come from it.
+
+Also removed: `estimateEquity` and `equityIterations` (the old Monte Carlo win estimate, unused since #64), and a lint warning in `FlyIn` (it now shows a card through Motion rather than setting the style by hand).

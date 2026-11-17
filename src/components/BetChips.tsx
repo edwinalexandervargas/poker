@@ -1,8 +1,11 @@
-import { motion, useReducedMotion } from 'motion/react'
+import { m, useReducedMotion } from 'motion/react'
+import { seatColor } from '@/lib/seatColors'
 import { POT_SPOT, type Spot } from '@/lib/seatLayout'
 
 interface BetChipsProps {
   amount: number
+  /** The chip is drawn in the bettor's seat colour. */
+  seat: number
   /** Where the player sits: the chips slide out from here. */
   from: Spot
   /** Where the chips rest on the felt. */
@@ -12,14 +15,14 @@ interface BetChipsProps {
 const pct = (n: number) => `${n}%`
 
 /**
- * One player's bet on the felt, shown as its amount. It slides out from their seat when placed, and when the
+ * One player's bet on the felt: a chip in their colour and the amount. It slides out from their seat when placed, and when the
  * betting round ends (the bet disappears) it sweeps into the pot. Wrap a list of these in
  * <AnimatePresence> so the sweep can play.
  */
-export function BetChips({ amount, from, to }: BetChipsProps) {
+export function BetChips({ amount, seat, from, to }: BetChipsProps) {
   const reduceMotion = useReducedMotion()
   return (
-    <motion.div
+    <m.div
       className="pointer-events-none absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5"
       initial={
         reduceMotion
@@ -34,9 +37,14 @@ export function BetChips({ amount, from, to }: BetChipsProps) {
       }
       transition={{ duration: 0.35, ease: 'easeOut' }}
     >
-      <span className="glass-dark rounded-full px-[clamp(0.3rem,1.2cqw,0.5rem)] py-[clamp(0rem,0.3cqw,0.125rem)] text-[clamp(0.6rem,1.9cqw,0.8rem)] leading-tight font-bold">
+      <span className="glass-dark font-num flex items-center gap-[0.3em] rounded-full py-[0.2em] pr-[0.55em] pl-[0.2em] text-[clamp(0.66rem,2cqw,0.9rem)] leading-none">
+        <span
+          className="chip-token text-[1.25em]"
+          style={{ ['--chip' as string]: seatColor(seat) }}
+          aria-hidden
+        />
         {amount.toLocaleString()}
       </span>
-    </motion.div>
+    </m.div>
   )
 }

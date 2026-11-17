@@ -9,7 +9,10 @@ describe('parseAction: valid moves', () => {
   })
 
   it('accepts a raise with a whole-number amount', () => {
-    expect(parseAction({ type: 'raise', amount: 60 })).toEqual({ type: 'raise', amount: 60 })
+    expect(parseAction({ type: 'raise', amount: 60 })).toEqual({
+      type: 'raise',
+      amount: 60,
+    })
   })
 })
 
@@ -51,7 +54,9 @@ describe('parseAction: bad raises', () => {
 
 describe('parseAction: extra fields', () => {
   it('throws away anything that is not part of an Action', () => {
-    expect(parseAction({ type: 'fold', admin: true, stack: 1e9 })).toEqual({ type: 'fold' })
+    expect(parseAction({ type: 'fold', admin: true, stack: 1e9 })).toEqual({
+      type: 'fold',
+    })
     expect(parseAction({ type: 'raise', amount: 60, sneaky: 'x' })).toEqual({
       type: 'raise',
       amount: 60,

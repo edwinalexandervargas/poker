@@ -22,10 +22,10 @@ export function UpdatePrompt() {
       <button
         type="button"
         onClick={() => window.location.reload()}
-        className="glass flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold"
+        className="panel flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold"
       >
-        <span className="size-2 rounded-full bg-[#e3be62]" aria-hidden />
-        New version available · <span className="text-[#e3be62]">Refresh</span>
+        <span className="bg-brass size-2 rounded-full" aria-hidden />
+        New version ready. <span className="text-brass">Refresh</span>
       </button>
     </div>
   )

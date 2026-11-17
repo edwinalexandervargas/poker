@@ -22,8 +22,10 @@ export function FlyIn({ delay, children, className }: FlyInProps) {
     if (!element) return
     const deck = document.querySelector('[data-deck]')
     if (!deck || reduceMotion) {
-      element.style.opacity = '1'
-      return
+      // Just show it where it is. Going through animate() (rather than setting the style by
+      // hand) keeps Motion in charge of the element's styles.
+      const show = animate(element, { opacity: 1 }, { duration: 0 })
+      return () => show.stop()
     }
 
     const from = deck.getBoundingClientRect()

@@ -26,15 +26,17 @@ export function TurnTimer({ turn, label }: TurnTimerProps) {
       aria-label={`${label}, ${Math.ceil(left / 1000)} seconds left`}
       className="w-full max-w-md"
     >
-      <div className="short:hidden landscape-phone:hidden tiny:hidden mb-1 flex justify-between text-sm text-white/70">
-        <span>{label}</span>
-        <span className={low ? 'text-red-300' : undefined}>
+      <div className="short:hidden landscape-phone:hidden tiny:hidden text-muted mb-1 flex items-baseline justify-between px-1 text-sm">
+        <span className={label === 'Your turn' ? 'text-brass font-semibold' : undefined}>
+          {label}
+        </span>
+        <span className={`font-num ${low ? 'text-fold' : 'text-paper'}`}>
           {Math.ceil(left / 1000)}s
         </span>
       </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+      <div className="h-1 overflow-hidden rounded-full bg-white/10">
         <div
-          className={`h-full rounded-full transition-[width] duration-300 ease-linear ${low ? 'bg-gradient-to-r from-[#e2585e] to-[#ff8a7a]' : 'bg-gradient-to-r from-[#d4a945] to-[#f0d27f]'}`}
+          className={`h-full rounded-full transition-[width] duration-300 ease-linear ${low ? 'bg-fold' : 'bg-brass'}`}
           style={{ width: `${share * 100}%` }}
         />
       </div>

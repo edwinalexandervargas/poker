@@ -3,19 +3,27 @@ interface PotDisplayProps {
   pot: number
 }
 
+/**
+ * Under the board: the pot's total, with a small pile of chips. Sized in units of the table's
+ * width (cqw), so it grows and shrinks with the table. Hidden while the pot is empty.
+ */
 export function PotDisplay({ pot }: PotDisplayProps) {
+  if (pot <= 0) return null
   return (
-    // Under the board: the pot's total. Sized in units of the table's width
-    // (cqw), so it grows and shrinks with the table.
-    <div className="flex items-center gap-[clamp(0.25rem,1.2cqw,0.6rem)]">
-      <div className="glass-dark flex items-baseline gap-[clamp(0.25rem,1.2cqw,0.5rem)] rounded-full px-[clamp(0.5rem,2.2cqw,1rem)] py-[clamp(0.1rem,0.7cqw,0.375rem)]">
-        <span className="text-[clamp(0.55rem,1.8cqw,0.75rem)] font-medium text-white/60">
-          Pot
-        </span>
-        <span className="text-[clamp(0.8rem,3cqw,1.125rem)] font-bold tracking-tight">
-          {pot.toLocaleString()}
-        </span>
-      </div>
+    <div className="glass-dark flex items-center gap-[0.45em] rounded-full py-[0.3em] pr-[0.8em] pl-[0.35em] text-[clamp(0.72rem,2.4cqw,1.05rem)] whitespace-nowrap">
+      <span className="relative flex h-[1.3em] w-[1.9em]" aria-hidden>
+        <span
+          className="chip-token absolute top-[0.15em] left-0 text-[1.1em]"
+          style={{ ['--chip' as string]: '#6aa8ff' }}
+        />
+        <span
+          className="chip-token absolute top-0 left-[0.4em] text-[1.1em]"
+          style={{ ['--chip' as string]: '#f27fb8' }}
+        />
+        <span className="chip-token absolute top-[0.2em] left-[0.8em] text-[1.1em]" />
+      </span>
+      <span className="text-muted text-[0.8em] font-medium">Pot</span>
+      <span className="font-num leading-none">{pot.toLocaleString()}</span>
     </div>
   )
 }
