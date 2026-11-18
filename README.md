@@ -1,5 +1,7 @@
 # Poker Table
 
+[![CI](https://github.com/edwinalexandervargas/poker/actions/workflows/ci.yml/badge.svg)](https://github.com/edwinalexandervargas/poker/actions/workflows/ci.yml)
+
 **Play-money Texas Hold'em for 2 to 8 friends, in the browser.** Share a link, everyone takes a seat, and the server deals. No accounts, nothing to install.
 
 **Play it:** [poker-fb69e.web.app](https://poker-fb69e.web.app)
@@ -38,7 +40,7 @@ Built with **React 19, TypeScript, Tailwind CSS v4, Motion, Zustand, and Firebas
 
 **One engine, three users.** `shared/engine/` is plain TypeScript with no React or Firebase: the Cloud Functions, the browser and the tests all import it. All per-player data is indexed by table seat 0 to 7.
 
-The reasoning behind 75+ design choices is in **[DECISIONS.md](DECISIONS.md)**, and [INTERVIEW_PREP.md](INTERVIEW_PREP.md) has the questions I practise with.
+The reasoning behind 75 design choices is in **[DECISIONS.md](DECISIONS.md)**, and [INTERVIEW_PREP.md](INTERVIEW_PREP.md) has the questions I practise with.
 
 ## Testing
 
@@ -111,8 +113,3 @@ firestore.rules  Clients read only; hole cards readable only by their owner
 scripts/         Smoke tests against the emulators
 docs/            README screenshots
 ```
-
-## What's next
-
-- A bot opponent, so one person can try a full game alone.
-- The full no-limit minimum-raise rule (currently: at least one big blind more).
