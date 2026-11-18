@@ -163,7 +163,7 @@ export function Table({
                 <span className="relative flex">
                   <ChatIcon />
                   {unread > 0 && (
-                    <span className="bg-fold absolute -top-1.5 -right-2 flex min-w-4 items-center justify-center rounded-full px-1 text-[0.62rem] leading-4 font-bold text-white">
+                    <span className="bg-fold absolute -top-2 -left-2 flex min-w-4 items-center justify-center rounded-full px-1 text-[0.62rem] leading-4 font-bold text-white">
                       {unread > 9 ? '9+' : unread}
                     </span>
                   )}
